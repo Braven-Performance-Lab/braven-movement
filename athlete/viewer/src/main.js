@@ -9,6 +9,7 @@ import { applyAthleteFootwork, prepareAthleteLocomotion } from '@tactics/engine/
 import { createAthleteFootworkDemo } from '@tactics/state/athleteFootworkDemo.ts'
 import { evaluateFrame, distanceAt, paceIn } from '@tactics/core/evaluate.ts'
 import { clipLabels } from './catalog.js'
+import { defaultCamera, CAMERA_DISTANCE } from './publication.js'
 import { startStudio } from './studio.js'
 import { receivePassSequence, presentCarryBall, previewPace } from './preview-motion.js'
 import './style.css'
@@ -52,18 +53,11 @@ ring.rotation.x = -Math.PI/2; ring.position.y = -.012; scene.add(ring)
 const camera = new THREE.PerspectiveCamera(34, 1, .01, 80)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, .93, 0)
-controls.enableDamping = true; controls.minDistance = 1.2; controls.maxDistance = 7
+controls.enableDamping = true; controls.minDistance = CAMERA_DISTANCE.min; controls.maxDistance = CAMERA_DISTANCE.max
 controls.maxPolarAngle = Math.PI*.52
 function view(name) {
-  const positions = { front: [0, 1.75, 4.1], side: [4.1, 1.75, 0], back: [0,1.75,-4.1], quarter: [2.2, 1.8, 3.55] }
-  camera.position.set(...positions[name]); controls.target.set(0, .93, 0)
-  if (state.driver === 'clips' && state.clip === 'Jump_reach') {
-    controls.target.y = 1.12
-    camera.position.sub(controls.target).multiplyScalar(1.18).add(controls.target)
-  }
-  if(state.driver==='clips'&&state.clip==='netball_bounce_pass'&&name==='quarter'){
-    camera.position.set(5,2.5,6);controls.target.set(0,.8,1.3)
-  }
+  const framing = defaultCamera(state.driver === 'clips' ? state.clip : null, name)
+  camera.position.set(...framing.position); controls.target.set(...framing.target)
   controls.update()
   const ids={front:'front',side:'side',back:'back',quarter:'three-quarter'}
   for(const id of Object.values(ids)) $(id).classList.toggle('selected',id===ids[name])

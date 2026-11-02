@@ -3,7 +3,7 @@ export const createWorkspace=assetHash=>({kind:'braven-studio-workspace',schemaV
 const requireValue=(condition,message)=>{if(!condition)throw new Error(message)}
 const finite=(n,min,max)=>Number.isFinite(n)&&n>=min&&n<=max
 const vector=(value,length,limit=100)=>Array.isArray(value)&&value.length===length&&value.every(n=>finite(n,-limit,limit))
-function validateSetup(setup,catalog) {
+export function validateSetup(setup,catalog) {
   requireValue(setup&&setup.modelId==='netball-athlete'&&setup.assetHash===catalog.assetHash,'This setup belongs to a different model asset.')
   const clip=catalog.animations.find(a=>a.id===setup.clip)
   requireValue(clip,'This setup uses an animation that is not available.')

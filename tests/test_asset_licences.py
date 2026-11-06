@@ -315,10 +315,10 @@ if __name__ == "__main__":
 class TheRepositoryOwnsItsKit(unittest.TestCase):
     """The third family: assets this repository authors under `assets/kit/`.
 
-    The receipt records ownership, not a licence, because the document says
-    no licence has been chosen for them. The word is the owner's to set, and
-    when it is set, the sentence here and the sentence there change together
-    or the verbatim test fails.
+    The receipt records ownership, and the terms come from the document. The
+    owner set them on 6 Nov 2026: all rights reserved. The sentence in the
+    module and the sentence in the document change together, or the verbatim
+    test fails.
     """
 
     def test_a_kit_asset_resolves_to_the_owners_work(self):

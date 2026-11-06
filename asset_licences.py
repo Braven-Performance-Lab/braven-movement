@@ -16,8 +16,8 @@ pairing by name, so the record carries the bytes.
 **THE LICENCE IS QUOTED, NEVER INVENTED.** `docs/LICENSING.md` makes exactly two
 asset licence determinations, and both are transcribed below with the sentence
 they come from. A third family, the kit this repository authors under
-`assets/kit/`, is recorded as the owner's work with the document's own words
-that no licence has been chosen for it. Nothing here decides a licence. An asset
+`assets/kit/`, is recorded as the owner's work with the document's own words:
+all rights reserved, as for the source code. Nothing here decides a licence. An asset
 that no family covers has no licence in this repository, and this module says
 so rather than guessing.
 

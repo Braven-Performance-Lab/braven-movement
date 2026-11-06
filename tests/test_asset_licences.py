@@ -354,8 +354,8 @@ class TheRepositoryOwnsItsKit(unittest.TestCase):
         self.assertIn(" ".join(KIT_RULE.split()), text)
 
     def test_the_owners_line_is_not_a_licence_word(self):
-        # The receipt must not claim CC0 for something the document says has
-        # no licence yet.
+        # The receipt must not claim CC0 for the repository's own kit, which
+        # the document reserves all rights for.
         self.assertNotEqual(OWN_WORK, CC0)
         self.assertNotIn("CC0", OWN_WORK)
 

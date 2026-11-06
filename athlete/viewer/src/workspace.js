@@ -65,9 +65,19 @@ export function readWorkspace(storage,catalog) {
     return {workspace:createWorkspace(catalog.assetHash),error:`Saved workspace could not be read. ${error.message}${recovered?' A recovery copy was kept in browser storage.':' The original data has not been removed.'}`}
   }
 }
+const readable=(text,catalog)=>{try{validateWorkspace(JSON.parse(text),catalog);return true}catch{return false}}
 export function writeWorkspace(storage,workspace,catalog) {
   const valid=validateWorkspace(workspace,catalog)
-  try {storage.setItem(`${STORAGE_KEY}.${catalog.assetHash}`,JSON.stringify(valid))}
+  const key=`${STORAGE_KEY}.${catalog.assetHash}`
+  // Never replace saved data that could not be read unless its recovery copy exists:
+  // readWorkspace tells the user that data was kept, and a later save must not make that false.
+  let existing=null,copy=null
+  try{existing=storage.getItem(key)}catch{/* Unavailable storage fails on the write below. */}
+  if(existing&&!readable(existing,catalog)) {
+    try{copy=storage.getItem(`${key}.recovery`)}catch{/* Treated as no copy. */}
+    if(copy!==existing)throw new Error('The saved workspace could not be read and has no recovery copy, so it was kept as it is. Export your workspace to keep this work.')
+  }
+  try {storage.setItem(key,JSON.stringify(valid))}
   catch {throw new Error('Could not save in this browser. Export your workspace to keep a backup.')}
   return valid
 }

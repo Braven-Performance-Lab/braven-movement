@@ -29,7 +29,8 @@ def main():
         shutil.copy2(output / 'athlete-in-motion.webm', output / 'studio/athlete-in-motion.webm')
     source = output / 'source'
     shutil.copytree(HERE, source / 'athlete', dirs_exist_ok=True,
-                    ignore=shutil.ignore_patterns('node_modules', 'dist', '__pycache__', '.vite'))
+                    # .local holds absolute machine paths, logs and a pid; verification holds local receipts.
+                    ignore=shutil.ignore_patterns('node_modules', 'dist', '__pycache__', '.vite', '.local', 'verification'))
     (source / 'docs').mkdir(parents=True, exist_ok=True)
     shutil.copy2(HERE.parent / 'docs/NETBALL_ATHLETE_PIPELINE.md', source / 'docs/NETBALL_ATHLETE_PIPELINE.md')
     patch = subprocess.run(['git', '-C', str(tactics), 'diff', 'HEAD', '--binary', '--',

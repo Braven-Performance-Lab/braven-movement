@@ -93,3 +93,20 @@ test('unreadable saved data is copied to a recovery key before normal work resum
   assert.equal(values.get(`${key}.recovery`),'{broken')
   assert.equal(values.get(key),'{broken')
 })
+test('unreadable saved data with no recovery copy is never overwritten by a later save',()=>{
+  // Storage is full: the large recovery copy fails, but a small workspace would still fit.
+  const key=`${STORAGE_KEY}.${hash}`,values=new Map([[key,'{broken']])
+  const storage={getItem:k=>values.get(k),setItem:(k,value)=>{if(k.endsWith('.recovery'))throw Error('quota');values.set(k,value)}}
+  const loaded=readWorkspace(storage,catalog)
+  assert.match(loaded.error,/has not been removed/)
+  assert.throws(()=>writeWorkspace(storage,{...loaded.workspace,current:setup()},catalog),/recovery copy|export/i)
+  assert.equal(values.get(key),'{broken')
+})
+test('unreadable saved data that has its recovery copy may be replaced',()=>{
+  const key=`${STORAGE_KEY}.${hash}`,values=new Map([[key,'{broken']])
+  const storage={getItem:k=>values.get(k),setItem:(k,value)=>values.set(k,value)}
+  const loaded=readWorkspace(storage,catalog)
+  writeWorkspace(storage,{...loaded.workspace,current:setup()},catalog)
+  assert.equal(values.get(`${key}.recovery`),'{broken')
+  assert.equal(readWorkspace(storage,catalog).workspace.current.clip,'netball_chest_pass')
+})

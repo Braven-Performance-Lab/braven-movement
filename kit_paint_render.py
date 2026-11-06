@@ -263,12 +263,12 @@ def create_athlete(athlete, presentation):
         assets = [*assets, add_modelled_kit(human, presentation)]
     # EVERY FILE THAT DREW THE FIGURE GOES IN THE RECORD, INCLUDING OURS.
     #
-    # `sourceAssets` carries a LICENCE for every entry, and `docs/LICENSING.md`
-    # states no licence for a file this repository generates. Its first bullet
-    # says no licence has been chosen for this repository's own source code at
-    # all, so a kit layer is undetermined for the same open reason. Under
-    # `--licence-strict` the layer goes into `sourceAssets` and the run REFUSES
-    # before a figure is drawn, which is the module working as designed.
+    # `sourceAssets` carries a LICENCE for every entry, and `asset_licences`
+    # gives one only by the families `docs/LICENSING.md` determines. Since
+    # 6 Nov 2026 this repository's own files are proprietary, all rights
+    # reserved (root `LICENSE`). Under `--licence-strict` the layer goes into
+    # `sourceAssets`: a layer under `assets/kit/` resolves to the kit family,
+    # and a layer anywhere else REFUSES before a figure is drawn.
     #
     # Otherwise the layer is recorded after the render as PROVENANCE and claims
     # nothing: path, bytes, the instrument and its parameters. That is the same
@@ -348,12 +348,11 @@ def record_painted_kit() -> None:
                     "sourceAssets with its own determination, because it lives "
                     "under assets/kit/."
                 ) if STRICT else
-                "provenance, not a licence. docs/LICENSING.md makes no "
-                "determination about a texture this repository generates, and "
-                "its first bullet records that no licence has been chosen for "
-                "this repository's own source code either. Run with "
+                "provenance, not a licence. The terms of this repository's own "
+                "files are in the root LICENSE (all rights reserved). Run with "
                 "--licence-strict to put this file through the licence gate "
-                "instead, which refuses until a determination exists."
+                "instead: a file under assets/kit/ resolves to the kit family "
+                "of docs/LICENSING.md, and any other path is refused."
             ),
         }
         receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")

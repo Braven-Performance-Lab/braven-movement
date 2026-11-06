@@ -131,5 +131,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component and extract
 
 ## Licensing
 
-The repository does not yet declare a source-code licence. Model/output licensing and reference
-image rights are separate concerns; see [`docs/LICENSING.md`](docs/LICENSING.md).
+The repository is proprietary, all rights reserved; see [`LICENSE`](LICENSE). That covers the
+source code and the kit assets in `assets/kit/`. Third-party assets keep their own licences, and
+model, output and reference-image rights are separate concerns; see
+[`docs/LICENSING.md`](docs/LICENSING.md).

@@ -16,8 +16,8 @@ pairing by name, so the record carries the bytes.
 **THE LICENCE IS QUOTED, NEVER INVENTED.** `docs/LICENSING.md` makes exactly two
 asset licence determinations, and both are transcribed below with the sentence
 they come from. A third family, the kit this repository authors under
-`assets/kit/`, is recorded as the owner's work with the document's own words
-that no licence has been chosen for it. Nothing here decides a licence. An asset
+`assets/kit/`, is recorded as the owner's work with the document's own words:
+all rights reserved, as for the source code. Nothing here decides a licence. An asset
 that no family covers has no licence in this repository, and this module says
 so rather than guessing.
 
@@ -92,19 +92,23 @@ FACEUNITS_TARGETS = ("targets", "faceunits")
 
 # THE REPOSITORY'S OWN KIT. The config loader refuses a kit path anywhere but
 # under `assets/kit/`, so that directory pair is the whole family. What the
-# receipt records for these is OWNERSHIP and not a licence: the document says
-# no redistribution licence has been chosen, and this module quotes it rather
-# than choosing one.
+# receipt records for these is OWNERSHIP, and the terms come from the document,
+# which this module quotes rather than restating.
+#
+# OWN_WORK still says "no licence selected". On 6 Nov 2026 Marius ruled the code
+# and the kit proprietary, all rights reserved (root LICENSE). The label is also
+# written into the two .mhclo headers, which are hashed into every receipt, and
+# a test holds header, config and this constant equal. So the label changes only
+# when the kit is authored again; KIT_RULE and KIT_SOURCE carry the ruling now.
 KIT_ASSETS = ("assets", "kit")
 OWN_WORK = "Braven Performance Lab (own work, no licence selected)"
 KIT_RULE = (
-    "They are the work of Braven Performance Lab and no redistribution licence "
-    "has been selected for them yet, as for the source code."
+    "They are the work of Braven Performance Lab, and all rights are reserved, "
+    "as for the source code."
 )
 KIT_SOURCE = (
     f"docs/LICENSING.md, 'Kit assets authored in this repository': {KIT_RULE} "
-    "The licence word is the repository owner's to set; until then the receipt "
-    "records who made the asset and not the terms it is offered under."
+    "The root LICENSE governs; the older label in the kit headers predates it."
 )
 
 
@@ -161,9 +165,8 @@ def licence_for(path: object) -> tuple[str, str]:
         f"wrong place: it is keyed by an MPFB category, folder and file. Put "
         f"the file under assets/kit/ and it is recorded as own work; refer to "
         f"the third family, 'Kit assets authored in this repository', in "
-        f"docs/LICENSING.md. That bullet records that no licence has been "
-        f"chosen for the repository's own files, as for its source code, "
-        f"which is a decision for the repository owner."
+        f"docs/LICENSING.md. That bullet records that the repository's own "
+        f"files are proprietary, all rights reserved, as for its source code."
     )
 
 

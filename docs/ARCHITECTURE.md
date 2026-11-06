@@ -58,7 +58,7 @@ Blender renderer consumes that job without knowing the source scene.
 
 ## Testing layers
 
-- `python -m unittest discover -s tests -v` runs portable host-side contracts on every push.
+- `python -m unittest discover -s tests -v` runs portable host-side contracts on every pull request push and every merge to main.
 - `scripts/test-blender.ps1` runs the real Blender/MPFB generator with a temporary modified config
   and proves the receipt consumed that config.
 - Human visual comparison remains mandatory for handedness, joint plausibility, and semantic

@@ -114,10 +114,17 @@ def main(argv: list[str]) -> int:
         problems.append("the two jobs record the same solveParameters")
 
     label = f"elbow-{degrees:g}"
-    for name, job in (("shipped", shipped_job), (label, override_job)):
-        folder = out / name
-        folder.mkdir(parents=True, exist_ok=True)
-        (folder / f"{movement_id}.job.json").write_text(json.dumps(job, indent=2), encoding="utf-8")
+    # A REFUSED PAIR WRITES NOTHING. A job left on disk after a refusal looks
+    # exactly like a good one, under a label that claims the overridden angle,
+    # and whoever renders the folder next cannot tell. That is the mislabelled
+    # pair this script exists to prevent.
+    if not problems:
+        for name, job in (("shipped", shipped_job), (label, override_job)):
+            folder = out / name
+            folder.mkdir(parents=True, exist_ok=True)
+            (folder / f"{movement_id}.job.json").write_text(
+                json.dumps(job, indent=2), encoding="utf-8"
+            )
 
     print(f"HEAD {head}")
     print(f"shipped   records {shipped_job['solveParameters']}  contact width {shipped_width:.2f} cm")

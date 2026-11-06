@@ -40,7 +40,10 @@ from movement_engine import (  # noqa: E402
     library,
     load_character,
 )
-from contact_solve import ELBOW_POLE_ANGLE_DEGREES  # noqa: E402
+# THE MODULE, NOT THE NAME. `solve_parameters` reads the angle at call time, so a
+# job built under `preview_variants.applied` records the angle it was solved at.
+# A by-value import froze 31.3 and recorded it for a 37.3 solve (found 6 Nov 2026).
+import contact_solve  # noqa: E402
 from possession_solve import solve_movement  # noqa: E402
 from technique import has_technique, load_technique, technique_path  # noqa: E402
 
@@ -529,7 +532,7 @@ def solve_parameters(method) -> dict:
     """
     return {
         "ELBOW_POLE_ANGLE_DEGREES": float(
-            ELBOW_POLE_ANGLE_DEGREES
+            contact_solve.ELBOW_POLE_ANGLE_DEGREES
             if method.elbow_angle_degrees is None
             else method.elbow_angle_degrees
         ),

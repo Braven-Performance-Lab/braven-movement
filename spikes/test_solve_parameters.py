@@ -200,5 +200,29 @@ class TheCheckerAcceptsAnHonestJob(unittest.TestCase):
         check_solve_parameters(job_for(method), method)
 
 
+@unittest.skipUnless(SOLVER, "the patched constant lives in contact_solve")
+class APreviewIsRecordedAtTheAngleItSolvedAt(unittest.TestCase):
+    """A job built inside `preview_variants.applied` records the PREVIEWED angle.
+
+    Found in board review on 6 Nov 2026: the exporter imported the constant BY
+    VALUE, so the preview changed the solve while `solve_parameters` kept
+    reading the import-time 31.3, and `check_solve_parameters` compared 31.3
+    with 31.3 and passed. The job was solved at 37.3 and said 31.3.
+    """
+
+    def test_the_default_is_read_at_call_time(self):
+        from preview_variants import VARIANTS, applied
+
+        previewed = float(VARIANTS["pole-37.3"]["previewed"])
+        method = SimpleNamespace(elbow_angle_degrees=None)
+        with applied("pole-37.3"):
+            recorded = solve_parameters(method)["ELBOW_POLE_ANGLE_DEGREES"]
+        self.assertEqual(recorded, previewed)
+        self.assertEqual(
+            solve_parameters(method)["ELBOW_POLE_ANGLE_DEGREES"],
+            float(ELBOW_POLE_ANGLE_DEGREES),
+        )
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

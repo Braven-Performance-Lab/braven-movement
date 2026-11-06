@@ -1,15 +1,28 @@
 name: Unit tests
 
 on:
-  push:
+  # A pull request runs CI once per push to it, and main runs it once per
+  # merge. A push to any other branch runs nothing, so a pull request no
+  # longer runs twice.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
+# A newer push to the same pull request cancels the older run. On main each
+# merge commit gets its own run, so a merge never cancels another merge.
+concurrency:
+  group: unit-tests-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   python:
-    runs-on: ubuntu-latest
+    # A draft pull request runs nothing until it is marked ready.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7

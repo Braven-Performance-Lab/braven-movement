@@ -740,7 +740,9 @@ of the eight drills, worst 49.81 degrees. And nothing ran the verifier.
 
 So the guard is split in two, by what a runner can actually hold.
 
-**What CI now runs.** The engine-side suite, 234 tests, on every push. It used
+**What CI now runs.** The engine-side suite, 234 tests, on every pull request
+push and every merge to main. A draft pull request runs it once it is marked
+ready. It used
 to run only on a machine with the pixi environment on it, and the only thing
 keeping it off a runner was a handful of module-level imports of `pymomentum`,
 which is conda-forge only. The geometry those tests cover is arithmetic on joint
@@ -752,7 +754,7 @@ tolerance.
 **What CI cannot run, and the reason is not effort.** The verifier solves each
 movement to compare the clip against it, and solving needs the character —
 `spikes/mhr-assets/`, 4.5 GB, gitignored, and not something to put on a runner
-on every push. Standing a pixi environment up in CI is the smaller half of that
+for every CI run. Standing a pixi environment up in CI is the smaller half of that
 problem; the asset is the larger half and it does not go away.
 
 **So the verifier is a named command enforced by process**, listed here and on

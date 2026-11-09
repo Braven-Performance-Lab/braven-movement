@@ -18,7 +18,7 @@ page.on('pageerror',error=>errors.push(String(error)))
 const cdp=await page.createCDPSession();await cdp.send('Page.setDownloadBehavior',{behavior:'allow',downloadPath:out})
 try{
   await ready(page)
-  check('Compiled app loads the real model, two kits and all 17 clips',await page.evaluate(()=>window.bravenStudio.catalog.animations.length===17&&window.bravenStudio.catalog.kits.length===2&&window.athleteStudio.bones.size===70))
+  check('Compiled app loads the real model, two kits and all 18 clips',await page.evaluate(()=>window.bravenStudio.catalog.animations.length===18&&window.bravenStudio.catalog.kits.length===2&&window.athleteStudio.bones.size===70))
   check('Initial app fits desktop width',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
   await shot('desktop')
   await page.type('#library-search','jump');await page.select('#category','Catching')

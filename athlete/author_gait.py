@@ -77,6 +77,9 @@ def measure_body(rig, shoes):
     """Rest geometry of the LEFT leg in gait.py coordinates, from the bones and shoe."""
     rest_pose(rig)
     bones = rig.data.bones
+    for obj in (rig, shoes):
+        if obj.matrix_world != Matrix.Identity(4):
+            raise ValueError(f'{obj.name} has a non-identity transform; bone and mesh points would not agree')
     points = [p for p in shoe_points(shoes) if p.x > 0]
     floor = min(p.z for p in points)
     frame = Frame(floor)
@@ -123,6 +126,11 @@ def rebind_shoes(rig, shoes):
     Returns the number of vertices changed per side.
     """
     bones = rig.data.bones
+    # Bone heads are in armature space and vertices in world space; the two
+    # agree only while both objects sit at the origin. Refuse otherwise.
+    for obj in (rig, shoes):
+        if obj.matrix_world != Matrix.Identity(4):
+            raise ValueError(f'{obj.name} has a non-identity transform; the shoe weights would shift')
     changed = {}
     for side in ('l', 'r'):
         sign = 1 if side == 'l' else -1

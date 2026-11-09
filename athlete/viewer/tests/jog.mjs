@@ -27,8 +27,9 @@ try{
  await page.select('#clip','Jog')
  for(const kit of ['skirt','shorts']){
   await page.click('[data-tab="kit"]');await page.click(`[data-kit="${kit}"]`);await page.click('[data-tab="animate"]')
-  for(const view of ['side','front']){await page.click('#'+view);for(const t of [.13,.26,.39,.65,.78]){
-   await page.evaluate(t=>{const a=window.athleteStudio;a.seek(t);a.renderer.render(a.scene,a.camera)},t)
+  for(const view of ['side','front']){await page.click('#'+view);for(const t of [.1,.3,.5,.7,.9]){
+   // Fractions of the clip, so each picture is a different phase at any clip length.
+   await page.evaluate(t=>{const a=window.athleteStudio;a.seek(t*a.duration());a.renderer.render(a.scene,a.camera)},t)
    await page.screenshot({path:`${out}/${kit}-${view}-${t}.png`})
   }}
   check(`${kit} remains selected through scrubbing`,await page.evaluate(kit=>window.athleteStudio.state.kit===kit,kit))

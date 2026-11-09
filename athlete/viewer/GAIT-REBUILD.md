@@ -40,6 +40,8 @@ The revision 8 shoe had its sole skinned to the shin (64% at the heel) and its m
 
 ## Result against the norms
 
+Two instruments give this table. Knee at contact, the deepest stance knee, peak dorsiflexion and the ankle at toe-off come from the gait model (`python athlete/fit_gait.py --grade-only`, exact at the contact and toe-off events). The deepest swing knee, the most plantarflexion, the hip range and the pelvis bounce come from `measure_gait.py` on the built rig (`09-gait-v2/verification/gait-measure-09.json`). For the pelvis bounce the model gives 5.6 cm (Jog) and the rig 4.7 cm; the table shows the rig value. The cause of the difference is not measured.
+
 | Quantity | Jog | Norm | Run | Norm |
 | --- | --- | --- | --- | --- |
 | Knee at contact | 17.0 | 17.5 | 19.1 | about 20 |
@@ -61,6 +63,8 @@ Two values stay outside the norm: peak dorsiflexion (6-7 deg high) and the pelvi
 - `tests/gait-frames.mjs` saves every authored frame from the live Studio canvas; the phone page clips come from it.
 
 ## Open
+
+- The rebuilt Jog Action still carries the custom properties of the revision 8 Jog (`correction: jog-ankle-v1 ...`), because `correct_jumps.new_action` copies them, and the GLB exports them as extras. Nothing reads them. Removing them changes the GLB bytes, so it waits for the next rebuild of the candidate.
 
 - Tactics loads its clip list from `src/data/athlete-motions.json`. It shows the old Jog and no Run until `tools/import-athlete.mjs` runs on this candidate, in a separate braven-tactics change.
 - The ordinary Tactics path locomotion uses its own capture clips (`figures/clips.json`) and is not changed here.

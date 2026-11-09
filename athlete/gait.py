@@ -644,6 +644,8 @@ class Cycle:
         # that peak is the least that keeps the segment from overshooting
         # (Fritsch-Carlson), so the peak is the real cycle minimum.
         overrun = math.radians(PLANTAR_OVERRUN_DEG)
+        if w0 >= 0:
+            raise ValueError(f'{g.name}: the ankle is not plantarflexing at toe-off; the swing ankle needs it')
         peak_at = g.duty + max(0.01, 3 * overrun / max(1e-9, -w0))
         ankle = ([g.duty, peak_at, g.swing_knee_at], [ang0, ang0 - overrun, math.radians(g.ankle_swing)], [w0, 0.0, 0.0])
         return (knots, thigh, thigh_slopes, knee, knee_slopes), lateral, ankle, None

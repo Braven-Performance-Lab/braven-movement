@@ -1,4 +1,4 @@
-/** Exercise the actual preview and measure the exported joints between keys. */
+/** Exercise the actual preview of Jog and Run and measure the exported joints between keys. */
 import {createRequire} from 'node:module'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -9,21 +9,27 @@ const page=await browser.newPage(),checks=[],errors=[],out=path.resolve('verific
 page.on('pageerror',e=>errors.push(String(e)))
 const check=(name,ok,detail)=>{checks.push({name,passed:!!ok,detail});assert(ok,`${name}: ${JSON.stringify(detail)}`)}
 try{
- await page.goto('http://127.0.0.1:5397/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>window.athleteStudio)
- await page.select('#clip','Jog')
- check('Selecting Jog starts playback',await page.evaluate(()=>window.athleteStudio.state.playing&&window.athleteStudio.state.clip==='Jog'))
+ const url=process.env.STUDIO_URL||'http://127.0.0.1:5397/'
+ await page.goto(url,{waitUntil:'networkidle0'});await page.waitForFunction(()=>window.athleteStudio)
+ const metrics={}
+ for(const [clip,seconds] of [['Jog',42/60],['Run',39/60]]){
+ await page.select('#clip',clip)
+ check(`Selecting ${clip} starts playback`,await page.evaluate(clip=>window.athleteStudio.state.playing&&window.athleteStudio.state.clip===clip,clip))
  await page.click('#side')
- const metrics=await page.evaluate(()=>{
+ metrics[clip]=await page.evaluate(()=>{
   const a=window.athleteStudio;a.pause();const rows=[],at=n=>a.bones.get(n).getWorldPosition(a.model.position.clone())
   for(let i=0;i<248;i++){a.seek(a.duration()*i/248);for(const s of ['l','r']){const ankle=at('foot_'+s),shin=at('calf_'+s).sub(ankle),toe=at('ball_'+s).sub(ankle);rows.push(shin.angleTo(toe)*180/Math.PI)}}
   return{min:Math.min(...rows),max:Math.max(...rows),samples:rows.length,seconds:a.duration(),revision:a.assetRevision,hash:a.assetHash}
  })
- check('Both ankles stay in the reviewed 55–140 degree envelope',metrics.min>55&&metrics.max<140,metrics)
- check('Jog cadence is unchanged',Math.abs(metrics.seconds-62/60)<1e-6,metrics.seconds)
+ check(`${clip}: both ankles stay in the reviewed 55-140 degree envelope`,metrics[clip].min>55&&metrics[clip].max<140,metrics[clip])
+ check(`${clip}: stride length in time is the authored cycle`,Math.abs(metrics[clip].seconds-seconds)<1e-6,metrics[clip].seconds)
+ }
+ await page.select('#clip','Jog')
  for(const kit of ['skirt','shorts']){
   await page.click('[data-tab="kit"]');await page.click(`[data-kit="${kit}"]`);await page.click('[data-tab="animate"]')
-  for(const view of ['side','front']){await page.click('#'+view);for(const t of [.13,.26,.39,.65,.78]){
-   await page.evaluate(t=>{const a=window.athleteStudio;a.seek(t);a.renderer.render(a.scene,a.camera)},t)
+  for(const view of ['side','front']){await page.click('#'+view);for(const t of [.1,.3,.5,.7,.9]){
+   // Fractions of the clip, so each picture is a different phase at any clip length.
+   await page.evaluate(t=>{const a=window.athleteStudio;a.seek(t*a.duration());a.renderer.render(a.scene,a.camera)},t)
    await page.screenshot({path:`${out}/${kit}-${view}-${t}.png`})
   }}
   check(`${kit} remains selected through scrubbing`,await page.evaluate(kit=>window.athleteStudio.state.kit===kit,kit))

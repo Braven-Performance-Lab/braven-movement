@@ -1,5 +1,5 @@
 export const clipLabels = {
-  Ready:'Ready stance', Jog:'Jog', Defence:'Defensive stance', Receive_pass:'Receive and pass', Jump_reach:'Jump and reach',
+  Ready:'Ready stance', Jog:'Jog', Run:'Run', Defence:'Defensive stance', Receive_pass:'Receive and pass', Jump_reach:'Jump and reach',
   netball_two_hand_catch_chest:'Chest catch', netball_two_hand_snatch_pull_in:'Two-hand snatch, pull in',
   netball_two_hand_snatch_straight_back:'Two-hand snatch, straight back', netball_one_hand_snatch_to_other_hand:'One-hand snatch and transfer',
   netball_hooks_jump_pull_in:'Jump catch and pull in', netball_hooks_outside_hand:'Outside-hand hook catch',

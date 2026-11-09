@@ -24,6 +24,7 @@ from __future__ import annotations
 import math
 import sys
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'athlete'))
@@ -144,6 +145,22 @@ class RunIsNotAFastJog(unittest.TestCase):
         jr, rr = fit_gait.grade(jog)[0], fit_gait.grade(run)[0]
         self.assertGreater(rr['peakSwingKnee'], jr['peakSwingKnee'] + 10)
         self.assertGreater(rr['hipRange'], jr['hipRange'] + 10)
+
+
+class SwingRefusals(unittest.TestCase):
+    def test_refuses_an_ankle_that_dorsiflexes_at_toe_off(self):
+        # The swing ankle spline needs a plantarflexing ankle at toe-off; with a
+        # dorsiflexing one its knots fall out of order. Tilt the stance ankle so
+        # that it rises with phase, and the cycle must refuse.
+        original = gait.Cycle._leg_angles
+
+        def dorsiflexing(self, phase, side):
+            direction, knee, lateral, angle = original(self, phase, side)
+            return direction, knee, lateral, angle + 100.0 * phase
+
+        with unittest.mock.patch.object(gait.Cycle, '_leg_angles', dorsiflexing):
+            with self.assertRaisesRegex(ValueError, 'not plantarflexing at toe-off'):
+                gait.Cycle(gait.JOG)
 
 
 class Swing(unittest.TestCase):

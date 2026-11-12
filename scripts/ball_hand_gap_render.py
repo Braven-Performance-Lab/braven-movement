@@ -69,7 +69,15 @@ def main() -> int:
                          # ball moves with the girdle's error and the hands move
                          # with the ball: the gap above cannot see it. This can.
                          "girdle": {k: receipt["girdle"].get(k) for k in
-                                    ("verdict", "worstOffsetMm", "ballAnchorErrorMm")},
+                                    ("verdict", "worstOffsetMm", "ballAnchorErrorMm",
+                                     "renderedWidthMm", "wantedWidthMm", "restTorsoM")},
+                         # Each shoulder's miss of the girdle the job asks for,
+                         # per axis, with the clavicle's own turn: the reach gap.
+                         "shoulders": {side: {k: entry.get(k) for k in
+                                              ("offsetMm", "perAxisMm", "reachableMissMm",
+                                               "clavicleTurnedDegrees", "shiftInTorsos")}
+                                       for side, entry in receipt["girdle"].get("sides", {}).items()},
+                         "trunkTurnDegrees": receipt.get("trunkTurnDegrees"),
                          # Every bone head in world metres, so two builds can be
                          # compared pose for pose without rendering an image.
                          "boneHeadsM": {bone.name: [round(v, 6) for v in R.world_head(rig, bone.name)]

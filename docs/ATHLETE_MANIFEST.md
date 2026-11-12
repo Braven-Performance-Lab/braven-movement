@@ -81,7 +81,7 @@ makes every consumer refuse the model until it names the new family.
 |---|---|
 | `movementCommit` | The Braven Movement commit that the technique clips were imported from. |
 | `generator`, `blender` | The authoring path and the Blender version. |
-| `externalAssets` | Each asset that the build used and that is not in the folder: its name, version, licence and SHA-256. It has no path. |
+| `externalAssets` | Each asset that the build used and that is not in the folder: its name, licence and SHA-256. It has no path. An MPFB asset is named by its path under MPFB's own `data` folder, for example `mpfb/hair/ponytail01/ponytail01.mhclo`; any other asset by its file name alone. The SHA-256 identifies the exact version. |
 
 ### 2.6 `files`
 
@@ -110,9 +110,12 @@ One entry for each animation in the model, in the order of their `id`.
 
 ### 2.8 `history`
 
-One entry for each revision since the first: its number, a sentence on what changed,
-and the hash of the recipe file that made the change. The correction data that the
-old format kept under its own key moves here.
+One entry for each revision that the build still records: its number, a sentence on
+what changed, and the hash of the recipe file that made the change, or `null` when the
+build did not record that hash. A converted legacy build has only the revisions that
+its old manifest still names. For example, candidate `09-gait-v2` records revisions 6,
+7 and 9: the gait script deleted the jog correction's key, so revision 8 is absent.
+The history is information for people. No refusal reads it.
 
 ## 3. The refusals
 
@@ -121,18 +124,23 @@ holds. Each refusal has a code, so that a test can name the refusal it expects.
 
 | Code | The validator refuses when |
 |---|---|
-| `format` | The folder has no `athlete-manifest.json` (a build from before this format), `format` is not `braven-athlete-manifest`, or `formatVersion` is not a version it knows. |
-| `path` | A file path is absolute, has a drive letter, has a `\` or has a `..` part; or any text in the manifest names a place on one machine, such as a drive letter or a home folder (MAN-5). The validator does not follow symbolic links: the pipeline writes none, and the `file` check hashes what it reads. |
-| `file` | A file in `files` is missing, or its size or hash differs. |
+| `format` | The folder has no `athlete-manifest.json` (a build from before this format); the manifest is not JSON; `format` is not `braven-athlete-manifest`; `formatVersion` is not a version it knows; a clip's `review` is not one of the four states; or a clip's `fps` is not a whole number above zero. |
+| `path` | A file path has a `\`, is absolute or starts with a drive letter, or has a `..` part; or any text in the manifest names a place on one machine: a drive letter with a separator, a UNC share, a home folder (`~/`), or a root path of two or more parts such as `/opt/x` (MAN-5). The validator does not follow symbolic links: the pipeline writes none, and the `file` check hashes what it reads. |
+| `file` | A file in `files` is missing, or its size or hash differs; or the model is not a GLB, is too short, or has a JSON chunk that cannot be read. |
 | `role` | `files` has no `model`, or more than one, or no `library` while `clips` holds a technique. |
-| `clip-set` | The GLB's animations are not exactly the ids in `clips`. |
-| `clip-timing` | A clip's duration in the GLB differs from `seconds` by more than half a frame at its `fps`. |
-| `library` | The library's techniques are not exactly the `technique` clips, or a technique's frame count, frame rate, contact or release differs from its clip entry. |
-| `rig` | The GLB's skin joint names do not hash to `jointSetSha256`, their count is not `jointCount`, or a contract bone is missing with that exact spelling and case. |
-| `family` | A consumer supports a rig family that is not `rig.family`. |
+| `clip-set` | The GLB's animations are not exactly the ids in `clips`, the manifest lists one clip twice, or the GLB has two animations with one name. |
+| `clip-timing` | A clip's duration in the GLB differs by more than half a frame at its `fps` from the manifest's `seconds`, from the library's `seconds`, or from the library's frame count (`(frameCount - 1) / fps`). |
+| `library` | The library is not JSON; it was made for another model (its `assetSha256` is not the model's hash); it lists one technique twice; its techniques are not exactly the `technique` clips; or a technique's frame count, frame rate, contact or release differs from its clip entry. |
+| `rig` | The GLB's joint count is not `jointCount`; its joint names do not hash to `jointSetSha256`; `contractBones` is not the list this validator knows; or a contract bone is missing from the model with that exact spelling and case. |
+| `family` | `rig.family` is not a family the consumer supports. The family is always checked: a consumer that names no family supports `braven-athlete-v6` only. |
 
-A consumer runs the validator before it uses the set. The Tactics importer runs it
-before it writes its sidecar. Braven Studio runs it before it serves the model.
+A consumer runs the validator before it uses the set. On this change the validator and
+its command line exist in Movement. Making each consumer run it is separate work:
+
+- the Braven Tactics importer: pull request Braven-Performance-Lab/braven-tactics#730;
+- Braven Studio: branch `lane/models-studio-manifest`.
+
+Until those land, nothing outside this repository refuses a mismatched set.
 
 ## 4. What this does not decide
 

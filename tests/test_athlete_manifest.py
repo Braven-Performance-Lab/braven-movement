@@ -158,9 +158,9 @@ class Refusals(ManifestTest):
         self.assertRefuses("format", am.validate, self.root)
 
     def test_path_absolute_file_key(self):
-        # Neither key names a home folder or a drive with a separator, so the local-path text
-        # check cannot see them: only the relative-path rule can refuse them.
-        for key in ("/opt/athlete/x.glb", "D:x.glb"):
+        # Neither key has a root path of two parts or a drive with a separator, so the
+        # local-path text check cannot see them: only the absolute-path rule can refuse them.
+        for key in ("/x.glb", "D:x.glb"):
             with self.subTest(key=key):
                 self.assertIsNone(am.LOCAL_PATH.search(key))
                 self.folder.edit(lambda m, k=key: m["files"].update({k: {"role": "master", "bytes": 1, "sha256": "0" * 64}}))
@@ -182,6 +182,17 @@ class Refusals(ManifestTest):
     def test_path_leaked_anywhere_in_the_manifest(self):
         self.folder.edit(lambda m: m["source"]["externalAssets"][0].update(note="from C:\\Users\\someone\\mpfb"))
         self.assertRefuses("path", am.validate, self.root)
+
+    def test_path_root_and_home_folders_of_any_name(self):
+        for text in ("/opt/athlete/mpfb", "/srv/x/y", "/Volumes/Work/mpfb", "~/mpfb/hair", "built in /root/athlete/"):
+            with self.subTest(text=text):
+                self.folder.edit(lambda m, t=text: m["source"].update(note=t))
+                self.assertRefuses("path", am.validate, self.root)
+
+    def test_relative_names_are_not_local_paths(self):
+        for text in ("mpfb/hair/ponytail01/ponytail01.mhclo", "Independent Blender/MPFB authoring", "gait.py + author_gait.py"):
+            with self.subTest(text=text):
+                self.assertIsNone(am.LOCAL_PATH.search(text))
 
     def test_the_writer_refuses_an_absolute_path_before_it_writes(self):
         manifest = am.convert_legacy(self.root, kit_id="k")
@@ -220,9 +231,78 @@ class Refusals(ManifestTest):
         self.folder.edit(lambda m: m["clips"][0].update(review="approved"))
         self.assertRefuses("format", am.validate, self.root)
 
+    def test_format_wrong_format_name(self):
+        self.folder.edit(lambda m: m.update(format="braven-athlete"))
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_frame_rate_not_a_whole_number(self):
+        self.folder.edit(lambda m: m["clips"][0].update(fps=29.97))
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_file_byte_count_wrong_with_the_right_hash(self):
+        self.folder.edit(lambda m: m["files"]["netball-athlete.blend"].update(bytes=7))
+        self.assertRefuses("file", am.validate, self.root)
+
+    def _glb_refusal_detail(self, data: bytes) -> str:
+        path = self.root / "odd.glb"
+        path.write_bytes(data)
+        with self.assertRaises(am.ManifestRefusal) as caught:
+            am.read_glb(path)
+        self.assertEqual(caught.exception.code, "file")
+        return caught.exception.detail
+
+    def test_file_glb_first_chunk_not_json(self):
+        body = b"\0" * 8
+        data = struct.pack("<4sII", b"glTF", 2, 20 + len(body)) + struct.pack("<II", len(body), 0x004E4942) + body
+        self.assertIn("not a GLB", self._glb_refusal_detail(data))
+
+    def test_file_glb_wrong_magic_with_a_readable_json_chunk(self):
+        # Only the magic word is wrong: without that check the JSON chunk would parse and pass.
+        body = b"{}  "
+        data = struct.pack("<4sII", b"glTX", 2, 20 + len(body)) + struct.pack("<II", len(body), 0x4E4F534A) + body
+        self.assertIn("not a GLB", self._glb_refusal_detail(data))
+
+    def test_file_not_a_glb_at_all_says_so(self):
+        self.assertIn("not a GLB", self._glb_refusal_detail(b"PK" + b"\0" * 30))
+
+    def test_format_zero_frame_rate(self):
+        self.folder.edit(lambda m: m["clips"][0].update(fps=0))
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_manifest_not_json(self):
+        (self.root / am.MANIFEST_NAME).write_text("{not json")
+        self.assertRefuses("format", am.validate, self.root)
+
     def test_clip_set(self):
         self.folder.edit(lambda m: m["clips"].pop(0))
         self.assertRefuses("clip-set", am.validate, self.root)
+
+    def test_clip_set_one_clip_listed_twice(self):
+        self.folder.edit(lambda m: m["clips"].append(dict(m["clips"][0])))
+        self.assertRefuses("clip-set", am.validate, self.root)
+
+    def test_clip_set_two_animations_with_one_name(self):
+        glb = glb_bytes(self.folder.animations, self.folder.joints)
+        doc_len = struct.unpack_from("<I", glb, 12)[0]
+        doc = json.loads(glb[20:20 + doc_len])
+        doc["animations"].append(dict(doc["animations"][0]))
+        body = json.dumps(doc).encode()
+        body += b" " * (-len(body) % 4)
+        twice = struct.pack("<4sII", b"glTF", 2, 20 + len(body)) + struct.pack("<II", len(body), 0x4E4F534A) + body
+        path = self.root / "twice.glb"
+        path.write_bytes(twice)
+        self.assertRefuses("clip-set", am.read_glb, path)
+
+    def test_file_glb_too_short(self):
+        path = self.root / "short.glb"
+        path.write_bytes(b"glTF")
+        self.assertRefuses("file", am.read_glb, path)
+
+    def test_file_glb_json_chunk_unreadable(self):
+        body = b"{broken    "
+        path = self.root / "broken.glb"
+        path.write_bytes(struct.pack("<4sII", b"glTF", 2, 20 + len(body)) + struct.pack("<II", len(body), 0x4E4F534A) + body)
+        self.assertRefuses("file", am.read_glb, path)
 
     def test_clip_timing(self):
         # Half a frame at 60 fps is 0.00833 s; one frame is outside it.
@@ -248,6 +328,34 @@ class Refusals(ManifestTest):
         self._rewrite_library()
         self.assertRefuses("library", am.validate, self.root)
 
+    def test_library_one_technique_listed_twice(self):
+        self.folder.library["techniques"].append(dict(self.folder.library["techniques"][0]))
+        self._rewrite_library()
+        self.assertRefuses("library", am.validate, self.root)
+
+    def test_library_with_no_model_hash(self):
+        self.folder.library["assetSha256"] = None
+        self._rewrite_library()
+        self.assertRefuses("library", am.validate, self.root)
+
+    def test_library_not_json(self):
+        data = b"{not json"
+        (self.root / "movement-library.json").write_bytes(data)
+        self.folder.edit(lambda m: m["files"]["movement-library.json"].update(bytes=len(data), sha256=sha(data)))
+        self.assertRefuses("library", am.validate, self.root)
+
+    def test_clip_timing_library_seconds_disagree_with_the_model(self):
+        self.folder.library["techniques"][0]["seconds"] += 1 / 60
+        self._rewrite_library()
+        self.assertRefuses("clip-timing", am.validate, self.root)
+
+    def test_clip_timing_library_frame_count_disagrees_with_the_model(self):
+        # Library and manifest agree on 97 frames, so only the model's clip length can disagree.
+        self.folder.library["techniques"][0]["frameCount"] = 97
+        self._rewrite_library()
+        self.folder.edit(lambda m: [c.update(frameCount=97) for c in m["clips"] if c["id"] == TECHNIQUE])
+        self.assertRefuses("clip-timing", am.validate, self.root)
+
     def test_rig_joint_set(self):
         self._replace_model(joints=list(am.CONTRACT_BONES) + ["Ball_Control", "skirt_02"])
         self.assertRefuses("rig", am.validate, self.root)
@@ -257,8 +365,21 @@ class Refusals(ManifestTest):
         self._replace_model(joints=joints, keep_rig=False)
         self.assertRefuses("rig", am.validate, self.root)
 
+    def test_rig_joint_count_alone(self):
+        self.folder.edit(lambda m: m["rig"].update(jointCount=m["rig"]["jointCount"] + 1))
+        self.assertRefuses("rig", am.validate, self.root)
+
+    def test_rig_manifest_lists_other_contract_bones(self):
+        self.folder.edit(lambda m: m["rig"]["contractBones"].remove("root"))
+        self.assertRefuses("rig", am.validate, self.root)
+
     def test_family(self):
         self.assertRefuses("family", am.validate, self.root, supported_families={"braven-athlete-v7"})
+
+    def test_family_is_checked_with_no_argument(self):
+        self.folder.edit(lambda m: m["rig"].update(family="braven-athlete-v7"))
+        self.assertRefuses("family", am.validate, self.root)
+
 
     def _rewrite_library(self):
         data = json.dumps(self.folder.library).encode()
@@ -281,6 +402,39 @@ class Refusals(ManifestTest):
             if not keep_rig:
                 m["rig"].update(jointCount=len(joints), jointSetSha256=am.joint_set_sha256(joints))
         self.folder.edit(change)
+
+
+
+class CommandLine(ManifestTest):
+    def test_check_refuses_another_family_by_default(self):
+        Folder(self.root).write_v1()
+        manifest = json.loads((self.root / am.MANIFEST_NAME).read_text())
+        manifest["rig"]["family"] = "braven-athlete-v7"
+        (self.root / am.MANIFEST_NAME).write_text(json.dumps(manifest))
+        self.assertEqual(am.main(["check", str(self.root)]), 1)
+
+    def test_write_leaves_no_manifest_when_the_folder_does_not_match(self):
+        folder = Folder(self.root)
+        folder.library["assetSha256"] = "ee" * 32
+        (self.root / "movement-library.json").write_text(json.dumps(folder.library))
+        self.assertEqual(am.main(["write", str(self.root)]), 1)
+        self.assertFalse((self.root / am.MANIFEST_NAME).exists())
+
+    def test_write_keeps_the_manifest_when_the_folder_matches(self):
+        Folder(self.root)
+        self.assertEqual(am.main(["write", str(self.root)]), 0)
+        self.assertTrue((self.root / am.MANIFEST_NAME).exists())
+
+
+class ExternalAssetNames(unittest.TestCase):
+    def test_a_user_folder_called_data_does_not_leak(self):
+        source = {"path": "D:\\data\\people\\mpfb\\data\\hair\\h.mhclo", "sha256": "0" * 64, "licence": "CC0"}
+        self.assertEqual(am._external_asset(source)["name"], "mpfb/hair/h.mhclo")
+
+    def test_an_asset_outside_mpfb_keeps_only_its_file_name(self):
+        source = {"path": "D:\\data\\assets\\shoe.obj", "sha256": "0" * 64}
+        self.assertEqual(am._external_asset(source)["name"], "shoe.obj")
+
 
 
 if __name__ == "__main__":

@@ -140,5 +140,51 @@ class ConstraintRuleTest(unittest.TestCase):
                 constraint_to_mute("skirt_04", kind, target)
 
 
+class SharedAthleteWiringTest(unittest.TestCase):
+    """The Blender side of the switch, pinned on the syntax tree.
+
+    `load_shared_athlete`, the `--athlete` branch of `Studio.__init__` and the
+    receipt run only inside Blender, where the host suite cannot reach them.
+    These pin the order and the calls a change could quietly lose. The
+    behaviour itself was measured in Blender and is recorded in
+    `docs/SHARED_ATHLETE_2026-11-12.md`.
+    """
+
+    import ast as _ast
+    TREE = _ast.parse((REPO / "blender_movement_render.py").read_text(encoding="utf-8"))
+
+    def function(self, name, tree=None):
+        for node in self._ast.walk(tree or self.TREE):
+            if isinstance(node, self._ast.FunctionDef) and node.name == name:
+                return node
+        self.fail(f"no function {name}")
+
+    def calls(self, node):
+        return [(n.lineno, n.func.id) for n in self._ast.walk(node)
+                if isinstance(n, self._ast.Call) and isinstance(n.func, self._ast.Name)]
+
+    def test_the_licence_is_checked_before_the_athlete_is_loaded(self):
+        studio = next(n for n in self.TREE.body if isinstance(n, self._ast.ClassDef) and n.name == "Studio")
+        init = self.function("__init__", studio)
+        order = {name: line for line, name in sorted(self.calls(init), reverse=True)}
+        for name in ("athlete_master", "master_record", "external_asset_records", "load_shared_athlete"):
+            self.assertIn(name, order, f"Studio.__init__ must call {name}")
+        self.assertLess(order["master_record"], order["load_shared_athlete"])
+        self.assertLess(order["external_asset_records"], order["load_shared_athlete"])
+        self.assertLess(order["athlete_master"], order["master_record"])
+
+    def test_the_loader_checks_the_head_and_the_constraints(self):
+        names = {name for _, name in self.calls(self.function("load_shared_athlete"))}
+        self.assertIn("head_bone_name", names)
+        self.assertIn("constraint_to_mute", names)
+
+    def test_every_receipt_names_its_athlete(self):
+        render_job = self.function("render_job")
+        keys = [k.value for n in self._ast.walk(render_job) if isinstance(n, self._ast.Dict)
+                for k in n.keys if isinstance(k, self._ast.Constant)]
+        self.assertIn("athlete", keys)
+        self.assertIn("sourceAssets", keys)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -393,9 +393,14 @@ class TheJobCarriesItsOwnAnchor(unittest.TestCase):
                             sides,
                         ),
                     )
+                # THE TRUNK TURN, from the solve's own `turns` and nothing rebuilt.
+                self.assertEqual(
+                    job["trunkTurnDegrees"], round(float(result["turns"][frame]), 6)
+                )
                 self.assertEqual(
                     set(job),
-                    {"frame", "arms", "hands", "stance", FIELD, "ball"}
+                    {"frame", "arms", "hands", "stance", FIELD, "ball",
+                     "trunkTurnDegrees"}
                     | ({"grip"} if sides else set()),
                     f"{movement_id} frame {frame} carries an unexpected key set",
                 )

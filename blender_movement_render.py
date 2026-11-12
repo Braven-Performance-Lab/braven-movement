@@ -754,16 +754,20 @@ def load_shared_athlete(master: Path):
 
     def under_rig(obj):
         # Every descendant: a mesh parented to the body would otherwise be
-        # loaded and not drawn, in silence.
+        # loaded and not drawn, in silence. The walk stops at anything left
+        # out, so the build's ball takes its own children with it.
+        if obj.name in SHARED_LEFT_OUT:
+            return False
         parent = obj.parent
         while parent is not None:
+            if parent.name in SHARED_LEFT_OUT:
+                return False
             if parent is rig:
                 return True
             parent = parent.parent
         return False
 
-    meshes = [o for o in target.objects
-              if o is not None and under_rig(o) and o.name not in SHARED_LEFT_OUT]
+    meshes = [o for o in target.objects if o is not None and under_rig(o)]
     for mesh in meshes:
         collection.objects.link(mesh)
     if any(o.name.startswith(SHARED_RIG + ".") for o in bpy.data.objects):

@@ -9,7 +9,7 @@
 <header class="app-header">
 <a class="brand" href="/" aria-label="Braven Studio home"><span class="brand-mark">B</span><span>Braven <strong>Studio</strong></span></a>
 <nav class="library-nav" aria-label="Studio library"><button data-section="animations" class="selected" aria-current="page">Animations</button><button data-section="kits">Kits</button><button data-section="models">Models</button><button data-section="saved">Saved <span id="saved-count">0</span></button></nav>
-<div class="header-actions"><span class="local-label">Local workspace</span><button id="save-setup" class="light-button" disabled>Save setup</button></div>
+<div class="header-actions"><span class="local-label" id="local-label">Local workspace</span><div id="account" class="account" hidden><span class="account-who"><span id="account-name"></span><span id="account-role" class="role-badge"></span></span><button id="team-open" class="light-button" hidden>Team</button><button id="sign-out" class="light-button">Sign out</button></div><button id="save-setup" class="light-button" disabled>Save setup</button></div>
 </header>
 <main class="workspace">
 <section class="library" aria-label="Asset library">
@@ -24,12 +24,12 @@
 <div id="viewport"></div><div id="load-message" role="status">Loading the athlete…</div><div id="ball-phase" class="ball-phase" hidden></div>
 <div class="view-tools" aria-label="Camera views"><button id="front">Front</button><button id="side">Side</button><button id="back">Back</button><button id="three-quarter" class="selected">¾ view</button><button id="reset-camera" title="Reset camera">Reset</button></div>
 <div class="stage-foot"><span>Drag to orbit · Scroll to zoom</span><span id="model-stats">Loading model</span></div>
-<div class="transport"><div class="timeline-row"><input id="timeline" aria-label="Animation time" type="range" min="0" max="3" step="0.001" value="0" disabled><output id="time">0.00 / 3.00 s</output></div>
+<div class="transport"><div class="timeline-row"><div class="timeline-track"><input id="timeline" aria-label="Animation time" type="range" min="0" max="3" step="0.001" value="0" disabled><div id="timeline-markers" class="timeline-markers" role="group" aria-label="Comments on this animation"></div></div><output id="time">0.00 / 3.00 s</output></div>
 <div class="playback-row"><div class="transport-buttons"><button id="restart" title="Restart animation" disabled aria-label="Restart animation">↶</button><button id="step-back" title="Previous frame (left arrow)" disabled aria-label="Previous frame">‹</button><button id="play" class="play-button" disabled>Play</button><button id="step-forward" title="Next frame (right arrow)" disabled aria-label="Next frame">›</button></div><div class="playback-meta"><span id="playback-rate">1× speed</span><span class="keyboard-hint">Space to play</span></div></div></div>
 </section>
 <aside class="inspector" aria-label="Preview settings">
 <div class="panel-intro"><span class="section-label">Preview settings</span><h2>Make it your own</h2><p>Adjust, inspect and save a setup.</p></div>
-<div class="tabs" role="tablist" aria-label="Preview settings"><button class="selected" data-tab="animate" role="tab" aria-selected="true" aria-controls="panel-animate">Movement</button><button data-tab="kit" role="tab" aria-selected="false" aria-controls="panel-kit">Kit</button><button data-tab="review" role="tab" aria-selected="false" aria-controls="panel-review">Review</button><button data-tab="pose" role="tab" aria-selected="false" aria-controls="panel-pose">Pose</button></div>
+<div class="tabs" role="tablist" aria-label="Preview settings"><button class="selected" data-tab="animate" role="tab" aria-selected="true" aria-controls="panel-animate">Movement</button><button data-tab="kit" role="tab" aria-selected="false" aria-controls="panel-kit">Kit</button><button data-tab="review" role="tab" aria-selected="false" aria-controls="panel-review">Review<span id="review-tab-count" class="tab-count" hidden></span></button><button data-tab="pose" role="tab" aria-selected="false" aria-controls="panel-pose">Pose</button></div>
 <section class="panel" id="panel-animate" role="tabpanel">
 <label for="driver">Movement source</label><select id="driver"><option value="clips">Animation library</option><option value="tactics">Braven Tactics</option></select>
 <label for="clip">Animation</label><select id="clip"><option>Ready</option></select><div class="phase-heading" id="phase-heading">Jump to a moment</div><div id="phase-buttons" hidden></div>
@@ -44,8 +44,24 @@
 </section>
 <section class="panel" id="panel-review" role="tabpanel" hidden>
 <h3 id="review-title">Chest pass</h3><span id="review-status" class="review-badge">Source checked</span><p id="review-description" class="hint">Source checks and coaching approval are separate.</p>
-<label for="review-note">Your review notes</label><textarea id="review-note" rows="6" maxlength="4000" placeholder="What works? What needs another look?"></textarea><p class="hint">Notes are included when you save a setup. They stay local until you export them.</p><button id="save-review" class="wide-button">Save this review</button>
-<details><summary>Model and source details</summary><dl id="asset-details"></dl><a class="source-link" href="/athlete-assets/netball-athlete.blend" download>Download Blender master</a><a class="source-link" href="/athlete-assets/athlete-source.blend" download>Download body source</a></details>
+<section id="comments" class="comments" aria-label="Comments from the team" hidden>
+<p id="version-line" class="version-line"></p><p id="approval-line" class="approval-line"></p>
+<form id="comment-form" class="comment-form"><h4>Add a comment</h4>
+<div class="moment-row"><strong id="comment-moment">At 0.00 s</strong><button type="button" id="comment-range" class="text-button">Start a range here</button></div><p id="comment-range-hint" class="hint" hidden>Now move the playhead to the end of the range.</p>
+<fieldset id="comment-kinds" class="kind-options"><legend>What kind of comment is it?</legend></fieldset><p id="comment-kind-hint" class="hint kind-hint"></p>
+<label for="comment-body">Comment</label><textarea id="comment-body" rows="4" maxlength="4000" placeholder="What do you see at this moment?"></textarea>
+<label for="comment-part">Body part <span>(optional)</span></label><select id="comment-part"></select>
+<div id="comment-phase-row"><label for="comment-phase">Phase <span>(optional)</span></label><select id="comment-phase"></select></div>
+<p id="comment-view" class="hint">Camera: ¾ view</p><p id="comment-error" class="error" role="alert" hidden></p>
+<button id="comment-post" class="primary-button wide-button">Add comment</button><p class="hint">The team reads every comment. A comment cannot be changed or deleted; it can be answered.</p></form>
+<p id="comment-unavailable" class="hint" hidden></p>
+<div class="comment-list-heading" id="comment-list-heading"><h4 id="comment-count">No comments on this version yet</h4><button type="button" id="comments-refresh" class="text-button">Refresh</button></div>
+<p id="comments-truncated" class="hint" hidden>There are more comments than Studio can show. The oldest are left out.</p>
+<div id="comment-list" class="comment-list"></div>
+<details id="earlier-comments" hidden><summary id="earlier-summary"></summary><p class="hint">Made on an earlier version of the athlete. They stay with that version and are not on this timeline.</p><div id="earlier-list" class="comment-list"></div></details>
+<div class="divider"></div></section>
+<div id="local-notes"><label for="review-note" id="review-note-label">Your review notes</label><textarea id="review-note" rows="6" maxlength="4000" placeholder="What works? What needs another look?"></textarea><p class="hint" id="review-note-hint">Notes are included when you save a setup. They stay local until you export them.</p><button id="save-review" class="wide-button">Save this review</button></div>
+<details id="source-details"><summary>Model and source details</summary><dl id="asset-details"></dl><a class="source-link" href="/athlete-assets/netball-athlete.blend" download>Download Blender master</a><a class="source-link" href="/athlete-assets/athlete-source.blend" download>Download body source</a></details>
 </section>
 <section class="panel" id="panel-pose" role="tabpanel" hidden>
 <h3>Advanced pose editing</h3><p class="hint">Animation pauses while you edit. Save a setup to keep the pose, or press Play to return to animation.</p>
@@ -59,6 +75,24 @@
 </aside>
 </main>
 <dialog id="save-dialog"><form id="save-form"><div class="dialog-heading"><h2>Save this setup</h2><button type="button" id="close-save" aria-label="Close save dialog">×</button></div><p>Keep the kit, movement, camera and pose together.</p><label for="setup-name">Setup name</label><input id="setup-name" maxlength="80" required placeholder="e.g. Chest pass — wrist review"><label for="setup-note">Review notes <span>(optional)</span></label><textarea id="setup-note" maxlength="4000" rows="4"></textarea><p class="hint">Saved in this browser. You can export it from Saved.</p><p id="save-error" class="error" role="alert" hidden></p><div class="dialog-actions"><button type="button" id="cancel-save">Cancel</button><button type="submit" class="primary-button">Save setup</button></div></form></dialog>
+<dialog id="team-dialog" class="team-dialog" aria-labelledby="team-title"><div class="dialog-heading"><h2 id="team-title">Team and versions</h2><button type="button" id="team-close" aria-label="Close">×</button></div>
+<p id="team-error" class="error" role="alert" hidden></p>
+<section id="team-people"><h3>Invite a person</h3>
+<form id="invite-form" class="invite-form"><div><label for="invite-email">Email address</label><input id="invite-email" type="email" required autocomplete="off" placeholder="coach@example.org"></div><div><label for="invite-role">Role</label><select id="invite-role"><option value="reviewer">Reviewer</option><option value="author">Author</option><option value="owner">Owner</option></select></div><button id="invite-send" class="primary-button">Invite</button></form>
+<p class="hint">A reviewer is a coach or a trainer: they comment and approve. An author changes the animations. An owner invites people and publishes versions.</p><p class="hint">Studio sends no mail for an invitation. Tell the person the Studio address. They sign in with this email address.</p>
+<h3>Open invitations</h3><ul id="invitation-list" class="team-list"></ul>
+<h3>People</h3><ul id="member-list" class="team-list"></ul></section>
+<section id="team-versions"><h3>Athlete versions</h3><p class="hint">Reviewers see the version that was published last. A published version cannot be changed or taken back.</p><ul id="version-list" class="team-list"></ul>
+<h3>Upload a version</h3><p class="hint">Run the manifest check on the athlete folder first, then choose that folder. Studio sends the manifest, the model and the movement library. The Blender files stay on this computer.</p><input id="version-files" type="file" multiple webkitdirectory hidden><button type="button" id="version-choose">Choose the athlete folder</button><p id="version-progress" class="hint" role="status" hidden></p></section>
+</dialog>
 <div id="notification" class="notification" role="status" hidden><span id="notification-text"></span><button id="undo-delete" hidden>Undo</button><button id="close-notification" aria-label="Dismiss message">×</button></div>
+<div id="signin" class="signin" hidden><div class="signin-card" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+<div class="signin-brand"><span class="brand-mark">B</span><h1 id="signin-title">Braven Studio</h1></div>
+<div id="signin-ask"><p>Sign in with the address your invitation was sent to. Studio mails you a link. There is no password.</p><form id="signin-form"><label for="signin-email">Email address</label><input id="signin-email" type="email" autocomplete="email" required placeholder="you@example.org"><p id="signin-ask-note" class="hint" role="alert" hidden></p><button id="signin-send" class="primary-button wide-button">Mail me a sign-in link</button></form><p class="hint">By invitation only. The same account works in Braven Tactics.</p></div>
+<div id="signin-sent" hidden><h2>Check your mail</h2><p>A sign-in link is on its way to <strong id="signin-sent-address"></strong>. Open it on this device.</p><button type="button" id="signin-again" class="text-button">Use another address</button></div>
+<div id="signin-confirm" hidden><h2>Confirm your address</h2><p>This link was opened on another device or browser. Type the address the mail came to.</p><form id="signin-confirm-form"><label for="signin-confirm-email">Email address</label><input id="signin-confirm-email" type="email" autocomplete="email" required><p id="signin-confirm-note" class="hint" role="alert" hidden></p><button class="primary-button wide-button">Sign in</button></form></div>
+<div id="signin-busy" hidden><p id="signin-busy-note" role="status"></p></div>
+<div id="signin-refused" hidden><h2 id="signin-refused-title">You cannot come in yet</h2><p id="signin-refused-note" role="alert"></p><p class="hint">Signed in as <strong id="signin-refused-address"></strong></p><div class="button-row"><button type="button" id="signin-retry">Try again</button><button type="button" id="signin-other">Use another address</button></div></div>
+</div></div>
 <script type="module" src="/src/main.js"></script>
 </body></html>

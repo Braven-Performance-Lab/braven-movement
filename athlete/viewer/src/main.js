@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSkinned, applySkinnedPose, kitColours } from '@tactics/engine/skinned.ts'
 import { pose as tacticsPose } from '@tactics/engine/pose.ts'
@@ -10,13 +9,16 @@ import { createAthleteFootworkDemo } from '@tactics/state/athleteFootworkDemo.ts
 import { evaluateFrame, distanceAt, paceIn } from '@tactics/core/evaluate.ts'
 import { clipLabels } from './catalog.js'
 import { startStudio } from './studio.js'
+import { openAthlete } from './athlete-source.js'
 import { receivePassSequence, presentCarryBall, previewPace } from './preview-motion.js'
 import './style.css'
 
 const $ = id => document.getElementById(id)
 const state = { playing: false, speed: 1, time: 0,
   driver: 'clips', clip: 'Ready', kit: 'skirt', height: 1.75, skeleton: false, wireframe: false,
-  gait: 'run', scenario: 'gait', carry: false, poseMode: false, selectedBone: 'upperarm_l', loop: true }
+  gait: 'run', scenario: 'gait', carry: false, poseMode: false, selectedBone: 'upperarm_l', loop: true, view: 'quarter' }
+// True in hosted Studio, where a person is signed in and the athlete is a published version.
+let hosted = false
 const footworkDemo=createAthleteFootworkDemo()
 const host = $('viewport')
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
@@ -54,21 +56,47 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, .93, 0)
 controls.enableDamping = true; controls.minDistance = 1.2; controls.maxDistance = 7
 controls.maxPolarAngle = Math.PI*.52
-function view(name) {
+const viewIds={front:'front',side:'side',back:'back',quarter:'three-quarter'}
+// Where a named view puts the camera for the clip on screen.
+function viewPose(name) {
   const positions = { front: [0, 1.75, 4.1], side: [4.1, 1.75, 0], back: [0,1.75,-4.1], quarter: [2.2, 1.8, 3.55] }
-  camera.position.set(...positions[name]); controls.target.set(0, .93, 0)
+  const position = new THREE.Vector3(...positions[name]), target = new THREE.Vector3(0, .93, 0)
   if (state.driver === 'clips' && state.clip === 'Jump_reach') {
-    controls.target.y = 1.12
-    camera.position.sub(controls.target).multiplyScalar(1.18).add(controls.target)
+    target.y = 1.12
+    position.sub(target).multiplyScalar(1.18).add(target)
   }
   if(state.driver==='clips'&&state.clip==='netball_bounce_pass'&&name==='quarter'){
-    camera.position.set(5,2.5,6);controls.target.set(0,.8,1.3)
+    position.set(5,2.5,6);target.set(0,.8,1.3)
   }
+  return { position, target }
+}
+function markView(name) {
+  state.view = name
+  for(const [view,id] of Object.entries(viewIds)) $(id).classList.toggle('selected',view===name)
+}
+function view(name) {
+  const pose = viewPose(name)
+  // Spend what is left of an earlier drag first. With damping on, the controls would go on
+  // turning the camera after it is placed, and the person would not be at the view they chose.
+  controls.enableDamping = false; controls.update(); controls.enableDamping = true
+  camera.position.copy(pose.position); controls.target.copy(pose.target)
   controls.update()
-  const ids={front:'front',side:'side',back:'back',quarter:'three-quarter'}
-  for(const id of Object.values(ids)) $(id).classList.toggle('selected',id===ids[name])
+  markView(name)
+}
+// The named view the camera is at now, or 'free': a restored setup holds a camera, not a name.
+function namedView() {
+  for (const name of Object.keys(viewIds)) {
+    const pose = viewPose(name)
+    if (camera.position.distanceTo(pose.position) < .02 && controls.target.distanceTo(pose.target) < .02) return name
+  }
+  return 'free'
 }
 view('quarter')
+// A camera the person moved is their own angle, not a named view. A comment records which.
+// The view is read each time the camera really moves. OrbitControls says 'start' for a click
+// that moves nothing, and with damping the camera still moves after 'end': neither event says
+// where the camera is. A camera that is at a named view keeps the name.
+controls.addEventListener('change', () => { const name = namedView(); if (name !== state.view) markView(name) })
 new ResizeObserver(() => { camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(host.clientWidth, host.clientHeight) }).observe(host)
 
 let model, mixer, clips, activeAction, rig, tacticRoot, helper, tacticHelper, originalHeight
@@ -130,7 +158,7 @@ function playClip(name) {
       button.onclick = () => { if (state.poseMode) playClip(state.clip); state.playing=false; state.time=phase.time; sample() }
       $('phase-buttons').append(button)
     }
-    $('motion-note').textContent = `Braven Movement technique. ${source.sourceChecksPassed ? 'Source checkpoints passed.' : 'Source checks need review.'} Retargeted onto this athlete; coaching approval is still pending.`
+    $('motion-note').textContent = `Braven Movement technique. ${source.sourceChecksPassed ? 'Source checkpoints passed.' : 'Source checks need review.'} Retargeted onto this athlete; ${hosted ? 'a coach\'s approval of this version is shown under Review.' : 'coaching approval is still pending.'}`
   } else $('motion-note').textContent = state.clip === 'Receive_pass'
     ? 'Demonstration sequence: Movement two-hand catch into chest pass, including the ball. Coaching approval is pending.'
     : 'Unloaded movement demonstration. Pause at any moment, then open Pose to adjust the body.'
@@ -232,18 +260,15 @@ function download(name, data) {
 }
 
 async function init() {
-  // The checked manifest (docs/ATHLETE_MANIFEST.md): Studio serves no other description of the model.
-  const manifestResponse=await fetch('/athlete-assets/athlete-manifest.json')
-  if(!manifestResponse.ok)throw new Error('The model manifest is missing. Rebuild Studio with the athlete output directory.')
-  const manifest=await manifestResponse.json()
-  // Files by their role in the checked manifest, not by a fixed name.
-  const fileOf=role=>Object.entries(manifest.files).find(([,f])=>f.role===role)?.[0]
-  const modelFile=fileOf('model'),libraryFile=fileOf('library')
-  if(!modelFile)throw new Error('The athlete manifest names no model.')
-  movementLibrary = await (libraryFile?fetch('/athlete-assets/'+libraryFile):Promise.reject()).then(r => r.ok ? r.json() : {techniques:[]}).catch(() => ({techniques:[]}))
-  const gltf = await new GLTFLoader().loadAsync('/athlete-assets/'+modelFile, e => {
-    $('load-message').textContent = e.total ? `Loading athlete · ${Math.round(e.loaded/e.total*100)}%` : 'Loading athlete…'
+  // The checked manifest (docs/ATHLETE_MANIFEST.md): Studio uses no other description of the model.
+  // Local Studio reads it from the build. Hosted Studio signs the person in first, and takes the
+  // published version through the API, each file checked against its hash (athlete-source.js).
+  const source = await openAthlete(fraction => {
+    $('load-message').textContent = fraction === null ? 'Loading athlete…' : `Loading athlete · ${Math.round(fraction*100)}%`
   })
+  const { manifest, gltf, modelFile } = source
+  hosted = !!source.review
+  movementLibrary = source.library
   model = gltf.scene
   model.traverse(o => {
     if (o.isBone) { bones.set(o.name, o); bind.set(o.name, capture(o)) }
@@ -287,6 +312,9 @@ async function init() {
     sample, playClip, selectClip, enterPose, appearance, updateVisibility, movementLibrary, view, duration,
     assetHash:manifest.files[modelFile].sha256.toLowerCase(),
     assetRevision:manifest.asset.revision,
+    manifest, versionId:source.versionId, review:source.review,
+    // Movements Studio builds under a clip's own name: not the version's clip, so not commented on.
+    builtClips:[sequence.name],
     pause:()=>{advancePlayback(performance.now());state.playing=false;sample()},
     seek:time=>{if(state.poseMode)playClip(state.clip);previous=performance.now();state.playing=false;state.time=Math.max(0,Math.min(time,duration()-.001));sample()},
     captureSetup, applySetup,
@@ -323,7 +351,7 @@ function applySetup(setup) {
     refreshJoint();sample()
   }
   camera.position.fromArray(setup.camera.position);controls.target.fromArray(setup.camera.target);controls.update()
-  document.querySelectorAll('.view-tools button').forEach(b=>b.classList.remove('selected'))
+  markView(namedView())
   previous=performance.now()
 }
 

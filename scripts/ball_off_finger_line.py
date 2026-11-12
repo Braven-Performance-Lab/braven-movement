@@ -1,4 +1,4 @@
-"""Where the ball sits relative to the hand, on the refused pose and the rest.
+"""Where the ball sits relative to the hand, on every gripping pose.
 
 The flexion is applied in the plane that turns the finger toward the BALL, not
 about the bone's own x. So the axis that carries the flexion is decided by where
@@ -57,7 +57,11 @@ def main() -> None:
                     studio.basis, studio.foot_baseline,
                     studio.config.finger_curl_degrees,
                     job.get("knuckleLimitsDegrees"), studio.human)
-            except Exception:
+            except Exception as error:
+                # Said, never skipped in silence: a dropped row would leave
+                # a table that looks complete without the phase it is about.
+                print(f"COULD NOT POSE {job['movementId']}/{phase['name']}: "
+                      f"{type(error).__name__}: {error}")
                 continue
             for side in grip:
                 knuckle = world_head(studio.rig, f"index_01_{side}")

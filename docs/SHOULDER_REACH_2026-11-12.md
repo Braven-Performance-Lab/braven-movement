@@ -72,3 +72,30 @@ so this rig cannot do both, and it misses by about 22 mm across. A constant
 this size at phases where nothing moves points at the two REST poses, which
 the field assumes are equivalent, and not at the motion. That is the
 question for step 2.
+
+## The cause (goal step 2)
+
+Measured with `scripts/engine_rest_clavicle.py` (engine) and
+`scripts/rig_rest_clavicle.py` (render rig), both sides, on `09bf701`:
+
+| Clavicle | Length | Back of straight out | Up |
+|---|---:|---:|---:|
+| Engine, rest | 17.65 cm | 32.96 deg | 5.37 deg |
+| Engine, `chest_pass/ready` | 17.65 cm | 15.29 deg | 5.78 deg |
+| Render rig, rest | 12.63 cm | 2.85 deg | -8.50 deg |
+
+- The engine's clavicle is rigid: 17.65 cm at rest and in every pose measured.
+- The engine's REST pose holds the clavicles retracted, 33 degrees back. To
+  stand, it swings them about 18 degrees forward. Because the bone points
+  back, that swing carries the shoulder FORWARD AND OUTWARD: 4.9 cm and 1.9 cm.
+- The render rig's REST clavicle already points almost straight out, close to
+  the engine's standing posture. Asked for the same 4.9 cm forward, its
+  clavicle can only swing forward, which carries the shoulder INWARD. So it
+  misses across, by about 22 mm, at every neutral phase.
+- The length difference (17.65 against 12.63 cm, 20.4 per cent per torso,
+  as recorded) adds to this on large movements.
+
+So the gap is mainly the two REST postures, which the displacement field
+assumes are equivalent, and second the clavicle length. It is not a defect
+in how the renderer applies the shift: `rotate_bone_toward` lands on the
+nearest reachable point by construction.

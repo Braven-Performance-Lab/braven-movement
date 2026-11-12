@@ -142,7 +142,11 @@ owns.
 **A CORRECTION (12 Nov 2026, review of `3127993`).** The first version of this
 paragraph said the rig's clavicle "lies between" the engine's rest and
 standing angles and that no number settles the question. 2.85 is not between
-15.29 and 32.96. Main ruled option D on that framing.
+15.29 and 32.96. Main ruled option D on that framing, and on 12 Nov kept D
+with the correct number: the owner ruled that the manual figures move to the
+shared athlete, so this rig gets no more fixes, and B still makes 6 phases
+worse. **B's reference, the engine's standing posture, may be the right one**
+for any body whose rest clavicle points out as this rig's does.
 
 ### A and C, measured, beside B
 

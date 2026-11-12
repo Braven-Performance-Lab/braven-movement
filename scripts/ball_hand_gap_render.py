@@ -64,7 +64,12 @@ def main() -> int:
                 nearest[side] = {"tip": round(min(tips), 2), "anywhere": round(min(every), 2)}
             rows.append({"movementId": job["movementId"], "phase": phase["name"], "frame": phase["frame"],
                          "holding": receipt["holding"], "armM": round(arm, 6),
-                         "wristFromSurfaceInArms": gaps, "nearestDigitMm": nearest})
+                         "wristFromSurfaceInArms": gaps, "nearestDigitMm": nearest,
+                         # The ball is placed from the shoulder midpoint, so the
+                         # ball moves with the girdle's error and the hands move
+                         # with the ball: the gap above cannot see it. This can.
+                         "girdle": {k: receipt["girdle"].get(k) for k in
+                                    ("verdict", "worstOffsetMm", "ballAnchorErrorMm")}})
     output.write_text(json.dumps({"instrument": "scripts/ball_hand_gap_render.py",
                                   "build": studio.build, "rows": rows}, indent=1), encoding="utf-8")
     print(f"[ball-hand-gap] {len(rows)} phases -> {output}")

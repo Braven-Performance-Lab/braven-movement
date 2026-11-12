@@ -44,9 +44,51 @@ converted to centimetres with the MPFB arm.
   render-minus-solve difference (median 0.00 cm held, 1.04 cm free). Their
   instrument is not recorded, so they cannot be re-measured.
 
+## What the gap cannot see, and the measure that can
+
+In a held phase the renderer places the gripping hands FROM the ball. If the
+ball is in the wrong place relative to the body, the hands go with it and the
+gap above still reads zero. The gap is blind to that error, and that error is
+the defect FIG-2 describes: `pose_phase` places the ball from the rig's own
+shoulder midpoint, so the ball carries the girdle's error one for one
+(`docs/KNOWN_ISSUES.md`, "The ball is anchored to a landmark the job does not
+transmit").
+
+The render instrument therefore also reads the girdle receipt's
+`ballAnchorErrorMm`: the distance between the shoulder midpoint the rig reached
+and the one the job asks for. On `4a54964`, 50 phases:
+
+| Statistic | Value |
+|---|---:|
+| Median | 7.55 mm |
+| Maximum | 20.45 mm |
+| Above the 10 mm rule | 2 |
+| Above 5 mm | 40 |
+
+| Phase | Ball | Error |
+|---|---|---:|
+| `netball_hooks_outside_hand/facing_away` | free | 20.45 mm |
+| `netball_hooks_outside_hand/contact` | held | 11.60 mm |
+| `netball_bounce_pass/follow_through` | free | 9.16 mm |
+| `netball_hooks_outside_hand/gather` | held | 9.06 mm |
+
+Every phase reports the verdict `out of reach`: the clavicle rotates and does
+not stretch, so the shoulder lands on a sphere and the residual is measured,
+not forced. This agrees with the renderer's docstring ("2 of 51 phases exceed
+the ten-millimetre rule").
+
+So FIG-2 ("22 of 51 phases, up to 26 cm") does not reproduce on `4a54964`. The
+girdle field and `pose_girdle` (September) took the error from up to 8.45 cm
+to at most 2.05 cm. What remains above the rule is two phases of one drill,
+the drill where she is turned. The 40 phases above 5 mm include neutral
+`ready` phases at about 8.3 mm, so part of the median is a constant of the
+clavicle sphere and not a girdle that failed to move. That is not separated
+here.
+
 ## The look
 
-The renderer drew three held phases in three views each:
+This look cannot see a 1 to 2 cm anchor error either, because the hands move
+with the ball. The renderer drew three held phases in three views each:
 `netball_two_hand_catch_chest/contact`, `netball_chest_pass/drive` and
 `netball_hooks_outside_hand/contact`. In all nine panels the ball is in the
 gripping hands. The one-handed catch shows the free hand clear of the ball.

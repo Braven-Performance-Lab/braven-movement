@@ -183,6 +183,36 @@ def axis_complaint(
     )
 
 
+def applied_flexion_axis(
+    digit: str,
+    turned: Vector3,
+    named_axis: int,
+    *,
+    floor_degrees: float,
+    min_share: float = MIN_AXIS_SHARE,
+) -> int:
+    """The euler component the flexion limit is applied to.
+
+    OPTION C of `docs/FLEXION_AXIS_PAPER.md`, ruled on 2026-09-09: the named
+    axis stands wherever `axis_complaint` has nothing to say, so every reading
+    that guard passed keeps its axis (208 of 208 on the eleven drills that
+    pose). Only a name the guard REFUTES gives way, and then to the axis that
+    carried the turn.
+
+    This draws `netball_one_hand_high_pass/ready`. It does NOT show that grip
+    is anatomical: the finger there turns through more than a right angle to
+    reach a ball 110.9 degrees off its line, and whether a hand holds a ball
+    that way is a coaching question, recorded in
+    `docs/FINDING_HIGH_PASS_READY_GRIP.md`.
+    """
+    complaint = axis_complaint(
+        digit, turned, named_axis, floor_degrees=floor_degrees, min_share=min_share
+    )
+    if complaint is None:
+        return named_axis
+    return dominant_axis(turned)
+
+
 def dominance_margin(components: Vector3) -> float:
     """How far the largest component exceeds the next largest.
 

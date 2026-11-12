@@ -20,7 +20,7 @@ if str(TOOL_DIR) not in sys.path:
 
 from finger_curl import (  # noqa: E402
     ASSERTED_DIGITS,
-    axis_complaint,
+    applied_flexion_axis,
     axis_share,
     relative_rotation,
     curl_directions,
@@ -655,14 +655,18 @@ def pose_articulated_hand(
         # and a first version of this check judged that total. It fired on a
         # correct rig and killed a render, because at a small knuckle angle the
         # aim is most of the rotation and the flexion has barely started.
-        complaint = axis_complaint(
+        #
+        # A name the guard REFUTES no longer raises: the limit is applied about
+        # the axis that turned (option C, `applied_flexion_axis`). Every name
+        # the guard accepts stands, so the eleven drills are unchanged. The
+        # receipt records `appliedAxis` beside `namedAxis`, so the one hand
+        # where they differ stays visible.
+        axis = applied_flexion_axis(
             digit,
             knuckle_turn(digit),
             axis,
             floor_degrees=FLEXION_MEASURE_FLOOR_DEGREES,
         )
-        if complaint:
-            raise RuntimeError(f"FLEXION_AXIS: {side} {complaint}")
         flexion = abs(parts[axis])
         deviation = math.hypot(
             *[value for index, value in enumerate(parts) if index != axis]
@@ -760,6 +764,12 @@ def pose_articulated_hand(
             largest = max(abs(value) for value in turned)
             axis_report[digit] = {
                 "namedAxis": FLEXION_AXIS[digit],
+                # The axis the limit was applied about. Equal to `namedAxis`
+                # except where the guard refuted the name.
+                "appliedAxis": applied_flexion_axis(
+                    digit, turned, FLEXION_AXIS[digit],
+                    floor_degrees=FLEXION_MEASURE_FLOOR_DEGREES,
+                ),
                 "turnedDegrees": [round(value, 3) for value in turned],
                 "namedAxisShare": round(axis_share(turned, FLEXION_AXIS[digit]), 4),
                 "dominantAxis": dominant_axis(turned),

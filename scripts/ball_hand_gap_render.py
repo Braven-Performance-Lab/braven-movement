@@ -69,7 +69,12 @@ def main() -> int:
                          # ball moves with the girdle's error and the hands move
                          # with the ball: the gap above cannot see it. This can.
                          "girdle": {k: receipt["girdle"].get(k) for k in
-                                    ("verdict", "worstOffsetMm", "ballAnchorErrorMm")}})
+                                    ("verdict", "worstOffsetMm", "ballAnchorErrorMm")},
+                         # Every bone head in world metres, so two builds can be
+                         # compared pose for pose without rendering an image.
+                         "boneHeadsM": {bone.name: [round(v, 6) for v in R.world_head(rig, bone.name)]
+                                        for bone in rig.pose.bones},
+                         "ballCentreM": [round(v, 6) for v in centre]})
     output.write_text(json.dumps({"instrument": "scripts/ball_hand_gap_render.py",
                                   "build": studio.build, "rows": rows}, indent=1), encoding="utf-8")
     print(f"[ball-hand-gap] {len(rows)} phases -> {output}")

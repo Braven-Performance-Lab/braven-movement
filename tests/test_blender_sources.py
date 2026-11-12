@@ -12,6 +12,7 @@ sys.path.insert(0, str(MODULE_DIR))
 from finger_curl import (  # noqa: E402
     ASSERTED_DIGITS,
     angle_between_degrees,
+    applied_flexion_axis,
     axis_complaint,
     axis_share,
     cumulative_angles,
@@ -291,6 +292,41 @@ class BlenderSourceContractTest(unittest.TestCase):
             "naming Y for a finger must be refused",
         )
 
+    def test_the_limit_follows_the_axis_that_turned_only_when_the_name_is_refuted(self):
+        """Option C of docs/FLEXION_AXIS_PAPER.md, ruled 2026-09-09.
+
+        The named axis stands wherever `axis_complaint` has nothing to say, so
+        every reading the old guard passed keeps its axis: 208 of 208 on the
+        eleven drills. Only a refuted name gives way, and then to the axis
+        that carried the turn.
+
+        The refuted case is the real one: the right index at
+        `netball_one_hand_high_pass/ready`, x=18.5 y=-7.2 z=42.2 degrees.
+        """
+        refused = (18.5, -7.2, 42.2)
+        self.assertIsNotNone(axis_complaint("index", refused, 0, floor_degrees=5.0))
+        self.assertEqual(
+            applied_flexion_axis("index", refused, 0, floor_degrees=5.0), 2,
+            "a refuted name must give way to the axis that turned",
+        )
+
+        like_a_finger = (58.3, -4.7, 8.5)
+        self.assertEqual(
+            applied_flexion_axis("index", like_a_finger, 0, floor_degrees=5.0), 0,
+            "a name the guard accepts must stand",
+        )
+
+        # Below the floor there is no direction, so the name stands even where
+        # the share alone would refute it.
+        barely = (0.4, -0.2, 0.05)
+        self.assertEqual(applied_flexion_axis("index", barely, 2, floor_degrees=5.0), 2)
+
+        # The thumb is never asserted, so its name never gives way, even on a
+        # turn where another axis carries most of it.
+        self.assertEqual(
+            applied_flexion_axis("thumb", (40.0, 2.0, 25.0), 2, floor_degrees=5.0), 2
+        )
+
     def test_a_knuckle_that_has_barely_turned_is_not_judged(self):
         """Below the floor the rotation has no direction to name.
 
@@ -526,8 +562,11 @@ class BlenderSourceContractTest(unittest.TestCase):
                         return True
             return False
 
+        # Since option C the rule `within_limits` calls is
+        # `applied_flexion_axis`, which calls `axis_complaint` and gives way to
+        # the axis that turned only where that complaint refutes the name.
         self.assertTrue(
-            calls_named("within_limits", "axis_complaint"),
+            calls_named("within_limits", "applied_flexion_axis"),
             "within_limits must CALL the axis rule, not merely mention it",
         )
         self.assertTrue(

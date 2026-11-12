@@ -131,17 +131,40 @@ rig's rest pose is the engine's rest or its standing posture. Its clavicle,
 a modelling judgment and no number here settles it. B also changes a job
 field that the movement side owns.
 
-### A, not measured: send the clavicle's rotation instead of the shoulder's translation
+### A and C, measured, beside B
 
-Each body turns its own clavicle by the same angles from its own reference.
-Always reachable by construction; the ball would follow this rig's anatomy.
-Needs a new job field and the same choice of reference as B.
+`scripts/engine_clavicle_directions.py` exports the engine's clavicle
+direction at rest and at every graded phase. `scripts/girdle_option_probe.py`
+poses all 51 phases with the renderer's own code and one substitution:
 
-### C, not measured: turn this rig's rest clavicles back to the engine's rest
+- A: each clavicle turns by the engine clavicle's own rotation from rest,
+  applied to this rig's rest direction. The renderer's girdle refusal is off
+  in that process only, because A aims at its own target; the receipt is
+  still written against the job's girdle.
+- C: this rig's rest clavicles are first turned to the engine's rest
+  direction (32.96 deg back, 5.37 deg up); the job's shift is then applied
+  unchanged.
 
-Rotate the rest clavicles about 30 degrees back so both rests match, and keep
-the field. Changes this rig's anatomy at rest and every figure; the length
-difference remains.
+`python scripts/compare_options.py out/reach-main.json A=out/reach-optA.json B=out/reach-optB.json C=out/reach-optC.json`:
+
+| | Shoulder miss, median / max | Anchor error, median / max | Over 10 mm | Worse | Ball moves, median / max | Largest bone move |
+|---|---:|---:|---:|---:|---:|---:|
+| Now | 23.19 / 41.13 mm | 7.53 / 18.16 mm | 2 | | | |
+| A | 24.56 / 41.81 | 13.72 / 21.14 | 49 | 51 | 7.0 / 21.3 mm | 21.9 mm |
+| B | 3.35 / 24.80 | 0.19 / 17.61 | 1 | 6 | 41.9 / 52.7 | 54.7 |
+| C | 0.85 / 39.02 | 0.21 / 26.70 | 3 | 7 | 57.9 / 66.7 | 72.4 |
+
+"Worse" counts phases whose anchor error rises by more than 0.5 mm.
+
+- A moves the figures least but misses the job's girdle on every phase. The
+  rotation is the engine's own value, but a 12.63 cm clavicle turned from a
+  nearly straight rest does not put the shoulder where a 17.65 cm clavicle
+  turned from 33 degrees back puts it. The anchor error measures that.
+- B and C close the gap on most phases, and each moves every ball 4 to 6 cm
+  and makes the arm-raising phases worse. C also makes
+  `hooks_outside_hand/facing_away` worse (26.70 mm) and adds
+  `one_hand_high_pass/ready` over the rule (12.46 mm).
+- None of the three meets "every phase under 10 mm and no phase worse".
 
 ### D: keep and record
 

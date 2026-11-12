@@ -19,6 +19,14 @@ definition moved in memory. Nothing under `spikes/movements/` is written.
 
 PART 2 PAIRS BY NAME, which is a label, not a correspondence. It prints the
 pairs and their gaps, so a person can judge which are by design; it cannot.
+It counts twice: against either key file, and against the technique file
+alone, which is the file the solve reads for the ball. The solve reads only
+the frame count, the rate and the trunk turn from the motion file.
+
+THE REFUSALS NEED NO SOLVE. `held_frames` and `read_both` take the files and
+the frames as arguments, so `tests/test_pull_in_frame.py` reaches every
+refusal with synthetic frames. Only the solve itself is outside the host
+suite. The readings and the full output are in docs/PULL_IN_FRAME_2026-11-12.md.
 """
 from __future__ import annotations
 
@@ -108,13 +116,30 @@ def library_pairs(movements: Path = MOVEMENTS) -> list[dict]:
     return drills
 
 
+def technique_gap(row: dict) -> bool:
+    """The row differs from a key in the technique file, not only the motion file."""
+    return any(file.endswith(".technique.json") and abs(at - row["atPhase"]) > GAP
+               for file, _, at in row["keys"])
+
+
+def counts(drills: list[dict]) -> dict:
+    return {
+        "drills": len(drills),
+        "differ": sum(any(r["differs"] for r in d["rows"]) for d in drills),
+        "differ_technique": sum(any(technique_gap(r) for r in d["rows"]) for d in drills),
+        "agree": sum(bool(d["rows"]) and not any(r["differs"] for r in d["rows"]) for d in drills),
+        "unpaired": sum(not d["rows"] for d in drills),
+    }
+
+
 def print_pairs(drills: list[dict]) -> None:
     differ = [d for d in drills if any(r["differs"] for r in d["rows"])]
     agree = [d for d in drills if d["rows"] and not any(r["differs"] for r in d["rows"])]
-    unpaired = [d for d in drills if not d["rows"]]
-    print(f"PART 2: {len(drills)} drills have a definition and a key file; "
-          f"{len(differ)} differ on a shared name, {len(agree)} agree, "
-          f"{len(unpaired)} share no name.")
+    total = counts(drills)
+    print(f"PART 2: {total['drills']} drills have a definition and a key file; "
+          f"{total['differ']} differ on a shared name against either key file, "
+          f"{total['differ_technique']} against the technique file alone, "
+          f"{total['agree']} agree, {total['unpaired']} share no name.")
     for drill in drills:
         state = ("DIFFERS" if drill in differ else "agrees" if drill in agree else "no shared name")
         print(f"  {drill['drill']}  [{state}]  files: {', '.join(drill['files'])}")
@@ -125,28 +150,44 @@ def print_pairs(drills: list[dict]) -> None:
     print()
 
 
+def held_frames(definition, technique: dict) -> tuple[float, float]:
+    """The definition's phase and the technique's key, refused unless each
+    is single and they still hold the two values this instrument reads."""
+    shipped = [phase.at_phase for phase in definition.phases if phase.name == PHASE]
+    if len(shipped) != 1:
+        raise SystemExit(f"REFUSED: the definition holds {len(shipped)} {PHASE} phases, not 1")
+    keys = [at for _, name, at in named_keys(technique) if name == PHASE]
+    if len(keys) != 1:
+        raise SystemExit(f"REFUSED: the technique holds {len(keys)} {PHASE} keys, not 1")
+    if (shipped[0], keys[0]) != FRAMES_AT:
+        raise SystemExit(f"REFUSED: the files hold {shipped[0]} and {keys[0]}, not {FRAMES_AT}")
+    return shipped[0], keys[0]
+
+
+def read_both(definition, frames, shipped: float, move=moved_definition) -> dict:
+    """The phase's checkpoints at both frames, refused unless the in-memory
+    move at the shipped value reads exactly what the shipped definition reads."""
+    readings = {at: move(definition, PHASE, at).assess(frames).results[PHASE]
+                for at in FRAMES_AT}
+    control = definition.assess(frames).results[PHASE]
+    if [r.measured for r in control] != [r.measured for r in readings[shipped]]:
+        raise SystemExit(f"REFUSED: the moved definition at {shipped} does not reproduce the shipped one")
+    return readings
+
+
 def measure_catch() -> int:
     from movement_definition import load
     from movement_engine import load_character
     from possession_solve import solve_movement
 
     definition = load(MOVEMENTS / f"{DRILL}.json")
-    shipped = {phase.name: phase.at_phase for phase in definition.phases}[PHASE]
     technique = json.loads((MOVEMENTS / f"{DRILL}.technique.json").read_text(encoding="utf-8"))
-    key = {name: at for _, name, at in named_keys(technique)}[PHASE]
-    if (shipped, key) != FRAMES_AT:
-        raise SystemExit(f"REFUSED: the files hold {shipped} and {key}, not {FRAMES_AT}")
+    shipped, _ = held_frames(definition, technique)
 
     result = solve_movement(load_character(), DRILL)
     frames = result["measurements"]
     print(f"PART 1: {DRILL}, one possession solve, {len(frames)} frames.")
-    readings = {}
-    for at in FRAMES_AT:
-        moved = moved_definition(definition, PHASE, at)
-        readings[at] = moved.assess(frames).results[PHASE]
-    control = definition.assess(frames).results[PHASE]
-    if [r.measured for r in control] != [r.measured for r in readings[shipped]]:
-        raise SystemExit("REFUSED: the moved definition at 0.72 does not reproduce the shipped one")
+    readings = read_both(definition, frames, shipped)
     print(f"  control: the shipped definition and the in-memory one at {shipped} read the same values.")
     for at in FRAMES_AT:
         label = "definition (shipped)" if at == shipped else "ball key"

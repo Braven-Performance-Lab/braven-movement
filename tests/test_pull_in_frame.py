@@ -6,6 +6,7 @@ every drill's coaching phases with its ball keys by name. These tests cover
 the parts that need no solve: the frame a phase reads, the moved definition,
 and the pairing. Each test names the mutation it kills.
 """
+import dataclasses
 import json
 import sys
 import tempfile
@@ -109,12 +110,91 @@ class ThePairingByName(unittest.TestCase):
             {"x.motion.json": {"keys": [{"name": "drive", "atPhase": 0.63}]}})
         self.assertTrue(rows[0]["differs"])
 
+    def test_a_motion_only_gap_is_not_counted_against_the_technique_file(self):
+        # Mutation: the technique count also takes motion-only gaps.
+        drills = [{"drill": "a", "files": [], "rows": pull_in_frame.pair(
+                       {"phases": [{"name": "contact", "atPhase": 0.55}]},
+                       {"a.motion.json": {"keys": [{"name": "contact", "atPhase": 0.50}]},
+                        "a.technique.json": {"keys": [{"name": "contact", "atPhase": 0.55}]}})},
+                  {"drill": "b", "files": [], "rows": pull_in_frame.pair(
+                       {"phases": [{"name": "drive", "atPhase": 0.62}]},
+                       {"b.technique.json": {"keys": [{"name": "drive", "atPhase": 0.71}]}})}]
+        total = pull_in_frame.counts(drills)
+        self.assertEqual(2, total["differ"])
+        self.assertEqual(1, total["differ_technique"])
+
+    def test_the_library_counts_on_this_tree(self):
+        # Mutation: either count drifts from the reading the report records.
+        total = pull_in_frame.counts(pull_in_frame.library_pairs(ROOT / "spikes" / "movements"))
+        self.assertEqual((12, 8, 7, 4, 0), (total["drills"], total["differ"],
+                                            total["differ_technique"], total["agree"],
+                                            total["unpaired"]))
+
     def test_the_library_has_drills_on_both_sides_of_the_split(self):
         drills = pull_in_frame.library_pairs(ROOT / "spikes" / "movements")
         differ = [d for d in drills if any(r["differs"] for r in d["rows"])]
         agree = [d for d in drills if d["rows"] and not any(r["differs"] for r in d["rows"])]
         self.assertIn("netball_two_hand_catch_chest", {d["drill"] for d in differ})
         self.assertTrue(agree, "no drill agrees: the pairing cannot separate")
+
+
+def synthetic_frames(count=98):
+    """Frame i carries the value i in every measure the catch grades."""
+    return [{"leftElbowFlexionDegrees": float(i), "trunkLeanDegrees": float(i),
+             "leftKneeFlexionDegrees": float(i), "rightElbowFlexionDegrees": float(i)}
+            for i in range(count)]
+
+
+class TheRefusals(unittest.TestCase):
+    """Every refusal of the solve path, reached without a solve. Each test is
+    the mutation that disables that refusal."""
+
+    def setUp(self):
+        self.definition = load(CATCH)
+        self.technique = json.loads(CATCH.with_name(
+            "netball_two_hand_catch_chest.technique.json").read_text(encoding="utf-8"))
+
+    def test_the_committed_files_pass(self):
+        self.assertEqual((0.72, 0.76), pull_in_frame.held_frames(self.definition, self.technique))
+
+    def test_a_moved_definition_phase_is_refused(self):
+        moved = pull_in_frame.moved_definition(self.definition, "pull_in", 0.74)
+        with self.assertRaisesRegex(SystemExit, "the files hold 0.74 and 0.76"):
+            pull_in_frame.held_frames(moved, self.technique)
+
+    def test_a_moved_technique_key_is_refused(self):
+        self.technique["afterContact"][0]["atPhase"] = 0.78
+        with self.assertRaisesRegex(SystemExit, "the files hold 0.72 and 0.78"):
+            pull_in_frame.held_frames(self.definition, self.technique)
+
+    def test_a_second_definition_phase_of_the_name_is_refused(self):
+        phases = self.definition.phases
+        pull_in = next(p for p in phases if p.name == "pull_in")
+        doubled = dataclasses.replace(self.definition, phases=tuple(
+            q for p in phases for q in ((p, pull_in) if p is pull_in else (p,))))
+        with self.assertRaisesRegex(SystemExit, "holds 2 pull_in phases"):
+            pull_in_frame.held_frames(doubled, self.technique)
+
+    def test_a_second_technique_key_of_the_name_is_refused(self):
+        self.technique["afterContact"].append({"name": "pull_in", "atPhase": 0.76})
+        with self.assertRaisesRegex(SystemExit, "holds 2 pull_in keys"):
+            pull_in_frame.held_frames(self.definition, self.technique)
+
+    def test_a_missing_technique_key_is_refused(self):
+        self.technique["afterContact"][0]["name"] = "pulled_in"
+        with self.assertRaisesRegex(SystemExit, "holds 0 pull_in keys"):
+            pull_in_frame.held_frames(self.definition, self.technique)
+
+    def test_both_readings_come_from_their_own_frames(self):
+        readings = pull_in_frame.read_both(self.definition, synthetic_frames(), 0.72)
+        self.assertEqual({70.0}, {r.measured for r in readings[0.72]})
+        self.assertEqual({74.0}, {r.measured for r in readings[0.76]})
+
+    def test_a_move_that_misses_the_shipped_frame_fails_the_control(self):
+        def drifting(definition, name, at):
+            return pull_in_frame.moved_definition(definition, name, round(at + 0.02, 6))
+        with self.assertRaisesRegex(SystemExit, "does not reproduce the shipped one"):
+            pull_in_frame.read_both(self.definition, synthetic_frames(), 0.72, move=drifting)
 
 
 class TheCommittedFiles(unittest.TestCase):

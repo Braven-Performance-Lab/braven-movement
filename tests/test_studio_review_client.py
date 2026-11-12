@@ -30,7 +30,7 @@ class StudioReviewClient(unittest.TestCase):
         summary = [line for line in run.stdout.splitlines() if line.startswith(('ℹ tests', 'ℹ pass', 'ℹ fail'))]
         self.assertEqual(run.returncode, 0, '\n'.join(summary) + '\n' + run.stdout[-3000:] + run.stderr[-2000:])
         counts = {line.split()[1]: int(line.split()[2]) for line in summary}
-        self.assertGreaterEqual(counts.get('pass', 0), 31, f'fewer review client tests ran than exist: {counts}')
+        self.assertGreaterEqual(counts.get('pass', 0), 32, f'fewer review client tests ran than exist: {counts}')
         self.assertEqual(counts.get('fail', 0), 0)
 
 

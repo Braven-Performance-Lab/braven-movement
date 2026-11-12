@@ -108,6 +108,29 @@ test('an upload that cannot work says why before a byte is sent', async () => {
   await assert.rejects(planUpload([picked('athlete-manifest.json', '{"format":"braven-athlete-manifest","formatVersion":1,"files":{}}'), good[1], good[2]]), /names no model/)
 })
 
+test('an upload reads the chosen folder itself, never a subfolder', async () => {
+  const inFolder = (relative, text) => ({ ...picked(relative.split('/').at(-1), text), webkitRelativePath: relative })
+  const older = manifestText('old').replace('"revision":10', '"revision":8')
+  // A folder picker lists the files of every subfolder too, in no promised order. A backup
+  // with an earlier manifest must not go up in the place of the folder's own.
+  const files = [
+    inFolder('09-gait-v2/backup/athlete-manifest.json', older), inFolder('09-gait-v2/backup/netball-athlete.glb', 'old'),
+    inFolder('09-gait-v2/athlete-manifest.json', manifestText()), inFolder('09-gait-v2/netball-athlete.glb', 'glb'),
+    inFolder('09-gait-v2/movement-library.json', '{}'), inFolder('09-gait-v2/verification/movement-library.json', '{"old":1}'),
+  ]
+  for (const order of [files, [...files].reverse()]) {
+    const plan = await planUpload(order)
+    assert.equal(plan.revision, 10)
+    assert.deepEqual(plan.files.map((f) => f.file.webkitRelativePath), ['09-gait-v2/netball-athlete.glb', '09-gait-v2/movement-library.json'])
+  }
+  // The parent of the athlete folder: the manifest is one level too deep, and that is said.
+  const parent = files.map((f) => ({ ...f, webkitRelativePath: `candidates/${f.webkitRelativePath}` }))
+  await assert.rejects(planUpload(parent), /no athlete-manifest\.json in the folder itself.*Choose the athlete folder, not a folder above it/s)
+  // Two files of one name at the top level cannot both be the one the manifest names.
+  await assert.rejects(planUpload([picked('athlete-manifest.json', manifestText()), picked('netball-athlete.glb', 'glb'), picked('netball-athlete.glb', 'glb'), picked('movement-library.json', '{}')]),
+    /netball-athlete\.glb is there more than one time/)
+})
+
 // ---- the hosted build
 
 test('a hosted build signs in through Firebase and nothing else', () => {

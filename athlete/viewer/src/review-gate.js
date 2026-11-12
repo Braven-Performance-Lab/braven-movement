@@ -51,7 +51,11 @@ export function signIn() {
           // Refused, or a fault that says nothing about the person: they stay signed in.
           $('signin-refused-title').textContent = next === 'refused' ? 'You cannot come in yet' : 'Studio could not check your access'
           $('signin-refused-address').textContent = session.current()?.email || ''
-          show('refused', next === 'refused' || error.code === 'offline' ? error.message : 'The Studio server has a fault. Your sign-in is kept. Try again in a minute.', true)
+          // Only an answer of 500 or more is called a fault of the server.
+          const words = next === 'refused' || error.code === 'offline' ? error.message
+            : error.status >= 500 ? 'The Studio server has a fault. Your sign-in is kept. Try again in a minute.'
+              : 'Studio could not check your access this time. Your sign-in is kept. Try again.'
+          show('refused', words, true)
         }
       }
     }

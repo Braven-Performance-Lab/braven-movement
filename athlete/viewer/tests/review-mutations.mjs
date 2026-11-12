@@ -41,6 +41,8 @@ const MUTATIONS = [
   ['a refusal is treated as a fault', 'src/review-api.js', "if (error?.status === 403) return 'refused'", ''],
   ['a bad token keeps the session', 'src/review-api.js', "if (error?.status === 401) return 'sign-in'", ''],
   ['a master goes up with the version', 'src/version-upload.js', "const PLAYED_ROLES = ['model', 'library']", "const PLAYED_ROLES = ['model', 'library', 'master']"],
+  ['a file of a subfolder goes up', 'src/version-upload.js', "all.filter((f) => !f.webkitRelativePath || f.webkitRelativePath.split('/').length <= 2)", 'all'],
+  ['two files of one name are accepted', 'src/version-upload.js', 'if (found.length > 1) throw', 'if (false) throw'],
   ['a file of another size goes up', 'src/version-upload.js', 'if (file.size !== entry.bytes) throw', 'if (false) throw'],
   ['a missing file is not noticed', 'src/version-upload.js', 'if (!file) throw new Error(`${name} is not among the files, and the manifest names it.`)', 'if (!file) continue'],
   ['any JSON is taken as a manifest', 'src/version-upload.js', "manifest.format !== 'braven-athlete-manifest' || ", ''],

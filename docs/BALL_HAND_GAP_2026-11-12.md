@@ -85,6 +85,25 @@ the drill where she is turned. The 40 phases above 5 mm include neutral
 clavicle sphere and not a girdle that failed to move. That is not separated
 here.
 
+### Why the turned drill misses
+
+Read from the girdle receipts of the step-2 control render on `efdab9b`
+(`out/band2-a/netball_hooks_outside_hand.render.json`):
+
+| Phase | Anchor error | Right shoulder miss | Right shift, fore-aft | Width drawn / wanted |
+|---|---:|---:|---:|---:|
+| `facing_away` | 20.45 mm | 52.09 mm | -0.393 torsos | 277 / 339 mm |
+| `contact` | 11.60 mm | 34.15 mm | -0.260 torsos | 289 / 336 mm |
+| `gather` | 9.06 mm | 28.64 mm | -0.205 torsos | 290 / 333 mm |
+| `pull_in` | 8.33 mm | 27.27 mm | -0.140 torsos | 291 / 339 mm |
+
+She is turned, and the job carries that turn only as shoulder displacements.
+A phase carries `arms`, `hands`, `stance` (ankles from the pelvis),
+`shoulderShiftFromRestInTorsos` and `ball`, and no torso or spine rotation.
+This rig can therefore realise the turn only by rotating its clavicles, which
+cannot move a shoulder about 17 cm fore-and-aft. The right clavicle turns
+68.3 degrees at `facing_away` and still misses by 52 mm.
+
 ## The look
 
 This look cannot see a 1 to 2 cm anchor error either, because the hands move

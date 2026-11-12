@@ -46,6 +46,37 @@ The clavicle is turned up to 68.33 degrees to follow the girdle. Nothing in this
 lane bounds that angle, and a real clavicle's elevation and protraction are
 limited. That is a missing instrument.
 
+### With the trunk turn (12 Nov 2026): two phases remain over the rule
+
+The job now carries the solve's own trunk turn (`trunkTurnDegrees`, from
+`possession_solve` `result["turns"]`) and the renderer turns the trunk before it
+poses the girdle. Only `hooks_outside_hand` turns. Measured with
+`scripts/ball_hand_gap_render.py`, which reads `ballAnchorErrorMm` from the
+receipt of the renderer's own `pose_phase`, on the jobs of `0ee45ee`:
+
+| Phase | Turn | Before | With the turn |
+|---|---:|---:|---:|
+| `facing_away` | 48.00 | 20.45 mm | **18.16 mm** |
+| `contact` | 22.27 | 11.60 mm | **10.22 mm** |
+| `gather` | 11.92 | 9.06 mm | 8.41 mm |
+| `pull_in` | 4.00 | 8.33 mm | 8.27 mm |
+
+The other 47 phases are identical in every bone and the ball. The two in bold
+stay over the 10 mm rule, and they are this issue: the turn puts the right
+shoulder within reach of more of the target, and the clavicle's reach limit
+above takes the rest. At `facing_away` the right shoulder moves 0.555 girdle
+widths forward, where a pure 48 degree turn moves it 0.372.
+
+A shoulder shift sent in GIRDLE WIDTHS was measured and not landed
+(`lane/girdle-width-unit-probe`, `836ab4c`): 17.89 and 10.06 mm, two
+`overhead_pass` phases worse by 0.02 mm, every drill moved 0.2 to 1.7 mm.
+
+**A CORRECTION.** That probe was proposed with the reason that the solve's
+GIRDLE is 16 per cent wider per torso than this rig's. The proportion this
+section already records is the CLAVICLE LENGTH, 20.4 per cent, with a rest
+orientation difference that a divisor cannot remove. A girdle-width unit does
+not address either, which the probe confirms.
+
 ## `netball_one_hand_high_pass` cannot be posed at its ready phase
 
     FLEXION_AXIS: r index is set to flex about axis 0, which carries only 0.44

@@ -123,8 +123,10 @@ phases stayed over 10 mm, `overhead_pass/lift` went from 0.176 to 0.199 mm and
 (`836ab4c`), with `tests/test_girdle_width_unit.py`.
 
 **A CORRECTION.** The reason given for that ruling was that the solve's girdle
-is about 16 per cent wider per torso than this rig's. The measurement does not
-support it. The drawn girdle is 290 to 291 mm and the wanted one 334 to 339 mm
+is about 16 per cent wider per torso than this rig's. The proportion that
+matters is the clavicle length, 20.4 per cent, already recorded in
+`docs/KNOWN_ISSUES.md` under "This rig cannot reach the girdle the solve asks
+for", together with a difference in rest orientation. The drawn girdle is 290 to 291 mm and the wanted one 334 to 339 mm
 on EVERY drill, including `chest_pass/ready`, where the right shoulder already
 sits 0.114 torsos forward of the engine's rest pose. In girdle widths the right
 shoulder at `facing_away` moves 0.555 widths forward, where a pure 48 degree

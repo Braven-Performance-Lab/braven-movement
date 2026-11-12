@@ -3,6 +3,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
+import { checkAthlete } from './manifest-gate.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const tactics = path.resolve(process.env.BRAVEN_TACTICS_PATH || path.join(here, '../../../../braven-tactics-netball-athlete'))
@@ -11,10 +12,12 @@ if (!assets || !fs.existsSync(path.join(assets, 'netball-athlete.glb'))) {
   throw new Error('Set BRAVEN_ATHLETE_OUTPUT to the directory containing netball-athlete.glb.')
 }
 if (!fs.existsSync(path.join(tactics, 'src/engine/skinned.ts'))) throw new Error('Set BRAVEN_TACTICS_PATH to the Tactics checkout.')
+// Refuse before anything is served: the model, library, clips and rig must match the manifest.
+const accepted = checkAthlete(assets)
 const served = new Map([
   ['netball-athlete.glb', 'model/gltf-binary'], ['netball-athlete.blend', 'application/octet-stream'],
   ['athlete-source.blend', 'application/octet-stream'], ['manifest.json', 'application/json'],
-  ['movement-library.json', 'application/json'],
+  ['athlete-manifest.json', 'application/json'], ['movement-library.json', 'application/json'],
 ])
 function assetMiddleware(req, res, next) {
   const name = (req.url || '').split('?')[0].replace(/^\/athlete-assets\//, '')
@@ -41,8 +44,7 @@ export default defineConfig({
       for(const name of ['index.html',...fs.readdirSync(path.join(dist,'assets')).sort().map(n=>'assets/'+n)]) {
         files[name]=createHash('sha256').update(fs.readFileSync(path.join(dist,name))).digest('hex')
       }
-      const manifest=JSON.parse(fs.readFileSync(path.join(assets,'manifest.json'),'utf8'))
-      const assetSha256=manifest.files['netball-athlete.glb'].sha256.toLowerCase()
+      const assetSha256=accepted.model.toLowerCase()
       fs.writeFileSync(path.join(dist,'studio-build.json'),JSON.stringify({app:'braven-studio',schemaVersion:1,
         buildId:createHash('sha256').update(JSON.stringify({files,assetSha256})).digest('hex'),builtAt:new Date().toISOString(),assetSha256,files},null,2))
     } }],

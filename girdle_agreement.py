@@ -23,6 +23,8 @@ anyone cares about.
 
 from __future__ import annotations
 
+import math
+
 # The job writes positions to six decimal places in metres.
 ROUNDING_M = 1e-6
 # Ten times that bound. The smallest error this pack cares about is 1 cm, so
@@ -41,6 +43,44 @@ DISAGREES = "disagrees"
 # vertical at rest. On another body they need not, so the divisor is the
 # magnitude and never the component.
 REST_TORSO_M = 0.427689
+
+
+# THE TRUNK TURN, the solve's own value (`possession_solve` `result["turns"]`),
+# in degrees about the vertical through the hips. The girdle displacement
+# carries the turn too, but as shoulder positions, and this rig can reach those
+# only with its clavicles: at `hooks_outside_hand/facing_away` (48 degrees) the
+# right clavicle turned 68 degrees and still missed by 52 mm. Turning the trunk
+# first puts the shoulders where the clavicles can reach.
+TRUNK_TURN_FIELD = "trunkTurnDegrees"
+
+
+def trunk_turn_degrees(phase: dict, label: str) -> float:
+    """The phase's trunk turn, or a refusal. Never a default of zero.
+
+    A job without the field renders the trunk unturned, which is the defect
+    the field exists to remove, so a missing value must not read as no turn.
+    """
+    value = phase.get(TRUNK_TURN_FIELD)
+    if value is None or not math.isfinite(float(value)):
+        raise ValueError(
+            f"{label}: the job carries no {TRUNK_TURN_FIELD}, so the trunk would "
+            f"be drawn unturned. Re-export the job. Refusing the frame."
+        )
+    return float(value)
+
+
+def trunk_turn_matrix(degrees: float) -> tuple:
+    """The engine's `turn_matrix` in this rig's axes: about Blender's Z.
+
+    The engine rotates about its Y (up); the exporter maps (x, y, z) to
+    (x, -z, y). A positive engine turn is therefore a positive turn about Z.
+    `tests/test_trunk_turn.py` checks that against both producers' own code.
+    """
+    if degrees == 0.0:
+        return ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
+    angle = math.radians(degrees)
+    cosine, sine = math.cos(angle), math.sin(angle)
+    return ((cosine, -sine, 0.0), (sine, cosine, 0.0), (0.0, 0.0, 1.0))
 
 
 def resolve(displacement, rest_span, rest_torso: float = REST_TORSO_M):

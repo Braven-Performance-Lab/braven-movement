@@ -468,6 +468,14 @@ def phase_job(result, index, frame: int, method, rest_points) -> dict:
             ]
             for side in ("l", "r")
         },
+        # THE TRUNK TURN THE SOLVE APPLIED, in degrees about the vertical
+        # through the hips, read from `result["turns"]` and never rebuilt from
+        # the shoulders. The displacement above carries the same turn as
+        # shoulder positions, but a consumer that can only move its clavicles
+        # cannot reach them: on `hooks_outside_hand/facing_away` (48 degrees)
+        # the rendering rig's right clavicle missed by 52 mm. With the turn the
+        # consumer turns the trunk first. Zero on eleven of twelve drills.
+        "trunkTurnDegrees": round(float(result["turns"][frame]), 6),
         "ball": {
             # Absolute in metres, because a netball is a netball. Where it sits
             # is relative, because that depends on the body holding it.

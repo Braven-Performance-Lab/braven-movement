@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 MODULE_DIR = Path(__file__).resolve().parent
 if str(MODULE_DIR) not in sys.path:
@@ -57,6 +57,8 @@ from girdle_agreement import (  # noqa: E402
     reachable_miss_mm,
     refuse_unrenderable_girdle,
     shoulder_position,
+    trunk_turn_degrees,
+    trunk_turn_matrix,
 )
 from reference_pose_config import (  # noqa: E402
     DEFAULT_CONFIG_PATH,
@@ -322,6 +324,29 @@ def rest_girdle(rig) -> dict:
     }
 
 
+def pose_trunk_turn(rig, degrees: float) -> float:
+    """Turn the trunk the way the solve turned it, before the girdle is posed.
+
+    The engine's `trunk_frame` rotates everything above the hips about the
+    vertical through the root while the feet stay planted. Here that is
+    `spine_01`, the first bone above the pelvis, rotated about world Z through
+    the pelvis head: the arms, the clavicles and the head ride on it.
+
+    A turn of zero touches no bone, so the eleven drills that do not turn are
+    drawn from exactly the pose they had before.
+    """
+    if degrees == 0.0:
+        return 0.0
+    pivot = world_head(rig, "pelvis")
+    turn = Matrix(trunk_turn_matrix(degrees)).to_4x4()
+    about_pivot = Matrix.Translation(pivot) @ turn @ Matrix.Translation(-pivot)
+    bone = rig.pose.bones["spine_01"]
+    world = rig.matrix_world
+    bone.matrix = world.inverted() @ about_pivot @ world @ bone.matrix
+    bpy.context.view_layer.update()
+    return degrees
+
+
 def pose_girdle(rig, phase: dict, rest: dict) -> dict:
     """Put the shoulder girdle where the solve put it, and report the fit.
 
@@ -553,6 +578,12 @@ def pose_phase(rig, phase: dict, limits: dict, basis: dict, foot_baseline: dict,
     # geometry is read here and passed forward.
     rest = rest_girdle(rig)
     stance = pose_stance(rig, phase["stance"], foot_baseline)
+    # The trunk turns BEFORE the girdle, because the girdle's targets include
+    # the turn and the clavicles alone cannot reach a turned shoulder. A job
+    # without the field is refused here rather than drawn unturned.
+    turned = pose_trunk_turn(
+        rig, trunk_turn_degrees(phase, f"{phase.get('name', '?')}")
+    )
     # The girdle moves BEFORE the ball is placed and before the arms are aimed,
     # because the ball is placed from the shoulder midpoint and every arm is
     # aimed from its own shoulder. Posing it afterwards would move the
@@ -651,6 +682,8 @@ def pose_phase(rig, phase: dict, limits: dict, basis: dict, foot_baseline: dict,
         # a non-holding phase "short", which reads as a defect and is not one.
         "holding": bool(grip),
         "stance": stance,
+        # The trunk turn applied, from the job's `trunkTurnDegrees`.
+        "trunkTurnDegrees": turned,
         # Whether this rig actually followed the transmitted girdle, and by how
         # far it missed. A figure whose girdle did not follow is a figure whose
         # ball is in the wrong place, because the ball is placed from the

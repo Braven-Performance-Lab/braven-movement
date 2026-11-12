@@ -44,13 +44,19 @@ wants.
 | Rendition | What it is | Who wants it |
 |---|---|---|
 | `pose` | The application's own body description, one frame at a time | Braven Tactics, today |
-| `rig` | A skeletal animation on a named bone set | Blender, and anything that needs a real skeleton |
+| `rig` | A skeletal animation on a named bone set | Braven Tactics' athlete, Braven Studio, Blender, and anything that needs a real skeleton |
 
-**`pose` is the default and it is what is built.** It is written by
-`spikes/export_tactics_clip.py`.
+**`pose` is the default, and the pose clip is the graded record.** It is written
+by `spikes/export_tactics_clip.py`.
 
-**`rig` is specified here and is not built.** It is written down so that the
-decision to defer it is a decision. Refer to section 9.
+**`rig` is built.** The shared netball athlete is a GLB on this bone set, with
+fingers, skirt panels and a ball bone, and Braven Tactics has played it since its
+pull request #501 (15 September 2026). Refer to section 9.
+
+**Both stay, and the pose clip is the record** (Marius, 12 November 2026, spec 3
+decision 12.1). The athlete's animation of a technique is a rendition of the graded
+pose clip, and names it: `gradedClip` in `athlete-manifest.json`
+(docs/ATHLETE_MANIFEST.md, section 4).
 
 ### Why the pose rendition is the right primary
 
@@ -514,7 +520,9 @@ Read section 12 for what it is for.
 
 ## 9. The rig rendition
 
-Specified, not built. A consumer that needs a real skeleton receives a GLB.
+Built. A consumer that needs a real skeleton receives a GLB: the shared netball
+athlete, described by its `athlete-manifest.json` and checked against it before use
+(docs/ATHLETE_MANIFEST.md). Braven Tactics plays it since its pull request #501.
 
 **The bone set is the Unreal Engine mannequin's**, which is what Braven Tactics
 names in `BONES` in `src/engine/skinned.ts`, and what the free character packs,
@@ -545,10 +553,11 @@ at the boundary, and assert the athlete's left afterwards — a mirrored athlete
 crosses the arms and twists the trunk, and it has happened twice in this
 repository.
 
-**Why it is deferred.** No consumer asks for it today, and an unused format
-drifts. Build it when one does: the first likely caller is contact work, where
-two bodies must agree on one pose and a fifteen number description of each of
-them separately cannot express the bind.
+**Why it was deferred, and what changed.** No consumer asked for it when this
+contract was written, and an unused format drifts. Braven Tactics then asked for a
+real skeleton with fingers and kit, which fifteen pose numbers cannot carry, and the
+athlete was built for it. The pose clip stays the graded record: the engine solves
+and grades it, and the athlete's animation names it.
 
 ## 10. What a consumer does with what it does not have
 

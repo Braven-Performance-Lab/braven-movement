@@ -63,6 +63,13 @@ REFUSALS = [
     ('rig contract bone', 'if missing:', OFF),
     ('family', "if rig['family'] not in supported_families:", OFF),
     ('changed while checked', 'if target.read_bytes() != checked_bytes:', OFF),
+    ('pose clips not JSON', "raise ManifestRefusal('format', f'the pose clips file is not JSON: {exc}') from None", 'raise'),
+    ('two pose clips', 'if movement in by_movement:', OFF),
+    ('pose clip no build', 'if not isinstance(build, str) or not COMMIT.match(build):', OFF),
+    ('pose clips hash', "if techniques and not (isinstance(manifest['source'].get('poseClipsSha256'), str)", 'if False and not (True'),
+    ('graded clip key', "if 'gradedClip' not in clip:", OFF),
+    ('graded clip shape', 'if link is not None and not (isinstance(link, dict)', 'if False and not (isinstance(link, dict)'),
+    ('general has none', "elif 'gradedClip' in clip:", 'elif False:'),
 ]
 CLAUSES = [
     ('magic only', "if magic != b'glTF' or kind != 0x4E4F534A:", 'if kind != 0x4E4F534A:'),
@@ -80,6 +87,10 @@ CLAUSES = [
     ('file hash only', "if len(data) != entry['bytes'] or sha256_bytes(data) != entry['sha256'].lower():",
                        "if len(data) != entry['bytes']:"),
     ('fps type only', "if not isinstance(clip.get('fps'), int) or clip['fps'] <= 0:", "if clip['fps'] <= 0:"),
+    ('pose clips hash form', "and re.match(r'^[0-9a-f]{64}$', manifest['source']['poseClipsSha256'])", 'and True'),
+    ('graded clip id', "and POSE_CLIP_ID.match(link['clipId'])", 'and True'),
+    ('graded clip bool', "and isinstance(link.get('graded'), bool)", 'and True'),
+    ('graded clip build', "and isinstance(link.get('build'), str) and COMMIT.match(link['build'])", 'and True'),
     ('fps sign only', "if not isinstance(clip.get('fps'), int) or clip['fps'] <= 0:",
                       "if not isinstance(clip.get('fps'), int):"),
 ]

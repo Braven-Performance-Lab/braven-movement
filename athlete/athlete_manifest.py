@@ -32,6 +32,9 @@ FILE_ROLES = {'netball-athlete.glb': 'model', 'netball-athlete.blend': 'master',
 # build.py authors the general clips at 30 fps; techniques and the gait rebuild carry their own.
 GENERAL_FPS = 30
 REVIEW_STATES = ('passes-source-checks', 'needs-review', 'coach-approved', 'not-graded')
+# A Tactics pose clip's id (<class>.<sport>.<technique>) and a full commit, as its generatedFrom stamps it.
+POSE_CLIP_ID = re.compile(r'^[a-z]+\.[a-z]+\.[a-z0-9-]+$')
+COMMIT = re.compile(r'^[0-9a-f]{40}$')
 # Text that names a place on one machine: a drive letter with a separator, a UNC share, a home
 # folder (~/), or any root path of two or more parts (/opt/, /srv/, /Users/...). A relative path
 # such as mpfb/hair/x.mhclo, or a name such as Blender/MPFB, does not start a word with / or ~.
@@ -116,9 +119,40 @@ def _history(legacy: dict) -> list:
     return entries
 
 
-def convert_legacy(folder: Path, *, kit_id: str, sport: str = 'netball') -> dict:
-    """Build a v1 manifest from a folder in the legacy layout. Hashes are read off the files."""
+def graded_pose_clips(pose_clips: bytes) -> dict:
+    """Each Tactics pose clip by the drill it was solved from (its movementId).
+
+    Ruled 12 Nov 2026 (spec 3, decision 12.1): both routes into Tactics stay, and the pose clip is
+    the graded record. The athlete's animation of a technique therefore names that clip and the
+    build that made it. The key is movementId, which the pose clip and the athlete's library both
+    carry because both come from the same drill files; a clip id or label is not compared.
+    """
+    try:
+        clips = json.loads(pose_clips)
+    except ValueError as exc:
+        raise ManifestRefusal('format', f'the pose clips file is not JSON: {exc}') from None
+    by_movement = {}
+    for clip_id, clip in clips.items() if isinstance(clips, dict) else ():
+        movement = clip.get('movementId') if isinstance(clip, dict) else None
+        if not movement:
+            continue
+        if movement in by_movement:
+            raise ManifestRefusal('format', f'two pose clips are made from {movement}: '
+                                            f"{by_movement[movement]['clipId']} and {clip_id}")
+        build = (clip.get('generatedFrom') or {}).get('commit')
+        if not isinstance(build, str) or not COMMIT.match(build):
+            raise ManifestRefusal('format', f'pose clip {clip_id} names no build, so it cannot be the graded record')
+        by_movement[movement] = {'clipId': clip_id, 'graded': bool(clip.get('graded')), 'build': build}
+    return by_movement
+
+
+def convert_legacy(folder: Path, *, kit_id: str, pose_clips: bytes, sport: str = 'netball') -> dict:
+    """Build a v1 manifest from a folder in the legacy layout. Hashes are read off the files.
+
+    pose_clips is the shipped Tactics pose clips file (public/figures/clips.json), as bytes.
+    """
     folder = Path(folder)
+    graded = graded_pose_clips(pose_clips)
     legacy = json.loads((folder / LEGACY_NAME).read_text(encoding='utf-8'))
     model = read_glb(folder / 'netball-athlete.glb')
     library_path = folder / 'movement-library.json'
@@ -133,7 +167,7 @@ def convert_legacy(folder: Path, *, kit_id: str, sport: str = 'netball') -> dict
             entry.update(kind='technique', fps=int(t['fps']), frameCount=t['frameCount'],
                          movementId=t['movementId'], jobSha256=t.get('jobSha256'),
                          contactFrame=t.get('contactFrame'), releaseFrame=t.get('releaseFrame'),
-                         review=_review(t))
+                         review=_review(t), gradedClip=graded.get(t['movementId']))
         else:
             entry.update(kind='general', fps=int(gaits.get(name, {}).get('fps', GENERAL_FPS)), review='not-graded')
         clips.append(entry)
@@ -156,7 +190,8 @@ def convert_legacy(folder: Path, *, kit_id: str, sport: str = 'netball') -> dict
                 'lettering': {k: k.split('_', 1)[1] for k, v in roles.items() if v == 'lettering'}},
         'source': {'movementCommit': legacy.get('movementSourceCommit') or library.get('sourceCommit'),
                    'generator': legacy.get('generator'), 'blender': legacy.get('blender'),
-                   'externalAssets': [_external_asset(s) for s in legacy.get('sources', [])]},
+                   'externalAssets': [_external_asset(s) for s in legacy.get('sources', [])],
+                   'poseClipsSha256': sha256_bytes(pose_clips)},
         'files': files,
         'clips': clips,
         'history': _history(legacy),
@@ -263,7 +298,21 @@ def validate(folder: Path, supported_families=frozenset({RIG_FAMILY})) -> dict:
     if set(model['animations']) != set(ids):
         raise ManifestRefusal('clip-set', f"the model and the manifest disagree on clips: "
                                           f"{sorted(set(model['animations']) ^ set(ids))}")
+    if techniques and not (isinstance(manifest['source'].get('poseClipsSha256'), str)
+                           and re.match(r'^[0-9a-f]{64}$', manifest['source']['poseClipsSha256'])):
+        raise ManifestRefusal('format', 'source.poseClipsSha256 must name the pose clips the techniques were linked to')
     for clip in clips:
+        if clip['kind'] == 'technique':
+            if 'gradedClip' not in clip:
+                raise ManifestRefusal('format', f"{clip['id']} does not say which graded pose clip it plays, or null")
+            link = clip['gradedClip']
+            if link is not None and not (isinstance(link, dict) and isinstance(link.get('clipId'), str)
+                                         and POSE_CLIP_ID.match(link['clipId'])
+                                         and isinstance(link.get('graded'), bool)
+                                         and isinstance(link.get('build'), str) and COMMIT.match(link['build'])):
+                raise ManifestRefusal('format', f"{clip['id']} gradedClip must be null or a clip id, graded and a full build")
+        elif 'gradedClip' in clip:
+            raise ManifestRefusal('format', f"{clip['id']} is a general clip and has no graded pose clip")
         if clip.get('review') not in REVIEW_STATES:
             raise ManifestRefusal('format', f"{clip['id']} has review state {clip.get('review')!r}")
         if not isinstance(clip.get('fps'), int) or clip['fps'] <= 0:
@@ -320,6 +369,8 @@ def main(argv=None) -> int:
     parser.add_argument('action', choices=('write', 'check'))
     parser.add_argument('folder', type=Path)
     parser.add_argument('--kit', default='braven-netball-fitted-v1')
+    parser.add_argument('--pose-clips', type=Path,
+                        help="write: Braven Tactics' public/figures/clips.json, which holds the graded pose clips")
     parser.add_argument('--family', action='append', help=f'a supported rig family (default {RIG_FAMILY})')
     args = parser.parse_args(argv)
     families = frozenset(args.family or [RIG_FAMILY])
@@ -329,7 +380,10 @@ def main(argv=None) -> int:
     written = None
     try:
         if args.action == 'write':
-            written = write(args.folder, convert_legacy(args.folder, kit_id=args.kit))
+            if args.pose_clips is None:
+                parser.error('write needs --pose-clips: the graded pose clips each technique names')
+            written = write(args.folder, convert_legacy(args.folder, kit_id=args.kit,
+                                                        pose_clips=args.pose_clips.read_bytes()))
         # The hash of the manifest this run checked, so a consumer can tell that the file it reads
         # afterwards is that file and not one rewritten in between.
         checked_bytes = target.read_bytes() if target.is_file() else b''

@@ -28,6 +28,16 @@ import athlete_manifest as am  # noqa: E402
 TECHNIQUE = "netball_chest_pass"
 GENERAL = "Ready"
 GAIT = "Jog"
+CHEST_BUILD = "1624678" + "0" * 33
+# The shipped Tactics pose clips, in their shape: the chest pass has a graded clip; a bounce pass
+# clip exists for another drill the fixture's athlete does not carry.
+POSE_CLIPS = json.dumps({
+    "pass.netball.chest-pass": {"movementId": TECHNIQUE, "graded": True,
+                                "generatedFrom": {"commit": CHEST_BUILD, "treeWasClean": True}},
+    "pass.netball.bounce-pass": {"movementId": "netball_bounce_pass", "graded": False,
+                                 "generatedFrom": {"commit": "0353b76" + "0" * 33}},
+    "catch.capture.goalkeeper": {"skill": "catch"},
+}).encode()
 
 
 def glb_bytes(animations: dict[str, float], joints: list[str]) -> bytes:
@@ -83,7 +93,7 @@ class Folder:
         (root / "manifest.json").write_text(json.dumps(legacy))
 
     def write_v1(self) -> dict:
-        manifest = am.convert_legacy(self.root, kit_id="braven-netball-fitted-v1")
+        manifest = am.convert_legacy(self.root, kit_id="braven-netball-fitted-v1", pose_clips=POSE_CLIPS)
         am.write(self.root, manifest)
         return manifest
 
@@ -101,6 +111,12 @@ class ManifestTest(unittest.TestCase):
 
     def tearDown(self):
         self._tmp.cleanup()
+
+    def _pose_clips(self) -> Path:
+        path = self.root.parent / (self.root.name + "-pose-clips.json")
+        path.write_bytes(POSE_CLIPS)
+        self.addCleanup(path.unlink, missing_ok=True)
+        return path
 
     def assertRefuses(self, code: str, call, *args, **kwargs):
         with self.assertRaises(am.ManifestRefusal) as caught:
@@ -137,6 +153,23 @@ class ConvertAndAccept(ManifestTest):
         self.assertEqual(asset["name"], "mpfb/hair/ponytail01/ponytail01.mhclo")
         self.assertNotIn("path", asset)
         self.assertNotIn("someone", json.dumps(manifest))
+
+    def test_a_technique_names_its_graded_pose_clip_and_build(self):
+        clips = {c["id"]: c for c in Folder(self.root).write_v1()["clips"]}
+        self.assertEqual(clips[TECHNIQUE]["gradedClip"],
+                         {"clipId": "pass.netball.chest-pass", "graded": True, "build": CHEST_BUILD})
+        self.assertNotIn("gradedClip", clips[GENERAL])
+        self.assertNotIn("gradedClip", clips[GAIT])
+
+    def test_a_technique_with_no_pose_clip_says_null(self):
+        Folder(self.root)
+        clips = {c["id"]: c for c in am.convert_legacy(self.root, kit_id="k", pose_clips=b"{}")["clips"]}
+        self.assertIn("gradedClip", clips[TECHNIQUE])
+        self.assertIsNone(clips[TECHNIQUE]["gradedClip"])
+
+    def test_the_manifest_names_the_pose_clips_it_was_linked_to(self):
+        manifest = Folder(self.root).write_v1()
+        self.assertEqual(manifest["source"]["poseClipsSha256"], sha(POSE_CLIPS))
 
     def test_a_coach_approved_technique_says_so(self):
         folder = Folder(self.root)
@@ -197,7 +230,7 @@ class Refusals(ManifestTest):
                 self.assertIsNone(am.LOCAL_PATH.search(text))
 
     def test_the_writer_refuses_an_absolute_path_before_it_writes(self):
-        manifest = am.convert_legacy(self.root, kit_id="k")
+        manifest = am.convert_legacy(self.root, kit_id="k", pose_clips=POSE_CLIPS)
         manifest["source"]["externalAssets"][0]["path"] = "/home/someone/mpfb/x"
         before = (self.root / am.MANIFEST_NAME).read_bytes()
         self.assertRefuses("path", am.write, self.root, manifest)
@@ -266,6 +299,54 @@ class Refusals(ManifestTest):
 
     def test_file_not_a_glb_at_all_says_so(self):
         self.assertIn("not a GLB", self._glb_refusal_detail(b"PK" + b"\0" * 30))
+
+    def test_format_technique_without_its_graded_clip_key(self):
+        self.folder.edit(lambda m: [c.pop("gradedClip") for c in m["clips"] if c["id"] == TECHNIQUE])
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_graded_clip_with_a_short_build(self):
+        self.folder.edit(lambda m: [c["gradedClip"].update(build="1624678") for c in m["clips"] if c["id"] == TECHNIQUE])
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_graded_clip_with_an_odd_clip_id(self):
+        self.folder.edit(lambda m: [c["gradedClip"].update(clipId="Chest Pass") for c in m["clips"] if c["id"] == TECHNIQUE])
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_graded_clip_graded_not_a_boolean(self):
+        self.folder.edit(lambda m: [c["gradedClip"].update(graded="yes") for c in m["clips"] if c["id"] == TECHNIQUE])
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_a_general_clip_with_a_graded_clip(self):
+        self.folder.edit(lambda m: [c.update(gradedClip=None) for c in m["clips"] if c["id"] == GENERAL])
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_pose_clips_hash_of_the_wrong_form(self):
+        self.folder.edit(lambda m: m["source"].update(poseClipsSha256="abc"))
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_format_no_pose_clips_hash(self):
+        self.folder.edit(lambda m: m["source"].pop("poseClipsSha256"))
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_writer_refuses_pose_clips_that_are_not_json(self):
+        self.assertRefuses("format", am.graded_pose_clips, b"{not json")
+
+    def test_writer_refuses_two_pose_clips_for_one_drill(self):
+        two = json.loads(POSE_CLIPS)
+        two["pass.netball.chest-pass-copy"] = dict(two["pass.netball.chest-pass"])
+        self.assertRefuses("format", am.graded_pose_clips, json.dumps(two).encode())
+
+    def test_writer_refuses_a_pose_clip_with_no_build(self):
+        unstamped = json.loads(POSE_CLIPS)
+        unstamped["pass.netball.chest-pass"].pop("generatedFrom")
+        self.assertRefuses("format", am.graded_pose_clips, json.dumps(unstamped).encode())
+
+    def test_write_on_the_command_line_needs_the_pose_clips(self):
+        before = (self.root / am.MANIFEST_NAME).read_bytes()
+        with self.assertRaises(SystemExit) as caught, mock.patch("sys.stderr", io.StringIO()):
+            am.main(["write", str(self.root)])
+        self.assertEqual(caught.exception.code, 2)
+        self.assertEqual((self.root / am.MANIFEST_NAME).read_bytes(), before)
 
     def test_format_zero_frame_rate(self):
         self.folder.edit(lambda m: m["clips"][0].update(fps=0))
@@ -440,7 +521,7 @@ class CommandLine(ManifestTest):
         folder = Folder(self.root)
         folder.library["assetSha256"] = "ee" * 32
         (self.root / "movement-library.json").write_text(json.dumps(folder.library))
-        self.assertEqual(am.main(["write", str(self.root)]), 1)
+        self.assertEqual(am.main(["write", str(self.root), "--pose-clips", str(self._pose_clips())]), 1)
         self.assertFalse((self.root / am.MANIFEST_NAME).exists())
 
     def test_write_puts_back_the_manifest_that_was_there_when_refused(self):
@@ -449,14 +530,14 @@ class CommandLine(ManifestTest):
         before = (self.root / am.MANIFEST_NAME).read_bytes()
         folder.library["assetSha256"] = "ee" * 32
         (self.root / "movement-library.json").write_text(json.dumps(folder.library))
-        self.assertEqual(am.main(["write", str(self.root)]), 1)
+        self.assertEqual(am.main(["write", str(self.root), "--pose-clips", str(self._pose_clips())]), 1)
         self.assertEqual((self.root / am.MANIFEST_NAME).read_bytes(), before)
 
     def test_write_leaves_no_manifest_when_the_check_fails_with_any_error(self):
         Folder(self.root)
         with mock.patch.object(am, "validate", side_effect=RuntimeError("not a refusal")):
             with self.assertRaises(RuntimeError):
-                am.main(["write", str(self.root)])
+                am.main(["write", str(self.root), "--pose-clips", str(self._pose_clips())])
         self.assertFalse((self.root / am.MANIFEST_NAME).exists())
 
     def test_write_that_fails_on_disk_leaves_the_old_manifest_whole(self):
@@ -465,7 +546,7 @@ class CommandLine(ManifestTest):
         before = (self.root / am.MANIFEST_NAME).read_bytes()
         with mock.patch.object(am.os, "replace", side_effect=OSError("disk full")):
             with self.assertRaises(OSError):
-                am.write(self.root, am.convert_legacy(self.root, kit_id="another-kit"))
+                am.write(self.root, am.convert_legacy(self.root, kit_id="another-kit", pose_clips=POSE_CLIPS))
         self.assertEqual((self.root / am.MANIFEST_NAME).read_bytes(), before)
         self.assertEqual(sorted(p.name for p in self.root.glob("*.partial")), [], "no .partial file is left behind")
 
@@ -491,7 +572,7 @@ class CommandLine(ManifestTest):
 
     def test_write_keeps_the_manifest_when_the_folder_matches(self):
         Folder(self.root)
-        self.assertEqual(am.main(["write", str(self.root)]), 0)
+        self.assertEqual(am.main(["write", str(self.root), "--pose-clips", str(self._pose_clips())]), 0)
         self.assertTrue((self.root / am.MANIFEST_NAME).exists())
 
 

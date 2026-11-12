@@ -812,10 +812,21 @@ def load_shared_athlete(master: Path, master_sha256: str):
         # (on the object itself?, its animation data). Compared by that flag,
         # never by `is`: Blender returns a new Python wrapper at every access,
         # so `holder is obj.animation_data` was False and refused 09-gait-v2.
+        # Review round 4: also the object's DATA (the armature, the mesh), its
+        # shape keys, and each material and its node tree. A driver on any of
+        # them can change what is drawn, and none of them is the rig's own.
         holders = [(True, obj.animation_data)]
-        shape_keys = getattr(getattr(obj, "data", None), "shape_keys", None)
-        if shape_keys is not None:
-            holders.append((False, shape_keys.animation_data))
+        data = getattr(obj, "data", None)
+        if data is not None:
+            holders.append((False, data.animation_data))
+            shape_keys = getattr(data, "shape_keys", None)
+            if shape_keys is not None:
+                holders.append((False, shape_keys.animation_data))
+        for slot in getattr(obj, "material_slots", ()):
+            if slot.material is not None:
+                holders.append((False, slot.material.animation_data))
+                if slot.material.node_tree is not None:
+                    holders.append((False, slot.material.node_tree.animation_data))
         for on_object, holder in holders:
             for driver in (holder.drivers if holder else ()):
                 if obj != rig or not on_object:

@@ -54,11 +54,25 @@ CHECKED". The renderer's loader (`load_shared_athlete`) ran once on build
 `Athlete_Body` and 11 more meshes, muted the four IK constraints and kept
 the four drivers below. That run drew no figure.
 
-The loader refuses any object constraint and any driver, with one exception.
+The loader refuses any object constraint on the rig or its meshes. It also
+refuses any driver on those objects, on their data (the armature, the
+meshes), on shape keys, on materials and on material node trees, with one
+exception.
 Build 09-gait-v2 has four drivers, one on the influence of each muted IK
 constraint, from the rig custom properties `IK_hand_l`, `IK_hand_r`,
 `IK_foot_l` and `IK_foot_r`. A muted constraint has no effect at any
 influence, so the loader keeps those four drivers.
+
+`scripts/shared_athlete_loader_check.py` runs the loader on a build with the
+licence check skipped, and draws no figure:
+
+    blender -b --python scripts/shared_athlete_loader_check.py -- <repo> <athlete build folder>
+
+On 09-gait-v2 the clean load passed, with the four drivers kept and the four
+IK constraints muted. Then the script added one defect at a time after the
+load. The loader refused all seven: an object constraint on the body, and a
+driver on the rig object, the armature data, the mesh data, a material, a
+material node tree and a mesh object.
 
 Three things are done in that process only and never saved:
 

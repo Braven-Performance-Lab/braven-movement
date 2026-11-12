@@ -93,8 +93,31 @@ with the ball. The renderer drew three held phases in three views each:
 `netball_hooks_outside_hand/contact`. In all nine panels the ball is in the
 gripping hands. The one-handed catch shows the free hand clear of the ball.
 
+## The run-to-run pixel band (goal step 2)
+
+Two renders of the same jobs on `efdab9b`, before any change, compared with
+`scripts/render_band.py`, which counts every pixel that differs at all:
+
+    python scripts/render_band.py out/band2-a out/band2-b
+
+Drills: `netball_hooks_outside_hand` and `netball_one_hand_high_pass` (the two
+this goal changes) and `netball_chest_pass` (a control that must not move).
+11 posable phases, 3 views each, 33 views.
+
+| Statistic | Value |
+|---|---:|
+| Views pixel-identical | 24 of 33 |
+| Most pixels differing on one view | 47 (`chest_pass/follow_through/side`) |
+| Largest step on any channel | 2 of 255 |
+| Pixels differing by more than 8 | 0 |
+
+So on these views a difference above 47 pixels or above level 2 is not run-to-
+run noise. This is one control pair, and `docs/COMPARING_TWO_RENDERS.md`
+records that one pair is a sample of the band, not the band. The full library
+was not rendered twice, because one pair of runs measured at about three hours;
+the other nine drills are checked by their posed geometry, which needs no image.
+
 ## What this does not cover
 
-- The renderer's run-to-run pixel band (goal step 2) is not measured here.
 - `netball_one_hand_high_pass/ready` has no figure, so nothing about its ball
   is known from the render.

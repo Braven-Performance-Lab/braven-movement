@@ -158,6 +158,16 @@ class Refusals(ManifestTest):
         self.assertRefuses("format", am.validate, self.root)
 
     def test_path_absolute_file_key(self):
+        # Neither key names a home folder or a drive with a separator, so the local-path text
+        # check cannot see them: only the relative-path rule can refuse them.
+        for key in ("/opt/athlete/x.glb", "D:x.glb"):
+            with self.subTest(key=key):
+                self.assertIsNone(am.LOCAL_PATH.search(key))
+                self.folder.edit(lambda m, k=key: m["files"].update({k: {"role": "master", "bytes": 1, "sha256": "0" * 64}}))
+                self.assertRefuses("path", am.validate, self.root)
+                self.folder.edit(lambda m, k=key: m["files"].pop(k))
+
+    def test_path_drive_and_home_in_a_file_key(self):
         self.folder.edit(lambda m: m["files"].update({"C:/Users/someone/x.glb": {"role": "master", "bytes": 1, "sha256": "0" * 64}}))
         self.assertRefuses("path", am.validate, self.root)
 

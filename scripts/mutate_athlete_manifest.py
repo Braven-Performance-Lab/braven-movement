@@ -47,6 +47,11 @@ MUTATIONS = [
     ('rig contract', "if missing or list(rig['contractBones']) != list(CONTRACT_BONES):", 'if False:'),
     ('family', "if supported_families is not None and rig['family'] not in supported_families:", 'if False:'),
 ]
+# Narrower mutations inside one refusal: each removes one branch of a guard that has several.
+BRANCH_MUTATIONS = [
+    ('path absolute', "PurePosixPath(name).is_absolute() or re.match(r'^[A-Za-z]:', name) \\\n"
+                      "                or '..'", "False \\\n                or '..'"),
+]
 WRITE_MUTATIONS = [
     ('path in write', '    _check_paths(folder, manifest)\n    path = Path(folder) / MANIFEST_NAME',
                       '    path = Path(folder) / MANIFEST_NAME'),
@@ -79,7 +84,7 @@ def main() -> int:
         print('REFUSED: the unmutated module does not pass, so no mutation can be read')
         return 2
     survivors = []
-    for name, text, replacement in MUTATIONS + WRITE_MUTATIONS:
+    for name, text, replacement in MUTATIONS + BRANCH_MUTATIONS + WRITE_MUTATIONS:
         found = source.count(text)
         if found != 1:
             print(f'REFUSED: {name!r} text found {found} times')
@@ -89,9 +94,10 @@ def main() -> int:
         print(f"{'KILLED  ' if killed else 'SURVIVED'} {name:16} {ran}; {last}")
         if not killed:
             survivors.append(name)
-    total = len(MUTATIONS) + len(WRITE_MUTATIONS)
+    total = len(MUTATIONS) + len(BRANCH_MUTATIONS) + len(WRITE_MUTATIONS)
     print(f'{total - len(survivors)} of {total} mutations killed: {len(MUTATIONS)} for the module\'s '
-          f'{raises} refusals, {len(WRITE_MUTATIONS)} for the write path')
+          f'{raises} refusals, {len(BRANCH_MUTATIONS)} for one branch inside a refusal, '
+          f'{len(WRITE_MUTATIONS)} for the write path')
     return 1 if survivors else 0
 
 

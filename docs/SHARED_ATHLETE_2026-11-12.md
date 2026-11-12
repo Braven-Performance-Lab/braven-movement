@@ -36,7 +36,7 @@ the girdle the solve asks for".
 `scripts/shared_athlete_probe.py` opens the shared file and poses every phase
 with the renderer's own `pose_phase`, through `scripts/ball_hand_gap_render.py`:
 
-    blender -b <netball-athlete.blend> --python scripts/shared_athlete_probe.py -- out/reach-shared.json spikes/poc-output/*.job.json
+    blender -b --python scripts/shared_athlete_probe.py -- <netball-athlete.blend> measure out/reach-shared.json spikes/poc-output/*.job.json
 
 Three things are done in that process only and never saved:
 
@@ -86,8 +86,8 @@ All 51 phases of the 12 drills pose, with no failure.
 All 12 drills, 51 phases, three views each (153 images per body), rendered
 with the renderer's own `main` on the same jobs:
 
-    blender -b --python blender_movement_render.py -- <every job> --output out/step4-render
-    blender -b --python scripts/shared_athlete_probe.py -- <netball-athlete.blend> render <every job> --output out/step4-shared2
+    blender -b --python blender_movement_render.py -- --job <job> [--job <job> ...] --output out/step4-render
+    blender -b --python scripts/shared_athlete_probe.py -- <netball-athlete.blend> render --job <job> [--job <job> ...] --output out/step4-shared2
 
 **A first shared render was not a fair pair and was discarded.** Opening the
 shared file brought its own Key, Fill and Rim lights (700, 500 and 850 W),
@@ -122,10 +122,13 @@ reach limit stays, because both MPFB bodies have the same clavicle.
 
 1. The renderer must load the shared athlete instead of building its own MPFB
    body: append the rig and its children from the delivered file into the
-   empty scene, clear its Action, and mute its four IK constraints. This probe
+   empty scene, clear its Action, and mute its four IK constraints (the build's
+   only constraints; refuse any other). This probe
    does exactly that, in its own process.
 2. The bone-name case: `Head` against the renderer's `head`. Spec 3 (12.7)
-   rules that the producer fixes it.
+   rules that the producer fixes it, and Main ruled on 12 Nov that the
+   renderer refuses a body with no `head` bone and never renames one. Only
+   this probe renames it, for build 09-gait-v2.
 3. The athlete's location: the delivered file is outside the repository. The
    renderer must find it through the athlete manifest, never a machine path
    (MAN-5).

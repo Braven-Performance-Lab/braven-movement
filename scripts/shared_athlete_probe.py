@@ -10,11 +10,16 @@ room. Opening the file instead lit the shared athlete with two light rigs.
 
 In this process only, and never saved:
 - the bone `Head` is renamed `head`, the one name the renderer uses that
-  differs, and the vertex group follows (checked);
+  differs, and the vertex group follows (checked). Only when the build has
+  `Head` and no `head`; Models fixes the producer (spec 3, 12.7);
 - the assigned Action is cleared and every bone returns to its bind pose;
 - the four IK constraints (`lowerarm_*` to `CTRL_hand_*`, `calf_*` to
   `CTRL_foot_*`) are muted, because they would override the arm and leg the
-  renderer poses.
+  renderer poses. They are the build's only constraints (09-gait-v2); any
+  other constraint is refused, not muted.
+
+A `render` receipt records the build file with the licence "NOT CHECKED:
+probe render". Never publish its figures.
 
 The first argument is the shared file. Then a mode:
 
@@ -26,6 +31,7 @@ The first argument is the shared file. Then a mode:
 the render rig's. `render` runs the renderer's own `main` with the renderer's
 camera, lights, floor and ball.
 """
+import hashlib
 import math
 import sys
 from pathlib import Path
@@ -57,10 +63,21 @@ def append_athlete(path: str):
     rig = next(obj for obj in target.objects if obj is not None and obj.name == RIG_NAME)
     collection = bpy.context.scene.collection
     collection.objects.link(rig)
+
+    def under_rig(obj):
+        # EVERY DESCENDANT, not only the direct children: a mesh parented to
+        # the body would otherwise be loaded and not drawn, in silence.
+        parent = obj.parent
+        while parent is not None:
+            if parent is rig:
+                return True
+            parent = parent.parent
+        return False
+
     # Only the athlete enters the scene. The file's lights, camera, floor and
     # ball stay loaded but unlinked, so they do not render.
     for obj in target.objects:
-        if obj is not None and obj.parent is rig and obj.name not in LEFT_OUT:
+        if obj is not None and under_rig(obj) and obj.name not in LEFT_OUT:
             collection.objects.link(obj)
     if any(o.name.startswith(RIG_NAME + ".") for o in bpy.data.objects):
         raise SystemExit("a second copy of the rig was appended")
@@ -69,14 +86,26 @@ def append_athlete(path: str):
 
 def shared_studio(config):
     rig = bpy.data.objects[RIG_NAME]
-    rig.data.bones["Head"].name = "head"
     body = bpy.data.objects[BODY_NAME]
-    if "head" not in body.vertex_groups or "Head" in body.vertex_groups:
-        raise SystemExit("the head vertex group did not follow the bone rename")
+    bones = rig.data.bones
+    # The renderer uses `head`; build 09-gait-v2 spells it `Head`. Models fixes
+    # the producer (spec 3, 12.7). Until then this probe renames it, and only
+    # when the build has `Head` and no `head`.
+    if "head" not in bones:
+        if "Head" not in bones:
+            raise SystemExit(f"{RIG_NAME} has no bone named head or Head")
+        bones["Head"].name = "head"
+        if "head" not in body.vertex_groups or "Head" in body.vertex_groups:
+            raise SystemExit("the head vertex group did not follow the bone rename")
     if rig.animation_data:
         rig.animation_data.action = None
+    # ONLY the four IK constraints that drive the limbs from the CTRL_* targets
+    # are muted. Any other constraint would change the body this probe draws
+    # in a way the report does not describe, so it is refused, not muted.
     for bone in rig.pose.bones:
         for constraint in bone.constraints:
+            if constraint.type != "IK" or not str(getattr(constraint, "subtarget", "")).startswith("CTRL_"):
+                raise SystemExit(f"{bone.name} carries a {constraint.type} constraint this probe does not handle")
             constraint.mute = True
         bone.matrix_basis = Matrix.Identity(4)
     bpy.context.view_layer.update()
@@ -86,11 +115,17 @@ def shared_studio(config):
                              human=body, build=generated_from(), sourceBlend=SOURCE)
     if MODE == "render":
         studio.world_colour = config.presentation.studio.world_color
-        studio.assets = [o for o in bpy.data.objects
-                         if o.type == "MESH" and o.parent == rig and o.name != BODY_NAME]
-        # The shared athlete's assets are licensed by its own manifest, not
-        # by this repository's records, so the receipt lists none.
-        studio.source_asset_records = []
+        studio.assets = [o for o in bpy.context.scene.objects
+                         if o.type == "MESH" and o is not body]
+        # THIS RENDER HAS NOT PASSED THE LICENCE CHECK, and its receipt says
+        # so. An empty list would read like an ordinary render to
+        # `archive_receipts.py` and `before_after_sheet.py`.
+        studio.source_asset_records = [{
+            "path": Path(SOURCE).name,
+            "sha256": hashlib.sha256(Path(SOURCE).read_bytes()).hexdigest(),
+            "licence": "NOT CHECKED: probe render by scripts/shared_athlete_probe.py",
+            "licenceSource": "none: never publish this figure",
+        }]
         studio.camera, studio.lights = R.add_camera_and_lights(config.presentation)
         R.add_floor()
         studio.ball, studio.ball_seams = None, []

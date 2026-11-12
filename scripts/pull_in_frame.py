@@ -31,8 +31,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SPIKES = ROOT / "spikes"
 MOVEMENTS = SPIKES / "movements"
+# Appended, not inserted first: the host test suite imports this module, and
+# spikes/ placed first would hide tests/ modules of the same name.
 if str(SPIKES) not in sys.path:
-    sys.path.insert(0, str(SPIKES))
+    sys.path.append(str(SPIKES))
 
 DRILL = "netball_two_hand_catch_chest"
 PHASE = "pull_in"

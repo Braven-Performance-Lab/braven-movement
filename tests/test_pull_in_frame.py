@@ -13,9 +13,11 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# APPEND, never insert first: spikes/ has its own test_*.py files, and a folder
+# placed first would hide tests/ modules of the same name from discovery.
 for folder in (ROOT / "scripts", ROOT / "spikes"):
     if str(folder) not in sys.path:
-        sys.path.insert(0, str(folder))
+        sys.path.append(str(folder))
 
 import pull_in_frame  # noqa: E402
 from movement_definition import MovementDefinitionError, load  # noqa: E402

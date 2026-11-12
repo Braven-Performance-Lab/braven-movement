@@ -62,6 +62,7 @@ REFUSALS = [
     ('rig contract list', "if list(rig['contractBones']) != list(CONTRACT_BONES):", OFF),
     ('rig contract bone', 'if missing:', OFF),
     ('family', "if rig['family'] not in supported_families:", OFF),
+    ('changed while checked', 'if target.read_bytes() != checked_bytes:', OFF),
 ]
 CLAUSES = [
     ('magic only', "if magic != b'glTF' or kind != 0x4E4F534A:", 'if kind != 0x4E4F534A:'),
@@ -87,8 +88,8 @@ WRITES = [
                       '    path = Path(folder) / MANIFEST_NAME'),
     ('restore on refusal', '                written.write_bytes(before)', '                pass'),
     ('remove on failure', '                written.unlink(missing_ok=True)', '                pass'),
-    ('atomic write', "partial.write_text(json.dumps(manifest, indent=2) + '\\n', encoding='utf-8')\n    os.replace(partial, path)",
-                     "path.write_text(json.dumps(manifest, indent=2) + '\\n', encoding='utf-8')"),
+    ('atomic write', '        os.replace(partial, path)', "        path.write_text(partial.read_text(encoding='utf-8'), encoding='utf-8')"),
+    ('partial cleanup', '        partial.unlink(missing_ok=True)', '        pass'),
 ]
 # Ways a refusal can be lost without its guard being switched off.
 ROBUSTNESS = [

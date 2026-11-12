@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { acceptAthlete, checkAthlete, copyAccepted, readAccepted } from '../manifest-gate.mjs'
+import { acceptAthlete, acceptChecked, checkAthlete, copyAccepted, readAccepted } from '../manifest-gate.mjs'
 
 // The gate Studio's config runs before it serves an athlete. The folder is built by the host
 // tests' own Folder helper (tests/test_athlete_manifest.py), so Studio and the validator's
@@ -100,6 +100,30 @@ test('a build refuses a listed file that changed after start-up, even with the m
     const accepted = acceptAthlete(dir)
     fs.writeFileSync(path.join(dir, 'netball-athlete.blend'), 'MASTER')
     assert.throws(() => copyAccepted(accepted, out), /Studio refuses the athlete.*REFUSED file:/)
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(out, { recursive: true, force: true }) }
+})
+
+test('Studio refuses a manifest whose bytes are not the ones the check accepted', () => {
+  const dir = folder()
+  try {
+    const summary = checkAthlete(dir)
+    assert.match(summary.manifestSha256, /^[0-9a-f]{64}$/)
+    assert.throws(() => acceptChecked(dir, { ...summary, manifestSha256: '0'.repeat(64) }), /changed after the check/)
+  } finally { fs.rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('a build copies a listed file inside a folder', () => {
+  const dir = folder()
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-dist-'))
+  try {
+    fs.mkdirSync(path.join(dir, 'extra'))
+    fs.writeFileSync(path.join(dir, 'extra', 'notes.json'), '{}')
+    const manifestPath = path.join(dir, 'athlete-manifest.json')
+    const m = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+    m.files['extra/notes.json'] = { role: 'notes', bytes: 2, sha256: '44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a' }
+    fs.writeFileSync(manifestPath, JSON.stringify(m))
+    copyAccepted(acceptAthlete(dir), out)
+    assert.equal(fs.readFileSync(path.join(out, 'extra', 'notes.json'), 'utf8'), '{}')
   } finally { fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(out, { recursive: true, force: true }) }
 })
 

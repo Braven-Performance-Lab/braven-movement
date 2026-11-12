@@ -26,7 +26,9 @@ class StudioManifestGate(unittest.TestCase):
         self.assertIsNotNone(node, 'Node is not on PATH: the Studio manifest gate cannot be tested on this machine')
         # UTF-8, not the local code page: Node's summary lines start with "ℹ", and a misread
         # summary is a failed read, not a pass.
-        run = subprocess.run([node, '--test', str(GATE_TESTS)], capture_output=True, text=True, encoding='utf-8',
+        # The spec reporter by name: Node before 23 prints TAP when its output is a pipe, and this
+        # reads the spec reporter's summary lines.
+        run = subprocess.run([node, '--test', '--test-reporter=spec', str(GATE_TESTS)], capture_output=True, text=True, encoding='utf-8',
                              errors='replace', cwd=REPO, env={**os.environ, 'BRAVEN_PYTHON': sys.executable})
         summary = [line for line in run.stdout.splitlines() if line.startswith(('ℹ tests', 'ℹ pass', 'ℹ fail'))]
         self.assertEqual(run.returncode, 0, '\n'.join(summary) + '\n' + run.stdout[-3000:] + run.stderr[-2000:])

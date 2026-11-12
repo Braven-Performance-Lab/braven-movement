@@ -5,8 +5,32 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import athlete_manifest as am  # noqa: E402
+
+
+def checked_studio(output: Path, dist: Path) -> dict:
+    """The athlete must pass its manifest check, and the built studio must carry that same manifest and model.
+
+    Raises ValueError with the reason. The legacy manifest.json is not read: it is the conversion's
+    input, not a description anything is checked against.
+    """
+    try:
+        manifest = am.validate(output)
+    except am.ManifestRefusal as refusal:
+        raise ValueError(f'The athlete output is refused: {refusal}') from None
+    [model] = [name for name, entry in manifest['files'].items() if entry['role'] == 'model']
+    expected = manifest['files'][model]['sha256'].lower()
+    built = dist / 'athlete-assets'
+    if (built / am.MANIFEST_NAME).read_bytes() != (output / am.MANIFEST_NAME).read_bytes():
+        raise ValueError('The built studio carries a different athlete-manifest.json: build it again')
+    if hashlib.sha256((built / model).read_bytes()).hexdigest() != expected:
+        raise ValueError(f'The built studio carries a different model than the manifest: {built / model}')
+    return {'model': expected, 'revision': manifest['asset']['revision'],
+            'movementCommit': manifest['source']['movementCommit']}
 
 
 def main():
@@ -18,13 +42,16 @@ def main():
     dist = HERE / 'viewer/dist'
     if not (dist / 'index.html').is_file():
         parser.error('Build athlete/viewer first with npm run build.')
-    # Never package an old built asset alongside a newer root manifest.
-    manifest = json.loads((output / 'manifest.json').read_text())
-    expected = manifest['files']['netball-athlete.glb']['sha256']
-    for asset in [output / 'netball-athlete.glb', dist / 'athlete-assets/netball-athlete.glb']:
-        if hashlib.sha256(asset.read_bytes()).hexdigest() != expected:
-            parser.error(f'Asset hash differs from the manifest: {asset}')
-    shutil.copytree(dist, output / 'studio', dirs_exist_ok=True)
+    # Never package an old built asset alongside a newer manifest.
+    try:
+        checked = checked_studio(output, dist)
+    except ValueError as reason:
+        parser.error(str(reason))
+    expected = checked['model']
+    # The whole studio folder is replaced, so no file of an earlier package (such as the legacy
+    # athlete-assets/manifest.json the launcher once read) can sit beside the new build.
+    shutil.rmtree(output / 'studio', ignore_errors=True)
+    shutil.copytree(dist, output / 'studio')
     if (output / 'athlete-in-motion.webm').is_file():
         shutil.copy2(output / 'athlete-in-motion.webm', output / 'studio/athlete-in-motion.webm')
     source = output / 'source'
@@ -48,11 +75,11 @@ def main():
         shutil.copy2(HERE / 'VALIDATION.md', output / 'VALIDATION.md')
     receipt = {
         'assetSha256': expected,
-        'modelRevision': manifest.get('revision', 1),
+        'modelRevision': checked['revision'],
         'movementBase': subprocess.check_output(['git', '-C', str(HERE), 'rev-parse', 'HEAD'], text=True).strip(),
         'tacticsBase': subprocess.check_output(['git', '-C', str(tactics), 'rev-parse', 'HEAD'], text=True).strip(),
         'tacticsPatchSha256': hashlib.sha256(patch).hexdigest(),
-        'movementSourceCommit': manifest.get('movementSourceCommit'),
+        'movementSourceCommit': checked['movementCommit'],
         'movementLibrary': 'movement-library/manifest.json',
         'studioScriptSha256': {str(path.relative_to(dist)).replace('\\', '/'):
                               hashlib.sha256(path.read_bytes()).hexdigest()

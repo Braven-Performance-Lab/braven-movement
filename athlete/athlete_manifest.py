@@ -199,7 +199,11 @@ def write(folder: Path, manifest: dict) -> Path:
     # Written beside the target, then swapped in: a failed write leaves the old manifest whole.
     partial = path.with_name(MANIFEST_NAME + '.partial')
     partial.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-    os.replace(partial, path)
+    try:
+        os.replace(partial, path)
+    except BaseException:
+        partial.unlink(missing_ok=True)
+        raise
     return path
 
 
@@ -326,7 +330,12 @@ def main(argv=None) -> int:
     try:
         if args.action == 'write':
             written = write(args.folder, convert_legacy(args.folder, kit_id=args.kit))
+        # The hash of the manifest this run checked, so a consumer can tell that the file it reads
+        # afterwards is that file and not one rewritten in between.
+        checked_bytes = target.read_bytes() if target.is_file() else b''
         manifest = validate(args.folder, families)
+        if target.read_bytes() != checked_bytes:
+            raise ManifestRefusal('format', f'{MANIFEST_NAME} changed while it was being checked')
     except BaseException as failure:
         # A manifest this run wrote is never left beside a build that did not pass, whatever
         # stopped the check: a coded refusal, or any other error.
@@ -343,7 +352,8 @@ def main(argv=None) -> int:
         print(written)
     model = next(e['sha256'] for e in manifest['files'].values() if e['role'] == 'model')
     print(json.dumps({'accepted': MANIFEST_NAME, 'revision': manifest['asset']['revision'],
-                      'clips': len(manifest['clips']), 'model': model}))
+                      'clips': len(manifest['clips']), 'model': model,
+                      'manifestSha256': sha256_bytes(checked_bytes)}))
     return 0
 
 

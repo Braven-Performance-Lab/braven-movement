@@ -236,8 +236,12 @@ async function init() {
   const manifestResponse=await fetch('/athlete-assets/athlete-manifest.json')
   if(!manifestResponse.ok)throw new Error('The model manifest is missing. Rebuild Studio with the athlete output directory.')
   const manifest=await manifestResponse.json()
-  movementLibrary = await fetch('/athlete-assets/movement-library.json').then(r => r.ok ? r.json() : {techniques:[]}).catch(() => ({techniques:[]}))
-  const gltf = await new GLTFLoader().loadAsync('/athlete-assets/netball-athlete.glb', e => {
+  // Files by their role in the checked manifest, not by a fixed name.
+  const fileOf=role=>Object.entries(manifest.files).find(([,f])=>f.role===role)?.[0]
+  const modelFile=fileOf('model'),libraryFile=fileOf('library')
+  if(!modelFile)throw new Error('The athlete manifest names no model.')
+  movementLibrary = await (libraryFile?fetch('/athlete-assets/'+libraryFile):Promise.reject()).then(r => r.ok ? r.json() : {techniques:[]}).catch(() => ({techniques:[]}))
+  const gltf = await new GLTFLoader().loadAsync('/athlete-assets/'+modelFile, e => {
     $('load-message').textContent = e.total ? `Loading athlete · ${Math.round(e.loaded/e.total*100)}%` : 'Loading athlete…'
   })
   model = gltf.scene
@@ -281,7 +285,7 @@ async function init() {
   appearance(); playClip('netball_chest_pass'); sample()
   window.athleteStudio = { state, model, rig, bones, clips, mixer, scene, renderer, camera, controls,
     sample, playClip, selectClip, enterPose, appearance, updateVisibility, movementLibrary, view, duration,
-    assetHash:Object.values(manifest.files).find(f=>f.role==='model').sha256.toLowerCase(),
+    assetHash:manifest.files[modelFile].sha256.toLowerCase(),
     assetRevision:manifest.asset.revision,
     pause:()=>{advancePlayback(performance.now());state.playing=false;sample()},
     seek:time=>{if(state.poseMode)playClip(state.clip);previous=performance.now();state.playing=false;state.time=Math.max(0,Math.min(time,duration()-.001));sample()},

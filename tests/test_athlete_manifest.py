@@ -11,6 +11,7 @@ refusal that fires on everything is caught too.
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import struct
 import sys
@@ -466,6 +467,27 @@ class CommandLine(ManifestTest):
             with self.assertRaises(OSError):
                 am.write(self.root, am.convert_legacy(self.root, kit_id="another-kit"))
         self.assertEqual((self.root / am.MANIFEST_NAME).read_bytes(), before)
+        self.assertEqual(sorted(p.name for p in self.root.glob("*.partial")), [], "no .partial file is left behind")
+
+    def test_check_prints_the_hash_of_the_manifest_it_checked(self):
+        Folder(self.root).write_v1()
+        out = io.StringIO()
+        with mock.patch("sys.stdout", out):
+            self.assertEqual(am.main(["check", str(self.root)]), 0)
+        printed = json.loads(out.getvalue().strip().splitlines()[-1])
+        self.assertEqual(printed["manifestSha256"], sha((self.root / am.MANIFEST_NAME).read_bytes()))
+
+    def test_check_refuses_a_manifest_rewritten_while_it_was_checked(self):
+        Folder(self.root).write_v1()
+        real = am.validate
+
+        def rewrite_then_check(folder, families):
+            manifest = real(folder, families)
+            path = Path(folder) / am.MANIFEST_NAME
+            path.write_text(path.read_text() + " ")
+            return manifest
+        with mock.patch.object(am, "validate", side_effect=rewrite_then_check):
+            self.assertEqual(am.main(["check", str(self.root)]), 1)
 
     def test_write_keeps_the_manifest_when_the_folder_matches(self):
         Folder(self.root)

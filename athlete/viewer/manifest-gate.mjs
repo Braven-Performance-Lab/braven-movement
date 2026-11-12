@@ -34,8 +34,15 @@ export function checkAthlete(folder, { python = process.env.BRAVEN_PYTHON || 'py
  * it lists, each with the hash it must still have. Nothing else in the folder is served.
  */
 export function acceptAthlete(folder, options) {
-  const summary = checkAthlete(folder, options)
+  return acceptChecked(folder, checkAthlete(folder, options))
+}
+
+/** acceptAthlete after the check: `summary` is what athlete_manifest.py check printed. */
+export function acceptChecked(folder, summary) {
   const manifestBytes = fs.readFileSync(path.join(folder, MANIFEST_NAME))
+  // The file read here must be the one the validator checked, not one rewritten in between.
+  if (sha256(manifestBytes) !== summary.manifestSha256)
+    throw new Error(`${MANIFEST_NAME} changed after the check; start Studio again`)
   const manifest = JSON.parse(manifestBytes.toString('utf8'))
   const entries = new Map([[MANIFEST_NAME, { sha256: sha256(manifestBytes), type: TYPES['.json'] }]])
   for (const [name, entry] of Object.entries(manifest.files))
@@ -66,6 +73,8 @@ export function copyAccepted(accepted, destination, options) {
   fs.rmSync(destination, { recursive: true, force: true })
   fs.mkdirSync(destination, { recursive: true })
   for (const name of accepted.entries.keys()) {
+    // A listed path may have folders (the validator allows clips/x.json); make them.
+    fs.mkdirSync(path.dirname(path.join(destination, name)), { recursive: true })
     fs.writeFileSync(path.join(destination, name), readAccepted(accepted, name))
     if (sha256(fs.readFileSync(path.join(destination, name))) !== accepted.entries.get(name).sha256)
       throw new Error(`${name} did not copy as checked`)

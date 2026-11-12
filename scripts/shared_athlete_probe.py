@@ -90,7 +90,9 @@ def append_athlete(path: str):
     return rig
 
 
-def shared_studio(config):
+def shared_studio(config, athlete_folder=None):
+    # The same signature as `R.Studio`, which `R.main` calls with the
+    # `--athlete` folder. This probe loads its own file and ignores it.
     rig = bpy.data.objects[RIG_NAME]
     body = bpy.data.objects[BODY_NAME]
     bones = rig.data.bones
@@ -114,6 +116,10 @@ def shared_studio(config):
     foot_baseline = {f"foot_{side}": rig.pose.bones[f"foot_{side}"].matrix.copy() for side in ("l", "r")}
     studio = SimpleNamespace(rig=rig, basis=basis, foot_baseline=foot_baseline, config=config,
                              human=body, build=generated_from(), sourceBlend=SOURCE)
+    # Every receipt names its athlete (`render_job` writes this). A probe render
+    # says what it is, so it never reads as the renderer's own --athlete route.
+    studio.athlete = {"kind": "probe", "sourceBlend": Path(SOURCE).name,
+                      "probe": "scripts/shared_athlete_probe.py"}
     if MODE == "render":
         studio.world_colour = config.presentation.studio.world_color
         studio.assets = [o for o in bpy.context.scene.objects

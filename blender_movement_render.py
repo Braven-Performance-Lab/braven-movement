@@ -50,6 +50,7 @@ from build_stamp import generated_from  # noqa: E402
 from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
     athlete_master,
+    athlete_record,
     constraint_to_mute,
     external_asset_records,
     head_bone_name,
@@ -728,7 +729,7 @@ SHARED_BODY = "Athlete_Body"
 SHARED_LEFT_OUT = ("Movement_Ball",)
 
 
-def load_shared_athlete(master: Path):
+def load_shared_athlete(master: Path, master_sha256: str):
     """The shared athlete's rig and meshes, in an empty scene of their own.
 
     Measured on 12 Nov 2026 (`docs/SHARED_ATHLETE_2026-11-12.md`):
@@ -741,8 +742,13 @@ def load_shared_athlete(master: Path):
       IK constraints. Both would override the pose this renderer sets, so the
       Action is cleared, those constraints are muted (any other is refused)
       and every bone returns to its bind pose. None of this is saved.
-    - A body with no `head` bone is refused; no bone is renamed (Main, 12 Nov).
+    - A body without the rig contract's `Head` bone is refused; the athlete
+      is renamed in nothing (Main's correction, 12 Nov 2026).
+    - The file is hashed again just before it is read, against the manifest's
+      SHA-256 the validator checked, so the bytes drawn are the bytes named.
     """
+    if sha256(master) != master_sha256:
+        raise SharedAthleteRefusal(f"{master.name} changed after its manifest was validated")
     bpy.ops.wm.read_factory_settings(use_empty=True)
     with bpy.data.libraries.load(str(master), link=False) as (source, target):
         target.objects = list(source.objects)
@@ -772,7 +778,7 @@ def load_shared_athlete(master: Path):
         collection.objects.link(mesh)
     if any(o.name.startswith(SHARED_RIG + ".") for o in bpy.data.objects):
         raise SharedAthleteRefusal(f"{master.name}: a second copy of the rig was loaded")
-    # Refused here, before any pose: a body whose head bone is not `head`.
+    # Refused here, before any pose: a body without the contract's `Head`.
     head_bone_name(rig.pose.bones.keys())
     if rig.animation_data:
         rig.animation_data.action = None
@@ -782,7 +788,9 @@ def load_shared_athlete(master: Path):
                 constraint.mute = True
         bone.matrix_basis = Matrix.Identity(4)
     bpy.context.view_layer.update()
-    body = bpy.data.objects[SHARED_BODY]
+    body = next((m for m in meshes if m.name == SHARED_BODY), None)
+    if body is None:
+        raise SharedAthleteRefusal(f"{master.name} has no {SHARED_BODY} under its rig")
     return body, rig, [m for m in meshes if m is not body]
 
 
@@ -823,18 +831,10 @@ class Studio:
             manifest, master = athlete_master(athlete_folder)
             self.source_asset_records = [
                 master_record(manifest, master), *external_asset_records(manifest)]
-            self.human, self.rig, self.assets = load_shared_athlete(master)
+            self.athlete = athlete_record(manifest, master)
+            self.human, self.rig, self.assets = load_shared_athlete(
+                master, self.athlete["masterSha256"])
             self.source_assets = []
-            model = next(name for name, entry in manifest["files"].items()
-                         if entry.get("role") == "model")
-            self.athlete = {
-                "kind": "shared",
-                "name": manifest["asset"]["name"],
-                "revision": manifest["asset"]["revision"],
-                "glbSha256": manifest["files"][model]["sha256"],
-                "masterSha256": manifest["files"][master.name]["sha256"],
-                "rigFamily": manifest["rig"]["family"],
-            }
         self.basis = {
             bone.name: bone.matrix_basis.copy() for bone in self.rig.pose.bones
         }

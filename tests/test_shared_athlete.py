@@ -22,6 +22,7 @@ from asset_licences import CC0, LicenceUndetermined  # noqa: E402
 from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
     athlete_master,
+    athlete_record,
     constraint_to_mute,
     contract_renames,
     external_asset_records,
@@ -96,6 +97,35 @@ class SharedAssetLicenceTest(unittest.TestCase):
     def test_the_athlete_build_output_has_no_determination_yet(self):
         with self.assertRaises(LicenceUndetermined):
             master_record(self.MANIFEST, Path("build") / "netball-athlete.blend")
+
+    def test_the_folder_it_sits_in_cannot_license_the_master(self):
+        """The determination is made on the FILE, not the folder's path: a
+        build folder under an `assets/kit/` path is not own work by place."""
+        with self.assertRaises(LicenceUndetermined):
+            master_record(self.MANIFEST, Path("x") / "assets" / "kit" / "netball-athlete.blend")
+
+
+class AthleteRecordTest(unittest.TestCase):
+    """Step 4: every receipt names the athlete by its revision and GLB SHA-256."""
+
+    MANIFEST = {
+        "asset": {"name": "Braven netball athlete", "revision": 9},
+        "rig": {"family": "braven-athlete-v6"},
+        "files": {"netball-athlete.glb": {"role": "model", "sha256": "a" * 64},
+                  "netball-athlete.blend": {"role": "master", "sha256": "b" * 64},
+                  "movement-library.json": {"role": "library", "sha256": "c" * 64}},
+    }
+
+    def test_the_record_names_the_revision_and_both_hashes(self):
+        record = athlete_record(self.MANIFEST, Path("build") / "netball-athlete.blend")
+        self.assertEqual(record, {
+            "kind": "shared", "name": "Braven netball athlete", "revision": 9,
+            "glbSha256": "a" * 64, "masterSha256": "b" * 64, "rigFamily": "braven-athlete-v6"})
+
+    def test_a_manifest_with_no_model_file_is_refused(self):
+        files = {k: v for k, v in self.MANIFEST["files"].items() if v["role"] != "model"}
+        with self.assertRaises(SharedAthleteRefusal):
+            athlete_record({**self.MANIFEST, "files": files}, Path("build") / "netball-athlete.blend")
 
 
 class ContractNameTest(unittest.TestCase):
@@ -177,6 +207,28 @@ class SharedAthleteWiringTest(unittest.TestCase):
         names = {name for _, name in self.calls(self.function("load_shared_athlete"))}
         self.assertIn("head_bone_name", names)
         self.assertIn("constraint_to_mute", names)
+
+    def test_the_loader_hashes_the_file_before_it_reads_it(self):
+        loader = self.function("load_shared_athlete")
+        hashed = min(line for line, name in self.calls(loader) if name == "sha256")
+        loaded = min(n.lineno for n in self._ast.walk(loader)
+                     if isinstance(n, self._ast.Attribute) and n.attr == "libraries")
+        self.assertLess(hashed, loaded)
+
+    def test_the_receipt_record_comes_from_the_tested_function(self):
+        studio = next(n for n in self.TREE.body if isinstance(n, self._ast.ClassDef) and n.name == "Studio")
+        names = {name for _, name in self.calls(self.function("__init__", studio))}
+        self.assertIn("athlete_record", names)
+
+    def test_the_probe_stands_in_for_studio_with_its_signature_and_record(self):
+        """Review round 1: `R.main` calls `Studio(config, args.athlete)` and
+        `render_job` reads `studio.athlete`; the probe broke on both."""
+        probe = self._ast.parse((REPO / "scripts" / "shared_athlete_probe.py").read_text(encoding="utf-8"))
+        stand_in = self.function("shared_studio", probe)
+        self.assertEqual(len(stand_in.args.args), 2)
+        sets_athlete = any(isinstance(n, self._ast.Attribute) and n.attr == "athlete"
+                           and isinstance(n.ctx, self._ast.Store) for n in self._ast.walk(stand_in))
+        self.assertTrue(sets_athlete, "the probe's studio must carry an athlete record")
 
     def test_every_receipt_names_its_athlete(self):
         render_job = self.function("render_job")

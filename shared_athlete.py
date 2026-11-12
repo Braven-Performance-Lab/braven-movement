@@ -79,9 +79,31 @@ def master_record(manifest: dict, master: Path) -> dict:
     `docs/LICENSING.md` determines that build output, `licence_for` refuses
     it, and the renderer draws nothing.
     """
-    licence, source = licence_for(master)
+    # The FILE NAME, never the folder's path: `licence_for` matches path parts,
+    # and a build folder placed under `assets/kit/` would otherwise be
+    # licensed as own work by where it sits.
+    licence, source = licence_for(master.name)
     return {"path": master.name, "sha256": manifest["files"][master.name]["sha256"],
             "licence": licence, "licenceSource": source}
+
+
+def athlete_record(manifest: dict, master: Path) -> dict:
+    """What every receipt says about the athlete that drew the figure.
+
+    The GLB is the file whose role is `model`, the runtime asset Tactics and
+    Studio load; the master is the file this renderer loads.
+    """
+    models = [name for name, entry in manifest["files"].items() if entry.get("role") == "model"]
+    if len(models) != 1:
+        raise SharedAthleteRefusal(f"the manifest names {len(models)} files with the role 'model'")
+    return {
+        "kind": "shared",
+        "name": manifest["asset"]["name"],
+        "revision": manifest["asset"]["revision"],
+        "glbSha256": manifest["files"][models[0]]["sha256"],
+        "masterSha256": manifest["files"][master.name]["sha256"],
+        "rigFamily": manifest["rig"]["family"],
+    }
 
 
 def head_bone_name(names) -> str:

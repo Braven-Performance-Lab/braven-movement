@@ -106,7 +106,7 @@ One entry for each animation in the model, in the order of their `id`.
 | `fps` | The frame rate the clip was authored at. |
 | `movementId`, `jobSha256` | A technique only: the drill and the hash of the solved job it came from. |
 | `contactFrame`, `releaseFrame` | A technique only: the frame of first contact and of release, or `null`. |
-| `review` | `passes-source-checks`, `needs-review` or `coach-approved`. |
+| `review` | `passes-source-checks`, `needs-review` or `coach-approved` for a technique; `not-graded` for a general clip. Any other value is refused with the code `format`. |
 
 ### 2.8 `history`
 
@@ -122,7 +122,7 @@ holds. Each refusal has a code, so that a test can name the refusal it expects.
 | Code | The validator refuses when |
 |---|---|
 | `format` | `format` is not `braven-athlete-manifest`, or `formatVersion` is not a version it knows. |
-| `path` | A path is absolute, has a drive letter, has a `\`, has a `..` part, or names a file outside the folder (MAN-5). |
+| `path` | A file path is absolute, has a drive letter, has a `\` or has a `..` part; or any text in the manifest names a place on one machine, such as a drive letter or a home folder (MAN-5). The validator does not follow symbolic links: the pipeline writes none, and the `file` check hashes what it reads. |
 | `file` | A file in `files` is missing, or its size or hash differs. |
 | `role` | `files` has no `model`, or more than one, or no `library` while `clips` holds a technique. |
 | `clip-set` | The GLB's animations are not exactly the ids in `clips`. |

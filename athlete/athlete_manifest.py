@@ -3,7 +3,7 @@
 The format and every refusal code are defined in docs/ATHLETE_MANIFEST.md. Standard library
 only, so Braven Studio, the host tests and a consumer's own checks can all run it.
 
-    python athlete/athlete_manifest.py write <build folder> [--kit braven-netball-fitted-v1]
+    python athlete/athlete_manifest.py write <build folder> --pose-clips <tactics>/public/figures/clips.json [--kit ...]
     python athlete/athlete_manifest.py check <build folder> [--family braven-athlete-v6]
 """
 from __future__ import annotations
@@ -131,18 +131,24 @@ def graded_pose_clips(pose_clips: bytes) -> dict:
         clips = json.loads(pose_clips)
     except ValueError as exc:
         raise ManifestRefusal('format', f'the pose clips file is not JSON: {exc}') from None
+    if not isinstance(clips, dict):
+        raise ManifestRefusal('format', 'the pose clips file is not an object of clips by id')
     by_movement = {}
-    for clip_id, clip in clips.items() if isinstance(clips, dict) else ():
+    for clip_id, clip in clips.items():
         movement = clip.get('movementId') if isinstance(clip, dict) else None
-        if not movement:
+        if movement is None:
             continue
+        if not isinstance(movement, str) or not movement:
+            raise ManifestRefusal('format', f'pose clip {clip_id} has a movementId that is not a drill name')
         if movement in by_movement:
             raise ManifestRefusal('format', f'two pose clips are made from {movement}: '
                                             f"{by_movement[movement]['clipId']} and {clip_id}")
         build = (clip.get('generatedFrom') or {}).get('commit')
         if not isinstance(build, str) or not COMMIT.match(build):
             raise ManifestRefusal('format', f'pose clip {clip_id} names no build, so it cannot be the graded record')
-        by_movement[movement] = {'clipId': clip_id, 'graded': bool(clip.get('graded')), 'build': build}
+        if not isinstance(clip.get('graded'), bool):
+            raise ManifestRefusal('format', f'pose clip {clip_id} does not say true or false for graded')
+        by_movement[movement] = {'clipId': clip_id, 'graded': clip['graded'], 'build': build}
     return by_movement
 
 
@@ -171,6 +177,11 @@ def convert_legacy(folder: Path, *, kit_id: str, pose_clips: bytes, sport: str =
         else:
             entry.update(kind='general', fps=int(gaits.get(name, {}).get('fps', GENERAL_FPS)), review='not-graded')
         clips.append(entry)
+    # A wrong file passed as the pose clips links nothing, and would say no technique has a graded
+    # record. A real clips file links some technique of a netball athlete; one that links none is refused.
+    if techniques and not any(c.get('gradedClip') for c in clips):
+        raise ManifestRefusal('format', 'the pose clips file links none of the techniques: is it '
+                                        "Braven Tactics' public/figures/clips.json?")
     roles = legacy.get('roles', {})
     files = {}
     for name, role in FILE_ROLES.items():
@@ -265,7 +276,8 @@ def validate(folder: Path, supported_families=frozenset({RIG_FAMILY})) -> dict:
     """
     folder = Path(folder)
     if not (folder / MANIFEST_NAME).is_file():
-        raise ManifestRefusal('format', f'no {MANIFEST_NAME}: write it with athlete_manifest.py write <folder>')
+        raise ManifestRefusal('format', f'no {MANIFEST_NAME}: write it with athlete_manifest.py write <folder> '
+                                        '--pose-clips <tactics>/public/figures/clips.json')
     manifest = _json(folder / MANIFEST_NAME, 'format')
     if manifest.get('format') != FORMAT or manifest.get('formatVersion') != FORMAT_VERSION:
         raise ManifestRefusal('format', f"{manifest.get('format')!r} version {manifest.get('formatVersion')!r}")

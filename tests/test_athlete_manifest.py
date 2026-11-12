@@ -162,10 +162,25 @@ class ConvertAndAccept(ManifestTest):
         self.assertNotIn("gradedClip", clips[GAIT])
 
     def test_a_technique_with_no_pose_clip_says_null(self):
-        Folder(self.root)
-        clips = {c["id"]: c for c in am.convert_legacy(self.root, kit_id="k", pose_clips=b"{}")["clips"]}
-        self.assertIn("gradedClip", clips[TECHNIQUE])
-        self.assertIsNone(clips[TECHNIQUE]["gradedClip"])
+        # Two techniques: the chest pass links, and a second drill with no pose clip says null.
+        folder = Folder(self.root)
+        second = dict(folder.library["techniques"][0], clip="netball_overhead_pass", movementId="netball_overhead_pass")
+        folder.library["techniques"].append(second)
+        (self.root / "movement-library.json").write_text(json.dumps(folder.library))
+        folder.animations["netball_overhead_pass"] = folder.animations[TECHNIQUE]
+        glb = glb_bytes(folder.animations, folder.joints)
+        (self.root / "netball-athlete.glb").write_bytes(glb)
+        clips = {c["id"]: c for c in am.convert_legacy(self.root, kit_id="k", pose_clips=POSE_CLIPS)["clips"]}
+        self.assertIsNotNone(clips[TECHNIQUE]["gradedClip"])
+        self.assertIn("gradedClip", clips["netball_overhead_pass"])
+        self.assertIsNone(clips["netball_overhead_pass"]["gradedClip"])
+
+    def test_writer_refuses_a_pose_clips_file_that_links_no_technique(self):
+        # The wrong file passed by mistake: the athlete's own library, an empty object.
+        folder = Folder(self.root)
+        for wrong in (b"{}", json.dumps(folder.library).encode()):
+            with self.subTest(wrong=wrong[:30]):
+                self.assertRefuses("format", am.convert_legacy, self.root, kit_id="k", pose_clips=wrong)
 
     def test_the_manifest_names_the_pose_clips_it_was_linked_to(self):
         manifest = Folder(self.root).write_v1()
@@ -327,6 +342,19 @@ class Refusals(ManifestTest):
     def test_format_no_pose_clips_hash(self):
         self.folder.edit(lambda m: m["source"].pop("poseClipsSha256"))
         self.assertRefuses("format", am.validate, self.root)
+
+    def test_writer_refuses_pose_clips_that_are_not_an_object(self):
+        self.assertRefuses("format", am.graded_pose_clips, b"[]")
+
+    def test_writer_refuses_a_movement_id_that_is_not_a_drill_name(self):
+        odd = json.loads(POSE_CLIPS)
+        odd["pass.netball.chest-pass"]["movementId"] = ["netball_chest_pass"]
+        self.assertRefuses("format", am.graded_pose_clips, json.dumps(odd).encode())
+
+    def test_writer_refuses_a_graded_flag_that_is_not_a_boolean(self):
+        odd = json.loads(POSE_CLIPS)
+        odd["pass.netball.chest-pass"]["graded"] = "false"
+        self.assertRefuses("format", am.graded_pose_clips, json.dumps(odd).encode())
 
     def test_writer_refuses_pose_clips_that_are_not_json(self):
         self.assertRefuses("format", am.graded_pose_clips, b"{not json")

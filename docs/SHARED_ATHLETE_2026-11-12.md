@@ -80,3 +80,59 @@ All 51 phases of the 12 drills pose, with no failure.
 - The gains are small, 0.06 to 0.36 mm per drill median, because the two
   bodies have the same clavicle. These numbers measure the girdle and the
   hand; they cannot see how the figure looks. That is step 4.
+
+## Both bodies drawn, every pair looked at (step 4)
+
+All 12 drills, 51 phases, three views each (153 images per body), rendered
+with the renderer's own `main` on the same jobs:
+
+    blender -b --python blender_movement_render.py -- <every job> --output out/step4-render
+    blender -b --python scripts/shared_athlete_probe.py -- <netball-athlete.blend> render <every job> --output out/step4-shared2
+
+**A first shared render was not a fair pair and was discarded.** Opening the
+shared file brought its own Key, Fill and Rim lights (700, 500 and 850 W),
+which lit the shared athlete on top of the renderer's lights. The probe now
+starts from the renderer's empty factory scene and appends only the rig and
+its children. Checked on `chest_pass/ready` quarter: floor corner brightness
+199.1 against the render rig's 199.5. An earlier version of the probe left the
+startup cube in front of the athlete; the brightness number did not show it
+and the picture did.
+
+The re-measure with the appended athlete gives the same poses: 0.000000 mm
+on every bone and 0.0000 mm on every anchor error against the opened file.
+
+Every pair was looked at, sheet by sheet (`scripts/before_after_sheet.py`):
+
+- Every phase takes the same pose on both bodies, with the ball and the
+  hands in the same places. 7 to 14 per cent of pixels differ per view, which
+  is the body and the kit, not the pose.
+- The shared athlete's dress, bib and shoes render without a visible defect
+  in all 153 views.
+- `one_hand_high_pass/ready` shows the same hold on both bodies (hand behind
+  the ball at chin height), so the open grip question for the coach
+  (`docs/FINDING_HIGH_PASS_READY_GRIP.md`) applies to the shared athlete too.
+
+## Report (step 5)
+
+**Better or worse, per drill:** better on all 12, by 0.06 to 0.36 mm of
+median anchor error; worse on none. Phases over 10 mm: 2 to 1. The shoulder
+reach limit stays, because both MPFB bodies have the same clavicle.
+
+**What a switch needs:**
+
+1. The renderer must load the shared athlete instead of building its own MPFB
+   body: append the rig and its children from the delivered file into the
+   empty scene, clear its Action, and mute its four IK constraints. This probe
+   does exactly that, in its own process.
+2. The bone-name case: `Head` against the renderer's `head`. Spec 3 (12.7)
+   rules that the producer fixes it.
+3. The athlete's location: the delivered file is outside the repository. The
+   renderer must find it through the athlete manifest, never a machine path
+   (MAN-5).
+4. The licence check: the renderer refuses a figure whose assets this
+   repository has not licensed. The shared athlete's assets are licensed by
+   its own manifest, so the check must read that manifest; this probe left
+   the records empty.
+5. Every receipt must name the athlete revision and its GLB SHA-256, as it
+   names the build.
+6. Every manual figure is re-rendered, and the coach sees the new kit.

@@ -17,6 +17,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "athlete"))
@@ -269,6 +270,27 @@ class Refusals(ManifestTest):
         self.folder.edit(lambda m: m["clips"][0].update(fps=0))
         self.assertRefuses("format", am.validate, self.root)
 
+    def test_format_manifest_json_but_not_an_object(self):
+        (self.root / am.MANIFEST_NAME).write_text("[]")
+        self.assertRefuses("format", am.validate, self.root)
+
+    def test_library_json_but_not_an_object(self):
+        data = b"[]"
+        (self.root / "movement-library.json").write_bytes(data)
+        self.folder.edit(lambda m: m["files"]["movement-library.json"].update(bytes=len(data), sha256=sha(data)))
+        self.assertRefuses("library", am.validate, self.root)
+
+    def test_file_glb_json_chunk_not_an_object(self):
+        body = b"[]  "
+        path = self.root / "list.glb"
+        path.write_bytes(struct.pack("<4sII", b"glTF", 2, 20 + len(body)) + struct.pack("<II", len(body), 0x4E4F534A) + body)
+        self.assertRefuses("file", am.read_glb, path)
+
+    def test_clip_timing_library_row_with_no_seconds(self):
+        del self.folder.library["techniques"][0]["seconds"]
+        self._rewrite_library()
+        self.assertRefuses("clip-timing", am.validate, self.root)
+
     def test_format_manifest_not_json(self):
         (self.root / am.MANIFEST_NAME).write_text("{not json")
         self.assertRefuses("format", am.validate, self.root)
@@ -418,6 +440,22 @@ class CommandLine(ManifestTest):
         folder.library["assetSha256"] = "ee" * 32
         (self.root / "movement-library.json").write_text(json.dumps(folder.library))
         self.assertEqual(am.main(["write", str(self.root)]), 1)
+        self.assertFalse((self.root / am.MANIFEST_NAME).exists())
+
+    def test_write_puts_back_the_manifest_that_was_there_when_refused(self):
+        folder = Folder(self.root)
+        folder.write_v1()
+        before = (self.root / am.MANIFEST_NAME).read_bytes()
+        folder.library["assetSha256"] = "ee" * 32
+        (self.root / "movement-library.json").write_text(json.dumps(folder.library))
+        self.assertEqual(am.main(["write", str(self.root)]), 1)
+        self.assertEqual((self.root / am.MANIFEST_NAME).read_bytes(), before)
+
+    def test_write_leaves_no_manifest_when_the_check_fails_with_any_error(self):
+        Folder(self.root)
+        with mock.patch.object(am, "validate", side_effect=RuntimeError("not a refusal")):
+            with self.assertRaises(RuntimeError):
+                am.main(["write", str(self.root)])
         self.assertFalse((self.root / am.MANIFEST_NAME).exists())
 
     def test_write_keeps_the_manifest_when_the_folder_matches(self):

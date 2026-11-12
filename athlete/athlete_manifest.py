@@ -63,12 +63,13 @@ def read_glb(path: Path) -> dict:
         raise ManifestRefusal('file', f'{path.name} is not a GLB with a JSON chunk')
     try:
         doc = json.loads(data[20:20 + size])
-        names = [a['name'] for a in doc.get('animations', [])]
+        # A chunk whose top level is not an object fails on doc.get with AttributeError, caught below.
+        names =[a['name'] for a in doc.get('animations', [])]
         durations = [max(doc['accessors'][s['input']]['max'][0] for s in a['samplers'])
                      for a in doc.get('animations', [])]
         skins = doc.get('skins', [])
         joints = [doc['nodes'][j].get('name', '') for j in skins[0]['joints']] if skins else []
-    except (ValueError, KeyError, IndexError, TypeError) as exc:
+    except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
         raise ManifestRefusal('file', f'{path.name} has an unreadable JSON chunk: {exc!r}') from None
     if len(set(names)) != len(names):
         raise ManifestRefusal('clip-set', f'{path.name} has two animations with one name')
@@ -198,11 +199,19 @@ def write(folder: Path, manifest: dict) -> Path:
     return path
 
 
-def _json(path: Path, code: str):
+def _json(path: Path, code: str) -> dict:
     try:
-        return json.loads(path.read_text(encoding='utf-8'))
+        value = json.loads(path.read_text(encoding='utf-8'))
     except ValueError as exc:
         raise ManifestRefusal(code, f'{path.name} is not JSON: {exc}') from None
+    if not isinstance(value, dict):
+        raise ManifestRefusal(code, f'{path.name} is JSON but not an object')
+    return value
+
+
+def _seconds(value) -> float:
+    """A number of seconds, or NaN, which no tolerance accepts, for a value that is missing or not a number."""
+    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else float('nan')
 
 
 def validate(folder: Path, supported_families=frozenset({RIG_FAMILY})) -> dict:
@@ -274,9 +283,10 @@ def validate(folder: Path, supported_families=frozenset({RIG_FAMILY})) -> dict:
                 if theirs != ours:
                     raise ManifestRefusal('library', f'{name} {field} is {theirs} in the library and {ours} here')
             # The library's own timing must agree with the model's clip, not only with the manifest.
+            # Written as "not inside": a missing or non-numeric value is NaN, and NaN is refused.
             seconds_by_frames = (row['frameCount'] - 1) / row['fps']
-            for label, theirs in (('seconds', row['seconds']), ('frame count', seconds_by_frames)):
-                if abs(theirs - model['animations'][name]) > 0.5 / clip['fps']:
+            for label, theirs in (('seconds', _seconds(row.get('seconds'))), ('frame count', seconds_by_frames)):
+                if not abs(theirs - model['animations'][name]) <= 0.5 / clip['fps']:
                     raise ManifestRefusal('clip-timing', f"{name}: the library's {label} gives {theirs:.4f} s "
                                                          f"and the model's clip lasts {model['animations'][name]:.4f} s")
 
@@ -305,17 +315,26 @@ def main(argv=None) -> int:
     parser.add_argument('--family', action='append', help=f'a supported rig family (default {RIG_FAMILY})')
     args = parser.parse_args(argv)
     families = frozenset(args.family or [RIG_FAMILY])
+    target = args.folder / MANIFEST_NAME
+    # The manifest that was there before this run, so that a refused or failed run puts it back.
+    before = target.read_bytes() if args.action == 'write' and target.is_file() else None
     written = None
     try:
         if args.action == 'write':
             written = write(args.folder, convert_legacy(args.folder, kit_id=args.kit))
         manifest = validate(args.folder, families)
-    except ManifestRefusal as refusal:
-        # A manifest this run wrote and the folder does not match is not left beside the build.
+    except BaseException as failure:
+        # A manifest this run wrote is never left beside a build that did not pass, whatever
+        # stopped the check: a coded refusal, or any other error.
         if written is not None:
-            written.unlink(missing_ok=True)
-        print(f'REFUSED {refusal}', file=sys.stderr)
-        return 1
+            if before is None:
+                written.unlink(missing_ok=True)
+            else:
+                written.write_bytes(before)
+        if isinstance(failure, ManifestRefusal):
+            print(f'REFUSED {failure}', file=sys.stderr)
+            return 1
+        raise
     if written is not None:
         print(written)
     model = next(e['sha256'] for e in manifest['files'].values() if e['role'] == 'model')

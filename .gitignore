@@ -14,6 +14,7 @@ __pycache__/
 /out/
 /athlete/viewer/node_modules/
 /athlete/viewer/dist/
+/athlete/viewer/dist-hosted/
 /athlete/viewer/.vite/
 /athlete/viewer/.local/
 /athlete/viewer/verification/

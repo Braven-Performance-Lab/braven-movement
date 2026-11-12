@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSkinned, applySkinnedPose, kitColours } from '@tactics/engine/skinned.ts'
 import { pose as tacticsPose } from '@tactics/engine/pose.ts'
@@ -10,13 +9,16 @@ import { createAthleteFootworkDemo } from '@tactics/state/athleteFootworkDemo.ts
 import { evaluateFrame, distanceAt, paceIn } from '@tactics/core/evaluate.ts'
 import { clipLabels } from './catalog.js'
 import { startStudio } from './studio.js'
+import { openAthlete } from './athlete-source.js'
 import { receivePassSequence, presentCarryBall, previewPace } from './preview-motion.js'
 import './style.css'
 
 const $ = id => document.getElementById(id)
 const state = { playing: false, speed: 1, time: 0,
   driver: 'clips', clip: 'Ready', kit: 'skirt', height: 1.75, skeleton: false, wireframe: false,
-  gait: 'run', scenario: 'gait', carry: false, poseMode: false, selectedBone: 'upperarm_l', loop: true }
+  gait: 'run', scenario: 'gait', carry: false, poseMode: false, selectedBone: 'upperarm_l', loop: true, view: 'quarter' }
+// True in hosted Studio, where a person is signed in and the athlete is a published version.
+let hosted = false
 const footworkDemo=createAthleteFootworkDemo()
 const host = $('viewport')
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
@@ -65,10 +67,13 @@ function view(name) {
     camera.position.set(5,2.5,6);controls.target.set(0,.8,1.3)
   }
   controls.update()
+  state.view = name
   const ids={front:'front',side:'side',back:'back',quarter:'three-quarter'}
   for(const id of Object.values(ids)) $(id).classList.toggle('selected',id===ids[name])
 }
 view('quarter')
+// A camera the person moved is their own angle, not a named view. A comment records which.
+controls.addEventListener('start', () => { state.view = 'free'; document.querySelectorAll('.view-tools button').forEach(b => b.classList.remove('selected')) })
 new ResizeObserver(() => { camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(host.clientWidth, host.clientHeight) }).observe(host)
 
 let model, mixer, clips, activeAction, rig, tacticRoot, helper, tacticHelper, originalHeight
@@ -130,7 +135,7 @@ function playClip(name) {
       button.onclick = () => { if (state.poseMode) playClip(state.clip); state.playing=false; state.time=phase.time; sample() }
       $('phase-buttons').append(button)
     }
-    $('motion-note').textContent = `Braven Movement technique. ${source.sourceChecksPassed ? 'Source checkpoints passed.' : 'Source checks need review.'} Retargeted onto this athlete; coaching approval is still pending.`
+    $('motion-note').textContent = `Braven Movement technique. ${source.sourceChecksPassed ? 'Source checkpoints passed.' : 'Source checks need review.'} Retargeted onto this athlete; ${hosted ? 'a coach\'s approval of this version is shown under Review.' : 'coaching approval is still pending.'}`
   } else $('motion-note').textContent = state.clip === 'Receive_pass'
     ? 'Demonstration sequence: Movement two-hand catch into chest pass, including the ball. Coaching approval is pending.'
     : 'Unloaded movement demonstration. Pause at any moment, then open Pose to adjust the body.'
@@ -232,18 +237,15 @@ function download(name, data) {
 }
 
 async function init() {
-  // The checked manifest (docs/ATHLETE_MANIFEST.md): Studio serves no other description of the model.
-  const manifestResponse=await fetch('/athlete-assets/athlete-manifest.json')
-  if(!manifestResponse.ok)throw new Error('The model manifest is missing. Rebuild Studio with the athlete output directory.')
-  const manifest=await manifestResponse.json()
-  // Files by their role in the checked manifest, not by a fixed name.
-  const fileOf=role=>Object.entries(manifest.files).find(([,f])=>f.role===role)?.[0]
-  const modelFile=fileOf('model'),libraryFile=fileOf('library')
-  if(!modelFile)throw new Error('The athlete manifest names no model.')
-  movementLibrary = await (libraryFile?fetch('/athlete-assets/'+libraryFile):Promise.reject()).then(r => r.ok ? r.json() : {techniques:[]}).catch(() => ({techniques:[]}))
-  const gltf = await new GLTFLoader().loadAsync('/athlete-assets/'+modelFile, e => {
-    $('load-message').textContent = e.total ? `Loading athlete · ${Math.round(e.loaded/e.total*100)}%` : 'Loading athlete…'
+  // The checked manifest (docs/ATHLETE_MANIFEST.md): Studio uses no other description of the model.
+  // Local Studio reads it from the build. Hosted Studio signs the person in first, and takes the
+  // published version through the API, each file checked against its hash (athlete-source.js).
+  const source = await openAthlete(fraction => {
+    $('load-message').textContent = fraction === null ? 'Loading athlete…' : `Loading athlete · ${Math.round(fraction*100)}%`
   })
+  const { manifest, gltf, modelFile } = source
+  hosted = !!source.review
+  movementLibrary = source.library
   model = gltf.scene
   model.traverse(o => {
     if (o.isBone) { bones.set(o.name, o); bind.set(o.name, capture(o)) }
@@ -287,6 +289,7 @@ async function init() {
     sample, playClip, selectClip, enterPose, appearance, updateVisibility, movementLibrary, view, duration,
     assetHash:manifest.files[modelFile].sha256.toLowerCase(),
     assetRevision:manifest.asset.revision,
+    manifest, versionId:source.versionId, review:source.review,
     pause:()=>{advancePlayback(performance.now());state.playing=false;sample()},
     seek:time=>{if(state.poseMode)playClip(state.clip);previous=performance.now();state.playing=false;state.time=Math.max(0,Math.min(time,duration()-.001));sample()},
     captureSetup, applySetup,
@@ -323,7 +326,7 @@ function applySetup(setup) {
     refreshJoint();sample()
   }
   camera.position.fromArray(setup.camera.position);controls.target.fromArray(setup.camera.target);controls.update()
-  document.querySelectorAll('.view-tools button').forEach(b=>b.classList.remove('selected'))
+  document.querySelectorAll('.view-tools button').forEach(b=>b.classList.remove('selected'));state.view='free'
   previous=performance.now()
 }
 

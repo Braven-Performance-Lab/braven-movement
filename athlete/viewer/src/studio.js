@@ -1,5 +1,6 @@
 import { makeCatalog, filterAnimations, categories } from './catalog.js'
 import { createWorkspace, readWorkspace, writeWorkspace, validateWorkspace } from './workspace.js'
+import { startReview } from './review-panel.js'
 
 const $=id=>document.getElementById(id)
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
@@ -43,7 +44,7 @@ export function startStudio(app) {
     $('playback-rate').textContent=`${app.state.speed}× speed`
     $('review-title').textContent=item.name;$('review-status').textContent=item.review
     $('review-status').classList.toggle('needs-review',item.review==='Needs review')
-    $('review-description').textContent=item.source==='General movement'?'An editable demonstration, not a coach-approved technique.':`${item.review==='Source checked'?'Source checkpoints passed.':'Some source checkpoints still need review.'} This retarget has not been coach-approved.`
+    $('review-description').textContent=item.source==='General movement'?'An editable demonstration, not a coach-approved technique.':`${item.review==='Source checked'?'Source checkpoints passed.':'Some source checkpoints still need review.'} ${app.review?'Source checks and a coach\'s approval are separate: the approval of this version is shown below.':'This retarget has not been coach-approved.'}`
     $('phase-heading').hidden=app.state.driver!=='clips'||!item.phases.length
     document.querySelectorAll('[data-animation]').forEach(b=>{b.classList.toggle('selected',b.dataset.animation===app.state.clip&&app.state.driver==='clips');b.setAttribute('aria-pressed',String(b.classList.contains('selected')))})
     document.querySelectorAll('[data-library-kit]').forEach(b=>{b.classList.toggle('selected',b.dataset.libraryKit===app.state.kit);b.setAttribute('aria-pressed',String(b.classList.contains('selected')))})
@@ -186,5 +187,14 @@ export function startStudio(app) {
   lastClip=app.state.clip;$('review-note').value=workspace.drafts[app.state.clip]||''
   for(const id of ['save-setup','capture-frame','restart','step-back','step-forward'])$(id).disabled=false
   render();if(error)notify(error,true)
+  // Hosted Studio: the team's comments, and no file that the published version does not serve.
+  if(app.review){
+    $('local-label').hidden=true
+    $('review-note-label').textContent='Private notes on this browser'
+    $('review-note-hint').textContent='Only you see these notes. They stay on this browser, and the team does not read them. To tell the team, add a comment above.'
+    $('source-details').querySelectorAll('.source-link').forEach(link=>link.remove())
+    document.querySelector('.panel-footer a').remove()
+    startReview(app,{current,notify,openReviewTab:()=>tab('review')})
+  }
   window.bravenStudio={catalog,get workspace(){return structuredClone(workspace)},get section(){return section}}
 }

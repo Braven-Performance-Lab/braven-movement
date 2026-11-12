@@ -50,7 +50,9 @@ from build_stamp import generated_from  # noqa: E402
 from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
     athlete_master,
+    constraint_to_mute,
     external_asset_records,
+    head_bone_name,
     master_record,
 )
 from girdle_agreement import (  # noqa: E402
@@ -736,8 +738,9 @@ def load_shared_athlete(master: Path):
     - ONE load. Two loads appended a second copy of the rig with the children.
     - The build assigns an Action and drives the forearms and calves with four
       IK constraints. Both would override the pose this renderer sets, so the
-      Action is cleared, the constraints are muted and every bone returns to
-      its bind pose. None of this is saved.
+      Action is cleared, those constraints are muted (any other is refused)
+      and every bone returns to its bind pose. None of this is saved.
+    - A body with no `head` bone is refused; no bone is renamed (Main, 12 Nov).
     """
     bpy.ops.wm.read_factory_settings(use_empty=True)
     with bpy.data.libraries.load(str(master), link=False) as (source, target):
@@ -747,17 +750,31 @@ def load_shared_athlete(master: Path):
         raise SharedAthleteRefusal(f"{master.name} has no rig named {SHARED_RIG}")
     collection = bpy.context.scene.collection
     collection.objects.link(rig)
+
+    def under_rig(obj):
+        # Every descendant: a mesh parented to the body would otherwise be
+        # loaded and not drawn, in silence.
+        parent = obj.parent
+        while parent is not None:
+            if parent is rig:
+                return True
+            parent = parent.parent
+        return False
+
     meshes = [o for o in target.objects
-              if o is not None and o.parent is rig and o.name not in SHARED_LEFT_OUT]
+              if o is not None and under_rig(o) and o.name not in SHARED_LEFT_OUT]
     for mesh in meshes:
         collection.objects.link(mesh)
     if any(o.name.startswith(SHARED_RIG + ".") for o in bpy.data.objects):
         raise SharedAthleteRefusal(f"{master.name}: a second copy of the rig was loaded")
+    # Refused here, before any pose: a body whose head bone is not `head`.
+    head_bone_name(rig.pose.bones.keys())
     if rig.animation_data:
         rig.animation_data.action = None
     for bone in rig.pose.bones:
         for constraint in bone.constraints:
-            constraint.mute = True
+            if constraint_to_mute(bone.name, constraint.type, getattr(constraint, "subtarget", "")):
+                constraint.mute = True
         bone.matrix_basis = Matrix.Identity(4)
     bpy.context.view_layer.update()
     body = bpy.data.objects[SHARED_BODY]

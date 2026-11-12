@@ -22,6 +22,7 @@ from asset_licences import CC0, LicenceUndetermined  # noqa: E402
 from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
     athlete_master,
+    constraint_to_mute,
     external_asset_records,
     head_bone_name,
     master_record,
@@ -97,15 +98,34 @@ class SharedAssetLicenceTest(unittest.TestCase):
 
 
 class HeadBoneTest(unittest.TestCase):
-    def test_the_render_rig_and_the_contract_spelling_are_both_found(self):
+    """Main's ruling, 12 Nov 2026: Models fixes the bone name in the producer,
+    so the renderer refuses a body with no `head` bone and never renames one."""
+
+    def test_head_is_found(self):
         self.assertEqual(head_bone_name(["neck_01", "head"]), "head")
-        # The rig contract (`athlete_manifest.CONTRACT_BONES`) spells it `Head`.
-        self.assertIn("Head", athlete_manifest.CONTRACT_BONES)
-        self.assertEqual(head_bone_name(["neck_01", "Head"]), "Head")
+
+    def test_the_old_spelling_is_refused_not_renamed(self):
+        with self.assertRaises(SharedAthleteRefusal) as caught:
+            head_bone_name(["neck_01", "Head"])
+        self.assertIn("head", str(caught.exception))
 
     def test_a_rig_with_no_head_is_refused(self):
         with self.assertRaises(SharedAthleteRefusal):
             head_bone_name(["neck_01", "HEAD_top"])
+
+
+class ConstraintRuleTest(unittest.TestCase):
+    """Only the four IK constraints that drive the limbs from the CTRL_*
+    targets are muted; any other constraint would change the body in a way
+    nobody measured, so it is refused."""
+
+    def test_an_ik_constraint_on_a_control_target_is_muted(self):
+        self.assertTrue(constraint_to_mute("lowerarm_l", "IK", "CTRL_hand_l"))
+
+    def test_any_other_constraint_is_refused(self):
+        for kind, target in (("COPY_ROTATION", "CTRL_hand_l"), ("IK", "spine_03"), ("CHILD_OF", "")):
+            with self.assertRaises(SharedAthleteRefusal):
+                constraint_to_mute("skirt_04", kind, target)
 
 
 if __name__ == "__main__":

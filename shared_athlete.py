@@ -23,8 +23,7 @@ import athlete_manifest  # noqa: E402
 from asset_licences import licence_for  # noqa: E402
 
 MASTER_ROLE = "master"
-# The render rig's spelling, then the rig contract's (`CONTRACT_BONES`).
-HEAD_BONES = ("head", "Head")
+HEAD_BONE = "head"
 
 
 class SharedAthleteRefusal(Exception):
@@ -81,14 +80,32 @@ def master_record(manifest: dict, master: Path) -> dict:
 
 
 def head_bone_name(names) -> str:
-    """The head bone of a rig: the render rig's `head` or the contract's `Head`.
+    """The head bone, which must be named `head`.
 
-    The rig contract spells it `Head` and the shared athlete follows the
-    contract, so the renderer looks the bone up rather than renaming a
-    contract bone when it loads one.
+    Main ruled on 12 Nov 2026 that Models fixes the name in the producer
+    (spec 3, 12.7), so a body with no `head` is refused here and no bone is
+    renamed. Build 09-gait-v2 still spells it `Head` and is refused until
+    the producer ships the fix.
     """
-    present = set(names)
-    for name in HEAD_BONES:
-        if name in present:
-            return name
-    raise SharedAthleteRefusal(f"the rig has no head bone named any of {HEAD_BONES}")
+    if HEAD_BONE in set(names):
+        return HEAD_BONE
+    raise SharedAthleteRefusal(
+        f"the rig has no bone named {HEAD_BONE!r}; the producer must name it "
+        f"so (spec 3, 12.7). The renderer never renames a bone."
+    )
+
+
+def constraint_to_mute(bone: str, kind: str, target: str) -> bool:
+    """True for the constraints the renderer mutes; a refusal for any other.
+
+    The shared athlete drives its forearms and calves with IK constraints to
+    `CTRL_*` targets, which would override the pose the renderer sets. Those
+    are muted. Any other constraint would change the body in a way that was
+    never measured (`docs/SHARED_ATHLETE_2026-11-12.md`), so it is refused.
+    """
+    if kind == "IK" and str(target).startswith("CTRL_"):
+        return True
+    raise SharedAthleteRefusal(
+        f"{bone} carries a {kind} constraint to {target or 'nothing'}; the "
+        f"renderer mutes only IK constraints to CTRL_* targets."
+    )

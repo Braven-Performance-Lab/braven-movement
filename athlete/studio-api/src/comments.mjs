@@ -100,7 +100,7 @@ async function create(request, env, deps, member) {
   return json(201, { id, createdAt: at })
 }
 
-async function list(request, env, member) {
+async function list(request, env, member, limit = PER_VERSION_LIMIT) {
   const db = env.DB
   const query = new URL(request.url).searchParams
   const where = []
@@ -120,13 +120,15 @@ async function list(request, env, member) {
   if (member.role === 'reviewer') where.push("v.state = 'published'")
   const rows = await db.prepare(`SELECT c.*, m.name AS author_name, m.email AS author_email, m.role AS author_role
       FROM comments c JOIN versions v ON v.id = c.version_id JOIN members m ON m.uid = c.author_uid
-      ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY c.created_at, c.rowid LIMIT ${PER_VERSION_LIMIT}`).bind(...values).all()
-  return json(200, { comments: rows.results.map(shown) })
+      ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY c.created_at DESC, c.rowid DESC LIMIT ?`).bind(...values, limit + 1).all()
+  // Read newest first, so that a list that is cut loses the oldest rows, and says that it is
+  // cut. Shown oldest first.
+  return json(200, { comments: rows.results.slice(0, limit).reverse().map(shown), truncated: rows.results.length > limit })
 }
 
 export async function commentRoutes(request, env, deps, member, method, path) {
   if (path !== '/api/comments') return null
-  if (method === 'GET') return list(request, env, member)
+  if (method === 'GET') return list(request, env, member, deps.listLimit)
   if (method === 'POST') return create(request, env, deps, member)
   return null
 }

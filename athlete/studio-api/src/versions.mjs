@@ -85,11 +85,18 @@ export async function versionRoutes(request, env, deps, member, method, path) {
     if (existing) return json(200, shown(existing))
     await bucket.put(key(id, MANIFEST_NAME), bytes, { sha256: id, httpMetadata: { contentType: CONTENT_TYPES.manifest } })
     const at = deps.now()
-    await db.batch([
-      db.prepare(`INSERT INTO versions (id, model_sha256, revision, manifest, state, created_by, created_at)
-                  VALUES (?, ?, ?, ?, 'draft', ?, ?)`).bind(id, read.modelSha256, read.revision, text, member.uid, at),
-      event(db, deps, member.uid, 'version.created', id, { revision: read.revision, modelSha256: read.modelSha256 }),
-    ])
+    try {
+      await db.batch([
+        db.prepare(`INSERT INTO versions (id, model_sha256, revision, manifest, state, created_by, created_at)
+                    VALUES (?, ?, ?, ?, 'draft', ?, ?)`).bind(id, read.modelSha256, read.revision, text, member.uid, at),
+        event(db, deps, member.uid, 'version.created', id, { revision: read.revision, modelSha256: read.modelSha256 }),
+      ])
+    } catch (error) {
+      // Another upload of the same manifest got there first: that is the same version.
+      const first = await db.prepare('SELECT * FROM versions WHERE id = ?').bind(id).first()
+      if (first) return json(200, shown(first))
+      throw error
+    }
     return json(201, shown({ id, state: 'draft', revision: read.revision, model_sha256: read.modelSha256, created_at: at, published_at: null }))
   }
 

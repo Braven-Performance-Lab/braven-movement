@@ -106,6 +106,50 @@ test('a revoked invitation admits nobody', async () => {
   assert.equal((await app.call('DELETE', '/api/invitations/nobody%40example.org', { token: owner })).status, 404)
 })
 
+test('only the owner revokes an invitation', async () => {
+  const app = await makeApp()
+  const owner = await app.person('uid-owner', 'owner@example.org', 'owner')
+  const author = await app.person('uid-author', 'author@example.org', 'author')
+  const reviewer = await app.person('uid-coach', 'coach@example.org', 'reviewer')
+  await app.call('POST', '/api/invitations', { token: owner, json: { email: 'trainer@example.org', role: 'reviewer' } })
+  for (const token of [author, reviewer]) {
+    assert.equal((await app.call('DELETE', '/api/invitations/trainer%40example.org', { token })).status, 403)
+  }
+  assert.equal(app.rows("SELECT * FROM events WHERE action = 'invitation.revoked'").length, 0)
+  // The invitation is still open: the trainer comes in.
+  assert.equal((await app.call('GET', '/api/me', { token: await app.issuer.token('uid-trainer', 'trainer@example.org') })).status, 200)
+})
+
+test('an address that is already a member is not invited again', async () => {
+  const app = await makeApp()
+  const owner = await app.person('uid-owner', 'owner@example.org', 'owner')
+  await app.person('uid-coach', 'coach@example.org', 'reviewer')
+  // Such an invitation would stay open, for another account with that address to redeem.
+  const refused = await app.call('POST', '/api/invitations', { token: owner, json: { email: 'Coach@example.org', role: 'author' } })
+  assert.equal(refused.status, 409)
+  assert.equal(refused.body.error, 'already_member')
+  assert.equal(app.rows('SELECT * FROM invitations WHERE redeemed_at IS NULL AND revoked_at IS NULL').length, 0)
+})
+
+test('with two owners one can remove the other, and then the last one stays', async () => {
+  const app = await makeApp()
+  const first = await app.person('uid-owner-1', 'one@example.org', 'owner')
+  await app.person('uid-owner-2', 'two@example.org', 'owner')
+  assert.equal((await app.call('POST', '/api/people/uid-owner-2/remove', { token: first })).status, 200)
+  const refused = await app.call('POST', '/api/people/uid-owner-1/remove', { token: first })
+  assert.equal(refused.status, 409)
+  assert.equal(refused.body.error, 'last_owner')
+  // The refused removal left no record of a removal that did not happen.
+  assert.deepEqual(app.rows("SELECT subject FROM events WHERE action = 'member.removed'").map((e) => e.subject), ['uid-owner-2'])
+})
+
+test('a path that is not valid text is not found, and is not a server error', async () => {
+  const app = await makeApp()
+  const owner = await app.person('uid-owner', 'owner@example.org', 'owner')
+  assert.equal((await app.call('POST', '/api/people/%E0/remove', { token: owner })).status, 404)
+  assert.equal((await app.call('DELETE', '/api/invitations/%E0', { token: owner })).status, 404)
+})
+
 test('a removed person is refused at once, with a token that is still valid', async () => {
   const app = await makeApp()
   const owner = await app.person('uid-owner', 'owner@example.org', 'owner')
@@ -148,6 +192,20 @@ test('a person sets the name others see, and only their own', async () => {
   const named = await app.call('PATCH', '/api/me', { token: reviewer, json: { name: ' Erin Burger ' } })
   assert.equal(named.status, 200)
   assert.equal((await app.call('GET', '/api/me', { token: reviewer })).body.name, 'Erin Burger')
+})
+
+test('a change of name is recorded, because the name shows beside each comment', async () => {
+  const app = await makeApp()
+  const reviewer = await app.person('uid-coach', 'coach@example.org', 'reviewer')
+  await app.call('PATCH', '/api/me', { token: reviewer, json: { name: 'Erin' } })
+  await app.call('PATCH', '/api/me', { token: reviewer, json: { name: 'Somebody Else' } })
+  // The same name again is not a change.
+  await app.call('PATCH', '/api/me', { token: reviewer, json: { name: 'Somebody Else' } })
+  const renames = app.rows("SELECT actor_uid, subject, detail FROM events WHERE action = 'member.renamed' ORDER BY rowid")
+  assert.deepEqual(renames.map((e) => [e.actor_uid, e.subject, JSON.parse(e.detail)]), [
+    ['uid-coach', 'uid-coach', { from: null, to: 'Erin' }],
+    ['uid-coach', 'uid-coach', { from: 'Erin', to: 'Somebody Else' }],
+  ])
 })
 
 test('a path outside /api/ goes to the Studio page, and an unknown API path does not', async () => {

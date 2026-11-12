@@ -63,7 +63,14 @@ export async function peopleRoutes(request, env, deps, member, method, path) {
     const body = await readJson(request)
     const name = typeof body.name === 'string' ? body.name.trim() : ''
     if (name.length < 1 || name.length > 80) refuse(400, 'bad_name')
-    await db.prepare('UPDATE members SET name = ? WHERE uid = ?').bind(name, member.uid).run()
+    // The name shows beside each comment this person made, so a change of it is an act with a
+    // record: who was shown as whom, and from when.
+    if (name !== member.name) {
+      await db.batch([
+        db.prepare('UPDATE members SET name = ? WHERE uid = ?').bind(name, member.uid),
+        event(db, deps, member.uid, 'member.renamed', member.uid, { from: member.name, to: name }),
+      ])
+    }
     return json(200, me({ ...member, name }))
   }
 
@@ -86,6 +93,10 @@ export async function peopleRoutes(request, env, deps, member, method, path) {
     if (!ROLES.includes(body.role)) refuse(400, 'bad_role', { roles: ROLES })
     const open = await db.prepare('SELECT id FROM invitations WHERE email = ? AND redeemed_at IS NULL AND revoked_at IS NULL').bind(email).first()
     if (open) refuse(409, 'already_invited')
+    // A member is admitted before any invitation is read, so an invitation to a member's address
+    // would stay open for another account to redeem. To change a role: remove, then invite.
+    const active = await db.prepare('SELECT uid FROM members WHERE email = ? AND removed_at IS NULL').bind(email).first()
+    if (active) refuse(409, 'already_member')
     await db.batch([
       db.prepare('INSERT INTO invitations (email, role, invited_by, created_at) VALUES (?, ?, ?, ?)').bind(email, body.role, member.uid, deps.now()),
       event(db, deps, member.uid, 'invitation.created', email, { role: body.role }),
@@ -110,16 +121,22 @@ export async function peopleRoutes(request, env, deps, member, method, path) {
   const removal = /^\/api\/people\/([^/]+)\/remove$/.exec(path)
   if (removal && method === 'POST') {
     requireRole(member, 'owner')
-    const target = await memberOf(db, decodeURIComponent(removal[1]))
+    let uid = null
+    try { uid = decodeURIComponent(removal[1]) } catch { uid = null }
+    const target = uid && await memberOf(db, uid)
     if (!target || target.removed_at !== null) refuse(404, 'no_such_member')
-    if (target.role === 'owner') {
-      const owners = await db.prepare("SELECT COUNT(*) AS n FROM members WHERE role = 'owner' AND removed_at IS NULL").first()
-      if (owners.n <= 1) refuse(409, 'last_owner')
-    }
-    await db.batch([
-      db.prepare('UPDATE members SET removed_at = ? WHERE uid = ? AND removed_at IS NULL').bind(deps.now(), target.uid),
-      event(db, deps, member.uid, 'member.removed', target.uid, { email: target.email, role: target.role }),
+    // The count of owners is part of the UPDATE, not a read before it: two owners who remove
+    // each other at the same moment must not both succeed and leave Studio with no owner.
+    const at = deps.now()
+    const [removed] = await db.batch([
+      db.prepare(`UPDATE members SET removed_at = ? WHERE uid = ? AND removed_at IS NULL
+                  AND (role <> 'owner' OR (SELECT COUNT(*) FROM members WHERE role = 'owner' AND removed_at IS NULL) > 1)`).bind(at, target.uid),
+      // Written only when the row above changed: the removal and its record, or neither.
+      db.prepare(`INSERT INTO events (id, at, actor_uid, action, subject, detail) SELECT ?, ?, ?, 'member.removed', ?, ?
+                  WHERE EXISTS (SELECT 1 FROM members WHERE uid = ? AND removed_at = ?)`)
+        .bind(deps.id(), at, member.uid, target.uid, JSON.stringify({ email: target.email, role: target.role }), target.uid, at),
     ])
+    if (removed.meta.changes !== 1) refuse(409, target.role === 'owner' ? 'last_owner' : 'no_such_member')
     return json(200, { uid: target.uid, removed: true })
   }
 

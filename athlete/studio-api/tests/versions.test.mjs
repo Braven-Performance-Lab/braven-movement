@@ -27,6 +27,29 @@ test('a version is named by the sha256 of its manifest bytes', async () => {
   assert.equal(app.rows('SELECT * FROM versions').length, 1)
 })
 
+test('two uploads of one manifest at one moment make one version, and neither fails', async () => {
+  const { app, author } = await team()
+  const v = athleteVersion()
+  // Hold each upload at the bucket until the two are there. Each one then looked for the
+  // version before the other recorded it, which is the overlap this test is about.
+  const put = app.bucket.put.bind(app.bucket)
+  let arrived = 0
+  let release
+  const together = new Promise((resolve) => { release = resolve })
+  app.bucket.put = async (...args) => {
+    arrived += 1
+    if (arrived === 2) release()
+    await together
+    return put(...args)
+  }
+  const both = await Promise.all([1, 2].map(() => app.call('PUT', '/api/versions', { token: author, bytes: v.manifest })))
+  assert.equal(arrived, 2, 'the two uploads did overlap')
+  assert.deepEqual(both.map((r) => r.status).sort(), [200, 201])
+  assert.deepEqual(both.map((r) => r.body.id), [v.id, v.id])
+  assert.equal(app.rows('SELECT * FROM versions').length, 1)
+  assert.equal(app.rows("SELECT * FROM events WHERE action = 'version.created'").length, 1)
+})
+
 test('a reviewer cannot upload a version or a file', async () => {
   const { app, author, reviewer } = await team()
   const v = athleteVersion()

@@ -171,6 +171,19 @@ test('a comment stays on the version it was made on when a later version is publ
   assert.deepEqual(history.body.comments.map((c) => [c.id, c.versionId]), [[made.body.id, v.id]])
 })
 
+test('a list that is cut keeps the newest comments and says that it is cut', async () => {
+  const { app, reviewer, comment } = await team()
+  for (const body of ['first', 'second', 'third']) {
+    app.advance(1000)
+    await app.call('POST', '/api/comments', { token: reviewer, json: comment({ body }) })
+  }
+  const whole = await app.call('GET', '/api/comments?clip=netball_chest_pass', { token: reviewer })
+  assert.deepEqual([whole.body.comments.map((c) => c.body), whole.body.truncated], [['first', 'second', 'third'], false])
+  app.deps.listLimit = 2
+  const cut = await app.call('GET', '/api/comments?clip=netball_chest_pass', { token: reviewer })
+  assert.deepEqual([cut.body.comments.map((c) => c.body), cut.body.truncated], [['second', 'third'], true])
+})
+
 test('a removed person leaves their comments behind, with their name', async () => {
   const { app, owner, reviewer, v, comment } = await team()
   await app.call('POST', '/api/comments', { token: reviewer, json: comment() })

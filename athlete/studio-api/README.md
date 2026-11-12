@@ -61,6 +61,9 @@ list and no others.
 ## Limits to know
 
 - A coach signs in one time on Studio and one time on Tactics. The account is the same.
+- To change a person's role, the owner removes the person and then invites the address again. An address that is an active member cannot be invited.
+- A person can change the name that shows beside their comments, earlier comments included. Each change is a `member.renamed` row in `events` with the old and the new name.
+- A read of comments returns 5000 rows at most. A longer list loses its oldest rows, and the answer has `truncated: true`.
 - The first owner is an `invitations` row that a person adds to D1 at deploy time. It is not in git.
 - A comment time must be inside the clip length that the manifest gives, plus one frame.
 - The upload tool for a version and the Studio screens are separate changes.

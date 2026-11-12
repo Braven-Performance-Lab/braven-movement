@@ -52,24 +52,34 @@ export class KeyStore {
   }
 
   async get(kid) {
-    if (this.#now() >= this.#expiresAt) await this.#refresh()
-    if (!this.#keys.has(kid) && this.#now() - this.#lastMissRefreshAt >= KeyStore.MISS_REFRESH_GAP_MS) {
+    // A fetch for any reason starts the minute: keys fetched a moment ago, or a fetch that failed
+    // a moment ago, do not need a second look because a key id is unknown.
+    const due = this.#now() >= this.#expiresAt
+    const missed = !this.#keys.has(kid) && this.#now() - this.#lastMissRefreshAt >= KeyStore.MISS_REFRESH_GAP_MS
+    if (due || missed) {
       this.#lastMissRefreshAt = this.#now()
       await this.#refresh()
     }
     return this.#keys.get(kid) ?? null
   }
 
+  // After a fetch that gave no keys, the next one waits a minute. Without that, each request
+  // made while Google cannot be reached is an outbound fetch. The keys held before are kept.
   async #refresh() {
+    if (!(await this.#load())) this.#expiresAt = Math.max(this.#expiresAt, this.#now() + KeyStore.MISS_REFRESH_GAP_MS)
+  }
+
+  // -> true when a new set of keys is in place.
+  async #load() {
     let res
     try {
       res = await this.#fetch(this.#url)
     } catch {
-      return
+      return false
     }
-    if (!res.ok) return
+    if (!res.ok) return false
     const body = await res.json().catch(() => null)
-    if (!body || !Array.isArray(body.keys)) return
+    if (!body || !Array.isArray(body.keys)) return false
     const next = new Map()
     for (const jwk of body.keys) {
       if (!jwk || jwk.kty !== 'RSA' || !jwk.kid) continue
@@ -81,10 +91,11 @@ export class KeyStore {
         // A key we cannot import is a key we do not trust.
       }
     }
-    if (next.size === 0) return
+    if (next.size === 0) return false
     this.#keys = next
     const maxAge = /max-age=(\d+)/.exec(res.headers.get('cache-control') ?? '')?.[1]
     this.#expiresAt = this.#now() + (maxAge ? Number(maxAge) * 1000 : 60 * 60 * 1000)
+    return true
   }
 }
 

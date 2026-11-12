@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { webcrypto } from 'node:crypto'
 
-import { verifyIdToken } from '../src/firebase.mjs'
+import { KeyStore, verifyIdToken } from '../src/firebase.mjs'
 import { makeIssuer, PROJECT } from './helpers.mjs'
 
 const NOW = Date.UTC(2026, 10, 12, 12)
@@ -79,15 +79,35 @@ test('text that is not a token is malformed', async () => {
   }
 })
 
+test('while the key server gives no keys, the Worker asks it once a minute and not once a request', async () => {
+  let clock = NOW
+  let fetches = 0
+  for (const answer of [() => { throw new Error('no route') }, () => new Response('down', { status: 503 }), () => new Response('{"keys":[]}')]) {
+    fetches = 0
+    const keys = new KeyStore(async () => { fetches += 1; return answer() }, 'https://keys.test/', () => clock)
+    const issuer = await makeIssuer({ now: () => clock })
+    for (let i = 0; i < 6; i += 1) {
+      const result = await verifyIdToken(await issuer.sign(good), { projectId: PROJECT, keys, now: () => clock })
+      assert.deepEqual(result, { ok: false, reason: 'unknown_key' })
+    }
+    assert.equal(fetches, 1, 'six requests made one fetch')
+    clock += 61_000
+    await verifyIdToken(await issuer.sign({ ...good, exp: seconds + 900 }), { projectId: PROJECT, keys, now: () => clock })
+    assert.equal(fetches, 2, 'a minute later the Worker asks again')
+  }
+})
+
 test('unknown key ids send the Worker to the key server once a minute at most', async () => {
   let clock = NOW
   const issuer = await makeIssuer({ now: () => clock })
   const options = { projectId: PROJECT, keys: issuer.keys, now: () => clock }
   await verifyIdToken(await issuer.sign(good), options)
   assert.equal(issuer.fetchCount(), 1)
+  // The keys are a moment old: an unknown key id is not a reason to fetch them again yet.
   for (let i = 0; i < 5; i += 1) await verifyIdToken(await issuer.sign(good, { header: { kid: `random-${i}` } }), options)
-  assert.equal(issuer.fetchCount(), 2, 'five unknown key ids made one more fetch, not five')
+  assert.equal(issuer.fetchCount(), 1, 'five unknown key ids in the first minute made no fetch')
+  // A minute later an unknown key id may be a rotation, so the Worker looks: once.
   clock += 61_000
-  await verifyIdToken(await issuer.sign({ ...good, exp: seconds + 900 }, { header: { kid: 'random-again' } }), options)
-  assert.equal(issuer.fetchCount(), 3)
+  for (let i = 0; i < 5; i += 1) await verifyIdToken(await issuer.sign({ ...good, exp: seconds + 900 }, { header: { kid: `later-${i}` } }), options)
+  assert.equal(issuer.fetchCount(), 2, 'five unknown key ids made one more fetch, not five')
 })

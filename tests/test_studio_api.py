@@ -38,7 +38,7 @@ class StudioApi(unittest.TestCase):
         summary = [line for line in run.stdout.splitlines() if line.startswith(('ℹ tests', 'ℹ pass', 'ℹ fail'))]
         self.assertEqual(run.returncode, 0, '\n'.join(summary) + '\n' + run.stdout[-3000:] + run.stderr[-2000:])
         counts = {line.split()[1]: int(line.split()[2]) for line in summary}
-        self.assertGreaterEqual(counts.get('pass', 0), 57, f'fewer API tests ran than exist: {counts}')
+        self.assertGreaterEqual(counts.get('pass', 0), 65, f'fewer API tests ran than exist: {counts}')
         self.assertEqual(counts.get('fail', 0), 0)
 
 

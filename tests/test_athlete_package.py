@@ -58,6 +58,21 @@ class CheckedStudio(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "different model"):
             package.checked_studio(self.output, self.dist)
 
+    def test_a_build_from_before_the_format_is_refused_with_a_message(self):
+        (self.dist / "athlete-assets" / am.MANIFEST_NAME).unlink()
+        with self.assertRaisesRegex(ValueError, "built before the manifest format"):
+            package.checked_studio(self.output, self.dist)
+
+    def test_the_package_studio_is_replaced_whole(self):
+        stale = self.output / "studio" / "athlete-assets" / "manifest.json"
+        stale.parent.mkdir(parents=True)
+        stale.write_text('{"left": "by an earlier package"}')
+        (self.dist / "index.html").write_text("<html></html>")
+        package.replace_studio(self.dist, self.output)
+        self.assertFalse(stale.exists(), "a file of the earlier package is left beside the new build")
+        self.assertTrue((self.output / "studio" / "index.html").is_file())
+        self.assertTrue((self.output / "studio" / "athlete-assets" / am.MANIFEST_NAME).is_file())
+
     def test_the_legacy_manifest_is_not_what_decides(self):
         # A legacy manifest.json naming another model hash changes nothing: it is not read.
         (self.output / "manifest.json").write_text('{"files": {"netball-athlete.glb": {"sha256": "' + "0" * 64 + '"}}}')

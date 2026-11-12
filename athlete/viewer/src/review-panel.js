@@ -11,6 +11,8 @@ const el = (tag, className, text) => {
   if (text !== undefined) node.textContent = text
   return node
 }
+// "follow_through" -> "Follow through", as the phase buttons show it.
+const phaseLabel = (name) => { const words = String(name).replaceAll('_', ' '); return words.charAt(0).toUpperCase() + words.slice(1) }
 const when = (ms) => new Date(ms).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 // `app` is window.athleteStudio; `current()` is the catalog entry of the clip on screen;
@@ -46,14 +48,14 @@ export function startReview(app, { current, notify, openReviewTab }) {
   $('comment-part').append(new Option('Whole body', ''), ...bodyParts(manifest).map((p) => new Option(p.label, p.id)))
 
   const pickedKind = () => document.querySelector('input[name="comment-kind"]:checked')?.value
-  const clip = () => (app.state.driver === 'clips' ? commentableClip(manifest, app.state.clip, app.duration()) : null)
+  const clip = () => (app.state.driver === 'clips' ? commentableClip(manifest, app.state.clip, app.duration(), app.builtClips) : null)
   const viewName = () => (CAMERA_VIEWS[app.state.view] ? app.state.view : 'free')
 
   function fillPhases() {
     const phases = current()?.phases ?? []
-    const now = phaseAt(phases, app.state.time)
+    const now = phaseAt(phases, rangeStart ?? app.state.time)
     const keep = $('comment-phase').dataset.touched === app.state.clip ? $('comment-phase').value : now ?? ''
-    $('comment-phase').replaceChildren(new Option('No phase', ''), ...phases.map((p) => new Option(p.name.replaceAll('_', ' '), p.name)))
+    $('comment-phase').replaceChildren(new Option('No phase', ''), ...phases.map((p) => new Option(phaseLabel(p.name), p.name)))
     $('comment-phase').value = keep
     $('comment-phase-row').hidden = !phases.length
   }
@@ -66,7 +68,8 @@ export function startReview(app, { current, notify, openReviewTab }) {
     $('comment-range').textContent = rangeStart === null ? 'Start a range here' : 'Back to one moment'
     $('comment-range-hint').hidden = rangeStart === null
     $('comment-view').textContent = `Camera: ${CAMERA_VIEWS[viewName()]}`
-    if ($('comment-phase').dataset.touched !== app.state.clip) $('comment-phase').value = phaseAt(current()?.phases, time) ?? ''
+    // The phase offered is the one at the START of the comment: a range is named by where it begins.
+    if ($('comment-phase').dataset.touched !== app.state.clip) $('comment-phase').value = phaseAt(current()?.phases, rangeStart ?? time) ?? ''
   }
   $('comment-range').onclick = () => { rangeStart = rangeStart === null ? app.state.time : null; drawMoment() }
   $('comment-body').onfocus = () => { if (app.state.playing) app.pause() }
@@ -85,7 +88,7 @@ export function startReview(app, { current, notify, openReviewTab }) {
     } else head.append(el('span', 'comment-time', formatRange(comment)))
     row.append(head)
     if (comment.body) row.append(el('p', 'comment-body', comment.body))
-    const marks = [comment.bodyPart && bodyPartLabel(comment.bodyPart), comment.phase && comment.phase.replaceAll('_', ' '),
+    const marks = [comment.bodyPart && bodyPartLabel(comment.bodyPart), comment.phase && phaseLabel(comment.phase),
       comment.cameraView && `${CAMERA_VIEWS[comment.cameraView] ?? comment.cameraView} camera`].filter(Boolean)
     if (marks.length) row.append(el('p', 'comment-marks', marks.join(' · ')))
     row.append(el('p', 'comment-by', `${comment.author.name} · ${when(comment.createdAt)}${onTimeline ? '' : ` · version ${shortVersion(comment.versionId)}`}`))
@@ -127,7 +130,9 @@ export function startReview(app, { current, notify, openReviewTab }) {
     }
     const { here, earlier } = splitByVersion(all, versionId, app.state.clip)
     const names = approvers(all, versionId, app.state.clip)
-    $('approval-line').textContent = app.state.driver === 'clips' ? approvalText(names) : ''
+    // A movement that takes no comment has no approval to show, and no list.
+    $('approval-line').textContent = target ? approvalText(names) : ''
+    $('comment-list-heading').hidden = !target && !here.length
     $('approval-line').classList.toggle('approved', names.length > 0)
     $('comment-list').replaceChildren(...here.map((c) => commentRow(c, { onTimeline: true })))
     $('comment-count').textContent = here.length ? `${here.length} on this version` : 'No comments on this version yet'
@@ -187,9 +192,10 @@ export function startReview(app, { current, notify, openReviewTab }) {
     try {
       const made = await api.addComment(comment)
       $('comment-body').value = ''
+      $('comment-part').value = ''
       rangeStart = null
       document.querySelectorAll('input[name="comment-kind"]').forEach((input) => { input.checked = false })
-      $('comment-kind-hint').textContent = ''
+      $('comment-kinds').onchange()
       delete $('comment-phase').dataset.touched
       await load()
       select(made.id)

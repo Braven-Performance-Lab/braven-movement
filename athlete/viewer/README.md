@@ -44,6 +44,32 @@ Saved setups and note drafts use browser local storage, scoped to the exact mode
 
 This is **local browser persistence**, not team synchronization. Clearing browser/site data removes local work. Shared hosting, sign-in/access decisions and shared reviews belong to the next phase. There is no login or team backend in this build. The catalog currently has one model, two garment choices and 17 clips; it does not imply that more bodies or sports have been built.
 
+## Hosted Studio and the review loop
+
+Specification 4, phase A, adds a second build of the same app: **hosted Studio**, where a coach signs in and the team's comments are stored on a server. Local Studio above does not change. Hosted Studio is **not deployed**: the deploy needs the owner's yes on the lane board.
+
+- `BRAVEN_STUDIO_HOSTED=1 npm run build` writes `dist-hosted/`. It holds no athlete file. A signed-in person gets the published athlete version through the Studio API ([`../studio-api`](../studio-api/README.md)), and the browser checks each file against the hash that the version names. The build needs `VITE_FIREBASE_API_KEY`, the public web key that Braven Tactics ships, and it refuses to run with `VITE_DEV_IDENTITY` set.
+- Sign-in is a link by mail from Firebase, with the account of Braven Tactics. There is no password and no sign-up.
+- The Review tab holds the comment form, the comments of the version on screen, and the comments of earlier versions in their own list. Each comment of this version is a marker on the timeline.
+- The screens are specified in [`docs/studio/REVIEW_LOOP_PHASE_A_SCREENS.md`](../../docs/studio/REVIEW_LOOP_PHASE_A_SCREENS.md).
+
+To run hosted Studio on this machine, with a development API in memory and a stand-in for the sign-in service:
+
+```powershell
+node athlete/studio-api/tools/dev-studio.mjs --port 5399
+# from athlete/viewer, against a server that was just started:
+node tests/review-browser.mjs
+```
+
+The launcher reads the athlete folder and the Tactics checkout from the two environment variables, or from the ignored `athlete/viewer/.local/dev-inputs.json`. The browser journey makes 34 checks and writes its screenshots to the ignored `verification/review/`. It proves the page against the stand-ins. It does not prove Firebase, D1 or R2.
+
+| File | Responsibility |
+| --- | --- |
+| `src/athlete-source.js` | Where the athlete comes from: the local folder, or the published version through the API |
+| `src/session.js`, `src/review-gate.js` | The sign-in session and the sign-in screen |
+| `src/review-api.js` | The calls to the Studio API, and the hash check of each file |
+| `src/comments.js`, `src/review-panel.js` | The comment rules, and the form, list and timeline markers |
+
 ## Development and verification
 
 From `athlete/viewer/`, set both source environment variables, then:

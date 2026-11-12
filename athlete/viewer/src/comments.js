@@ -47,11 +47,12 @@ export function phaseAt(phases, time) {
 }
 
 // The clip as the VERSION describes it. A comment is made on that, so a movement Studio builds
-// by itself (the receive-and-pass sequence, a live Tactics preview) takes no comment: the
-// version has no such clip, or has it at another length.
-export function commentableClip(manifest, clipId, playingSeconds) {
+// by itself takes no comment. `builtClips` names the ones Studio builds under a clip's own name
+// and at its own length (the receive-and-pass sequence, preview-motion.js): the name and the
+// length agree with the version, and the movement on screen is not the version's.
+export function commentableClip(manifest, clipId, playingSeconds, builtClips = []) {
   const clip = (manifest?.clips ?? []).find((c) => c.id === clipId)
-  if (!clip) return null
+  if (!clip || builtClips.includes(clipId)) return null
   const frame = 1 / (clip.fps > 0 ? clip.fps : 30)
   if (Math.abs(clip.seconds - playingSeconds) > frame) return null
   return { id: clip.id, seconds: clip.seconds, end: clip.seconds + frame }

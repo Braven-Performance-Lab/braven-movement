@@ -56,24 +56,41 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, .93, 0)
 controls.enableDamping = true; controls.minDistance = 1.2; controls.maxDistance = 7
 controls.maxPolarAngle = Math.PI*.52
-function view(name) {
+const viewIds={front:'front',side:'side',back:'back',quarter:'three-quarter'}
+// Where a named view puts the camera for the clip on screen.
+function viewPose(name) {
   const positions = { front: [0, 1.75, 4.1], side: [4.1, 1.75, 0], back: [0,1.75,-4.1], quarter: [2.2, 1.8, 3.55] }
-  camera.position.set(...positions[name]); controls.target.set(0, .93, 0)
+  const position = new THREE.Vector3(...positions[name]), target = new THREE.Vector3(0, .93, 0)
   if (state.driver === 'clips' && state.clip === 'Jump_reach') {
-    controls.target.y = 1.12
-    camera.position.sub(controls.target).multiplyScalar(1.18).add(controls.target)
+    target.y = 1.12
+    position.sub(target).multiplyScalar(1.18).add(target)
   }
   if(state.driver==='clips'&&state.clip==='netball_bounce_pass'&&name==='quarter'){
-    camera.position.set(5,2.5,6);controls.target.set(0,.8,1.3)
+    position.set(5,2.5,6);target.set(0,.8,1.3)
   }
-  controls.update()
+  return { position, target }
+}
+function markView(name) {
   state.view = name
-  const ids={front:'front',side:'side',back:'back',quarter:'three-quarter'}
-  for(const id of Object.values(ids)) $(id).classList.toggle('selected',id===ids[name])
+  for(const [view,id] of Object.entries(viewIds)) $(id).classList.toggle('selected',view===name)
+}
+function view(name) {
+  const pose = viewPose(name)
+  camera.position.copy(pose.position); controls.target.copy(pose.target)
+  controls.update()
+  markView(name)
+}
+// The named view the camera is at now, or 'free': a restored setup holds a camera, not a name.
+function namedView() {
+  for (const name of Object.keys(viewIds)) {
+    const pose = viewPose(name)
+    if (camera.position.distanceTo(pose.position) < .02 && controls.target.distanceTo(pose.target) < .02) return name
+  }
+  return 'free'
 }
 view('quarter')
 // A camera the person moved is their own angle, not a named view. A comment records which.
-controls.addEventListener('start', () => { state.view = 'free'; document.querySelectorAll('.view-tools button').forEach(b => b.classList.remove('selected')) })
+controls.addEventListener('start', () => markView('free'))
 new ResizeObserver(() => { camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(host.clientWidth, host.clientHeight) }).observe(host)
 
 let model, mixer, clips, activeAction, rig, tacticRoot, helper, tacticHelper, originalHeight
@@ -290,6 +307,8 @@ async function init() {
     assetHash:manifest.files[modelFile].sha256.toLowerCase(),
     assetRevision:manifest.asset.revision,
     manifest, versionId:source.versionId, review:source.review,
+    // Movements Studio builds under a clip's own name: not the version's clip, so not commented on.
+    builtClips:[sequence.name],
     pause:()=>{advancePlayback(performance.now());state.playing=false;sample()},
     seek:time=>{if(state.poseMode)playClip(state.clip);previous=performance.now();state.playing=false;state.time=Math.max(0,Math.min(time,duration()-.001));sample()},
     captureSetup, applySetup,
@@ -326,7 +345,7 @@ function applySetup(setup) {
     refreshJoint();sample()
   }
   camera.position.fromArray(setup.camera.position);controls.target.fromArray(setup.camera.target);controls.update()
-  document.querySelectorAll('.view-tools button').forEach(b=>b.classList.remove('selected'));state.view='free'
+  markView(namedView())
   previous=performance.now()
 }
 

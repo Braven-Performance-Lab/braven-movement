@@ -205,9 +205,12 @@ const made = (id, extra = {}) => ({ id, versionId: 'v2', clipId: 'netball_chest_
 test('a comment is offered only on a clip the version has, at the length the version gives', () => {
   assert.deepEqual(clip, { id: 'netball_chest_pass', seconds: 2.5, end: 2.5 + 1 / 30 })
   assert.equal(commentableClip(manifest, 'Moonwalk', 2.5), null)
-  // Studio plays its own receive-and-pass sequence under this name, at another length.
+  // A movement at another length than the version gives is not the version's clip.
   assert.equal(commentableClip(manifest, 'Receive_pass', 5.4), null)
   assert.notEqual(commentableClip(manifest, 'Receive_pass', 3.02), null, 'inside one frame is the same clip')
+  // Studio builds its receive-and-pass sequence under the clip's own name and at its own length.
+  assert.equal(commentableClip(manifest, 'Receive_pass', 3, ['Receive_pass']), null)
+  assert.notEqual(commentableClip(manifest, 'netball_chest_pass', 2.5, ['Receive_pass']), null)
 })
 
 test('the body parts offered are the ones this rig has, in a coach\'s words, and the ball', () => {

@@ -28,6 +28,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+      # Two host-side tests run Node's own test runner: Studio's manifest gate and
+      # the Studio API. The API tests keep their database in node:sqlite, which a
+      # Node before 22.13 does not have without a flag. Without this step the
+      # verdict depends on whatever Node the runner image happens to carry.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
       # Pillow is here so the sync sheet's drawing is REACHABLE on the runner.
       # Its rules import without Pillow by design, so leaving it out would let
       # those tests run and quietly leave the drawing untested, which is the

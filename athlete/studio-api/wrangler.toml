@@ -1,0 +1,34 @@
+# The Braven Studio Worker: the Studio page, and the review loop under /api/.
+#
+# NOT DEPLOYED. No Cloudflare resource below exists yet. Each one, the subdomain and the deploy
+# itself need the owner's yes on the lane board first (specification 4, decisions 12.1 to 12.3).
+# The two ids are placeholders on purpose: wrangler refuses to deploy with them.
+#
+# No secret belongs in this file, and the Worker needs none: FIREBASE_PROJECT_ID is a public
+# identifier, the same one Braven Tactics ships.
+name = "braven-studio"
+main = "src/worker.mjs"
+compatibility_date = "2026-08-21"
+
+[vars]
+# The same Firebase project as Braven Tactics, so a uid is one person in the two products (ACC-4).
+FIREBASE_PROJECT_ID = "braven-training-dev"
+
+# The Studio page. Requests under /api/ go to the Worker; all other paths are static files.
+# Do not point this at a build that holds `athlete-assets/`: the athlete is served through
+# /api/versions/ behind the token, never as a static file.
+[assets]
+directory = "../viewer/dist-hosted"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "braven-studio"
+database_id = "SET-AFTER-THE-OWNER-APPROVES"
+migrations_dir = "migrations"
+
+# Private: no public address and no custom domain. Files leave through the Worker only.
+[[r2_buckets]]
+binding = "VERSIONS"
+bucket_name = "braven-studio-versions"

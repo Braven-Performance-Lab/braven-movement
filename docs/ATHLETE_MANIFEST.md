@@ -82,6 +82,7 @@ makes every consumer refuse the model until it names the new family.
 | `movementCommit` | The Braven Movement commit that the technique clips were imported from. |
 | `generator`, `blender` | The authoring path and the Blender version. |
 | `externalAssets` | Each asset that the build used and that is not in the folder: its name, licence and SHA-256. It has no path. An MPFB asset is named by its path under MPFB's own `data` folder, for example `mpfb/hair/ponytail01/ponytail01.mhclo`; any other asset by its file name alone. The SHA-256 identifies the exact version. |
+| `poseClipsSha256` | The SHA-256 of the Braven Tactics pose clips file (`public/figures/clips.json`) that the techniques were linked to, so the manifest says which graded clips it names. Required when `clips` holds a technique. |
 
 ### 2.6 `files`
 
@@ -107,6 +108,7 @@ One entry for each animation in the model, in the order of their `id`.
 | `movementId`, `jobSha256` | A technique only: the drill and the hash of the solved job it came from. |
 | `contactFrame`, `releaseFrame` | A technique only: the frame of first contact and of release, or `null`. |
 | `review` | `passes-source-checks`, `needs-review` or `coach-approved` for a technique; `not-graded` for a general clip. Any other value is refused with the code `format`. |
+| `gradedClip` | A technique only, and required for each: the graded pose clip that is the record for this technique, as `{clipId, graded, build}`, or `null` when Tactics has no pose clip made from this drill. `clipId` is the pose clip's id (`<class>.<sport>.<technique>`), `graded` is the pose clip's own graded flag, and `build` is the full commit in its `generatedFrom` stamp. The link is made by `movementId`, which both come from. A general clip has no `gradedClip`. |
 
 ### 2.8 `history`
 
@@ -124,7 +126,7 @@ holds. Each refusal has a code, so that a test can name the refusal it expects.
 
 | Code | The validator refuses when |
 |---|---|
-| `format` | The folder has no `athlete-manifest.json` (a build from before this format); the manifest is not JSON or is not a JSON object; `format` is not `braven-athlete-manifest`; `formatVersion` is not a version it knows; a clip's `review` is not one of the four states; or a clip's `fps` is not a whole number above zero. |
+| `format` | The folder has no `athlete-manifest.json` (a build from before this format); the manifest is not JSON or is not a JSON object; `format` is not `braven-athlete-manifest`; `formatVersion` is not a version it knows; a clip's `review` is not one of the four states; or a clip's `fps` is not a whole number above zero.; a technique has no `gradedClip` key, or one that is neither `null` nor a pose clip id with a boolean `graded` and a full commit; a general clip has a `gradedClip`; or `source.poseClipsSha256` is missing or not a SHA-256 while `clips` holds a technique. |
 | `path` | A file path has a `\`, is absolute or starts with a drive letter, or has a `..` part; or any text in the manifest names a place on one machine: a drive letter with a separator, a UNC share, a home folder (`~/`), or a root path of two or more parts such as `/opt/x` (MAN-5). The validator does not follow symbolic links: the pipeline writes none, and the `file` check hashes what it reads. |
 | `file` | A file in `files` is missing, or its size or hash differs; or the model is not a GLB, is too short, or has a JSON chunk that cannot be read or is not a JSON object. |
 | `role` | `files` has no `model`, or more than one, or no `library` while `clips` holds a technique. |
@@ -148,10 +150,36 @@ A consumer runs the validator before it uses the set.
 manifest that was there before. The command line puts that manifest back, or removes the new
 one, when the check that follows fails for any reason.
 
-## 4. What this does not decide
+## 4. The graded record
 
-- Whether Braven Tactics keeps both the pose route (the clip contract) and the rig
-  route (this athlete). That is decision 12.1 of the specification. The manifest
-  serves the rig route either way.
+Braven Tactics takes Braven Movement's work by two routes: the pose route (the clip
+contract, docs/TACTICS_CLIP_CONTRACT.md) and the rig route (this athlete). Marius ruled
+on 12 November 2026 (spec 3, decision 12.1): **both stay, and the pose clip is the
+graded record.** The athlete's animation of a technique is a rendition of that record,
+so each technique names it in `gradedClip`.
+
+The writer takes the shipped pose clips file as an input
+(`athlete_manifest.py write <folder> --pose-clips <tactics>/public/figures/clips.json`)
+and refuses, with the code `format`, a file that:
+
+- is not JSON, or is not an object of clips by id;
+- has a pose clip whose `movementId` is not a drill name (a non-empty string);
+- has two pose clips made from one drill;
+- has a pose clip with no build, because a clip that cannot say what made it cannot
+  be a record;
+- has a pose clip whose `graded` is not `true` or `false`;
+- links none of the folder's techniques. A wrong file passed by mistake, such as the
+  athlete's own library, links nothing, and the manifest would then say that no
+  technique has a graded record.
+
+Read on 12 November 2026, candidate `09-gait-v2` against Tactics `main` at `14c9b38`:
+9 of the 12 techniques have a pose clip, and 4 of those 9 pose clips are graded. The
+bounce pass, the one-hand high pass and the overhead pass have none, so their
+`gradedClip` is `null`. The athlete's techniques were imported
+from Movement `b4f7074`; the pose clips were made by `0353b76` (8) and `16246780` (the
+chest pass). The manifest records the difference and does not refuse it: no ruling says
+the two must match.
+
+## 5. What this does not decide
 - How a published setup for Braven Training names its manifest. That is TRN-2, which
   builds on this format.

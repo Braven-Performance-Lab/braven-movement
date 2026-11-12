@@ -25,12 +25,25 @@ def checked_studio(output: Path, dist: Path) -> dict:
     [model] = [name for name, entry in manifest['files'].items() if entry['role'] == 'model']
     expected = manifest['files'][model]['sha256'].lower()
     built = dist / 'athlete-assets'
+    if not (built / am.MANIFEST_NAME).is_file():
+        raise ValueError('The built studio has no athlete-manifest.json: it was built before the manifest '
+                         'format. Build it again with npm run build')
     if (built / am.MANIFEST_NAME).read_bytes() != (output / am.MANIFEST_NAME).read_bytes():
         raise ValueError('The built studio carries a different athlete-manifest.json: build it again')
     if hashlib.sha256((built / model).read_bytes()).hexdigest() != expected:
         raise ValueError(f'The built studio carries a different model than the manifest: {built / model}')
     return {'model': expected, 'revision': manifest['asset']['revision'],
             'movementCommit': manifest['source']['movementCommit']}
+
+
+def replace_studio(dist: Path, output: Path) -> None:
+    """Put the built studio in the package, replacing the old one whole.
+
+    Copying over an earlier package would keep its files beside the new build, such as the
+    legacy athlete-assets/manifest.json that the launcher once read.
+    """
+    shutil.rmtree(output / 'studio', ignore_errors=True)
+    shutil.copytree(dist, output / 'studio')
 
 
 def main():
@@ -48,10 +61,7 @@ def main():
     except ValueError as reason:
         parser.error(str(reason))
     expected = checked['model']
-    # The whole studio folder is replaced, so no file of an earlier package (such as the legacy
-    # athlete-assets/manifest.json the launcher once read) can sit beside the new build.
-    shutil.rmtree(output / 'studio', ignore_errors=True)
-    shutil.copytree(dist, output / 'studio')
+    replace_studio(dist, output)
     if (output / 'athlete-in-motion.webm').is_file():
         shutil.copy2(output / 'athlete-in-motion.webm', output / 'studio/athlete-in-motion.webm')
     source = output / 'source'

@@ -37,6 +37,7 @@ REFUSALS = [
     ('clip-set GLB names', 'if len(set(names)) != len(names):', OFF),
     ('format absent', 'if not (folder / MANIFEST_NAME).is_file():', OFF),
     ('not JSON', "raise ManifestRefusal(code, f'{path.name} is not JSON: {exc}') from None", 'raise'),
+    ('not an object', 'if not isinstance(value, dict):', OFF),
     ('format', "if manifest.get('format') != FORMAT or manifest.get('formatVersion') != FORMAT_VERSION:", OFF),
     ('path local text', 'if LOCAL_PATH.search(text):', OFF),
     ('path backslash', "if '\\\\' in name:", OFF),
@@ -55,12 +56,13 @@ REFUSALS = [
     ('library twice', 'if len(set(clips_in_library)) != len(clips_in_library):', OFF),
     ('library set', 'if set(rows) != set(techniques):', OFF),
     ('library field', 'if theirs != ours:', OFF),
-    ('library timing', "if abs(theirs - model['animations'][name]) > 0.5 / clip['fps']:", OFF),
+    ('library timing', "if not abs(theirs - model['animations'][name]) <= 0.5 / clip['fps']:", OFF),
     ('rig joint count', "if len(joints) != rig['jointCount']:", OFF),
     ('rig joint names', "if joint_set_sha256(joints) != rig['jointSetSha256']:", OFF),
     ('rig contract list', "if list(rig['contractBones']) != list(CONTRACT_BONES):", OFF),
     ('rig contract bone', 'if missing:', OFF),
     ('family', "if rig['family'] not in supported_families:", OFF),
+    ('changed while checked', 'if target.read_bytes() != checked_bytes:', OFF),
 ]
 CLAUSES = [
     ('magic only', "if magic != b'glTF' or kind != 0x4E4F534A:", 'if kind != 0x4E4F534A:'),
@@ -84,6 +86,18 @@ CLAUSES = [
 WRITES = [
     ('path in write', "    _check_paths(manifest)\n    path = Path(folder) / MANIFEST_NAME",
                       '    path = Path(folder) / MANIFEST_NAME'),
+    ('restore on refusal', '                written.write_bytes(before)', '                pass'),
+    ('remove on failure', '                written.unlink(missing_ok=True)', '                pass'),
+    ('atomic write', '        os.replace(partial, path)', "        path.write_text(partial.read_text(encoding='utf-8'), encoding='utf-8')"),
+    ('partial cleanup', '        partial.unlink(missing_ok=True)', '        pass'),
+]
+# Ways a refusal can be lost without its guard being switched off.
+ROBUSTNESS = [
+    ('glb attribute error', 'except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:',
+                            'except (ValueError, KeyError, IndexError, TypeError) as exc:'),
+    ('library seconds raw', "_seconds(row.get('seconds'))", "row['seconds']"),
+    ('NaN passes timing', "if not abs(theirs - model['animations'][name]) <= 0.5 / clip['fps']:",
+                          "if abs(theirs - model['animations'][name]) > 0.5 / clip['fps']:"),
 ]
 
 
@@ -113,7 +127,7 @@ def main() -> int:
         print('REFUSED: the unmutated module does not pass, so no mutation can be read')
         return 2
     survivors = []
-    for group, rows in (('refusal', REFUSALS), ('clause', CLAUSES), ('write', WRITES)):
+    for group, rows in (('refusal', REFUSALS), ('clause', CLAUSES), ('write', WRITES), ('robust', ROBUSTNESS)):
         for name, text, replacement in rows:
             found = source.count(text)
             if found != 1:
@@ -124,9 +138,10 @@ def main() -> int:
             print(f"{'KILLED  ' if killed else 'SURVIVED'} {group:7} {name:22} {ran}; {last}")
             if not killed:
                 survivors.append(name)
-    total = len(REFUSALS) + len(CLAUSES) + len(WRITES)
+    total = len(REFUSALS) + len(CLAUSES) + len(WRITES) + len(ROBUSTNESS)
     print(f'{total - len(survivors)} of {total} mutations killed: {len(REFUSALS)} for the module\'s {raises} '
-          f'refusals, {len(CLAUSES)} for clauses inside them, {len(WRITES)} for the write path')
+          f'refusals, {len(CLAUSES)} for clauses inside them, {len(WRITES)} for the write path, '
+          f'{len(ROBUSTNESS)} for ways a refusal is lost without its guard off')
     return 1 if survivors else 0
 
 

@@ -47,6 +47,12 @@ from asset_licences import source_asset_records  # noqa: E402
 # for the life of the process, so every receipt of one run names one build.
 from build_stamp import generated_from  # noqa: E402
 # The girdle rule lives apart from Blender so it can be tested without it.
+from shared_athlete import (  # noqa: E402
+    SharedAthleteRefusal,
+    athlete_master,
+    external_asset_records,
+    master_record,
+)
 from girdle_agreement import (  # noqa: E402
     AGREES,
     DISAGREES,
@@ -200,6 +206,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--turntable", type=int, default=0)
     parser.add_argument("--animate", action="store_true")
     parser.add_argument("--no-stills", action="store_true")
+    # The shared athlete's BUILD FOLDER. Its manifest names every file; no
+    # other path is read. Without it the renderer builds its own MPFB body.
+    parser.add_argument("--athlete", type=Path, default=None)
     return parser.parse_args(argv)
 
 
@@ -709,10 +718,56 @@ def pose_phase(rig, phase: dict, limits: dict, basis: dict, foot_baseline: dict,
     return ball_centre, receipt
 
 
+# The shared athlete's rig and body, by the names its build writes.
+SHARED_RIG = "Netball_Athlete"
+SHARED_BODY = "Athlete_Body"
+# A child of the rig that is not the athlete: the build's own ball.
+SHARED_LEFT_OUT = ("Movement_Ball",)
+
+
+def load_shared_athlete(master: Path):
+    """The shared athlete's rig and meshes, in an empty scene of their own.
+
+    Measured on 12 Nov 2026 (`docs/SHARED_ATHLETE_2026-11-12.md`):
+    - OPENING the build file brought its own Key, Fill and Rim lights, camera,
+      floor and world, and lit the athlete twice. So the scene starts empty,
+      as `create_athlete` starts it, and only the rig and its children are
+      linked into it; everything else in the file stays unlinked.
+    - ONE load. Two loads appended a second copy of the rig with the children.
+    - The build assigns an Action and drives the forearms and calves with four
+      IK constraints. Both would override the pose this renderer sets, so the
+      Action is cleared, the constraints are muted and every bone returns to
+      its bind pose. None of this is saved.
+    """
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    with bpy.data.libraries.load(str(master), link=False) as (source, target):
+        target.objects = list(source.objects)
+    rig = next((o for o in target.objects if o is not None and o.name == SHARED_RIG), None)
+    if rig is None:
+        raise SharedAthleteRefusal(f"{master.name} has no rig named {SHARED_RIG}")
+    collection = bpy.context.scene.collection
+    collection.objects.link(rig)
+    meshes = [o for o in target.objects
+              if o is not None and o.parent is rig and o.name not in SHARED_LEFT_OUT]
+    for mesh in meshes:
+        collection.objects.link(mesh)
+    if any(o.name.startswith(SHARED_RIG + ".") for o in bpy.data.objects):
+        raise SharedAthleteRefusal(f"{master.name}: a second copy of the rig was loaded")
+    if rig.animation_data:
+        rig.animation_data.action = None
+    for bone in rig.pose.bones:
+        for constraint in bone.constraints:
+            constraint.mute = True
+        bone.matrix_basis = Matrix.Identity(4)
+    bpy.context.view_layer.update()
+    body = bpy.data.objects[SHARED_BODY]
+    return body, rig, [m for m in meshes if m is not body]
+
+
 class Studio:
     """The athlete and the room. Built once, then posed for every job."""
 
-    def __init__(self, config):
+    def __init__(self, config, athlete_folder: Path | None = None):
         self.config = config
         # ONE BUILD PER SESSION. `generated_from` is cached for the life of
         # the process for exactly this reason, so this call fixes the value and
@@ -720,19 +775,40 @@ class Studio:
         # commit made DURING a batch split one render across two builds.
         self.build = generated_from()
         self.world_colour = config.presentation.studio.world_color
-        (
-            self.human,
-            self.rig,
-            self.assets,
-            self.source_assets,
-        ) = create_athlete(config.athlete, config.presentation)
-        # THE LICENCE IS CHECKED HERE, BEFORE ANY FIGURE IS DRAWN, and not at
-        # the receipt. An asset this repository has not licensed must not cost
-        # a coach half an hour of rendering before it is refused, and a receipt
-        # written for such a run would claim a licence it does not have.
-        # `docs/LICENSING.md` requires every newly selected MPFB asset to be
-        # reconfirmed before publication; until now nothing enforced it.
-        self.source_asset_records = source_asset_records(self.source_assets, sha256)
+        if athlete_folder is None:
+            (
+                self.human,
+                self.rig,
+                self.assets,
+                self.source_assets,
+            ) = create_athlete(config.athlete, config.presentation)
+            # THE LICENCE IS CHECKED HERE, BEFORE ANY FIGURE IS DRAWN, and not
+            # at the receipt. An asset this repository has not licensed must
+            # not cost a coach half an hour of rendering before it is refused,
+            # and a receipt written for such a run would claim a licence it
+            # does not have. `docs/LICENSING.md` requires every newly selected
+            # MPFB asset to be reconfirmed before publication.
+            self.source_asset_records = source_asset_records(self.source_assets, sha256)
+            self.athlete = {"kind": "generated", "config": "athlete block of --config"}
+        else:
+            # THE SHARED ATHLETE (owner, 12 Nov 2026, spec 1 12.5), found
+            # through its manifest. The manifest is validated and the licence
+            # checked BEFORE the build is loaded, for the reason above.
+            manifest, master = athlete_master(athlete_folder)
+            self.source_asset_records = [
+                master_record(manifest, master), *external_asset_records(manifest)]
+            self.human, self.rig, self.assets = load_shared_athlete(master)
+            self.source_assets = []
+            model = next(name for name, entry in manifest["files"].items()
+                         if entry.get("role") == "model")
+            self.athlete = {
+                "kind": "shared",
+                "name": manifest["asset"]["name"],
+                "revision": manifest["asset"]["revision"],
+                "glbSha256": manifest["files"][model]["sha256"],
+                "masterSha256": manifest["files"][master.name]["sha256"],
+                "rigFamily": manifest["rig"]["family"],
+            }
         self.basis = {
             bone.name: bone.matrix_basis.copy() for bone in self.rig.pose.bones
         }
@@ -1026,6 +1102,9 @@ def render_job(studio: Studio, job: dict, job_path: Path, args,
         # resolution keeping the old `[str(path) for path in ...]` comprehension
         # would drop every hash and licence without failing anything.
         "sourceAssets": studio.source_asset_records,
+        # Which body drew the figure: the generated one, or the shared athlete
+        # by its revision and GLB SHA-256, as `generatedFrom` names the build.
+        "athlete": studio.athlete,
         "animation": animation,
         # The phases that DREW, then the phases that could not, each with its
         # reason. A reader counting `phases` alone would see a short list and
@@ -1079,7 +1158,7 @@ def main() -> None:
     if len(radii) > 1:
         raise SystemExit(f"the jobs disagree about the ball radius: {sorted(radii)}")
 
-    studio = Studio(load_reference_catch_config(args.config))
+    studio = Studio(load_reference_catch_config(args.config), args.athlete)
     studio.add_ball(radii.pop())
 
     unposable = []

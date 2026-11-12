@@ -46,6 +46,7 @@ from reference_pose_config import (  # noqa: E402
     mhclo_obj_path,
 )
 from reference_pose_contract import validate_reference_catch_receipt  # noqa: E402
+from shared_athlete import head_bone_name  # noqa: E402
 
 from bl_ext.blender_org.mpfb.services.humanservice import HumanService  # noqa: E402
 from bl_ext.blender_org.mpfb.services.faceservice import FaceService  # noqa: E402
@@ -836,12 +837,15 @@ def max_finger_base_deviation_degrees(armature: bpy.types.Object) -> float:
 
 
 def orient_head_to_ball(armature: bpy.types.Object, ball_centre: Vector) -> None:
-    bone = armature.pose.bones["head"]
-    pivot = world_head(armature, "head")
+    # Looked up, not assumed: the render rig says `head`, the rig contract and
+    # the shared athlete `Head`.
+    name = head_bone_name(armature.pose.bones.keys())
+    bone = armature.pose.bones[name]
+    pivot = world_head(armature, name)
     current_forward = (armature.matrix_world @ bone.matrix).to_3x3().col[2].normalized()
     desired_forward = (ball_centre - pivot).normalized()
     delta = current_forward.rotation_difference(desired_forward)
-    apply_world_rotation(armature, "head", pivot, delta.to_matrix())
+    apply_world_rotation(armature, name, pivot, delta.to_matrix())
 
 
 def joint_angle_degrees(a: Vector, pivot: Vector, b: Vector) -> float:
@@ -903,8 +907,8 @@ def project_pose_landmarks(
     scene = bpy.context.scene
     points: dict[str, Vector] = {
         "ball_center": ball.location.copy(),
-        "head_base": world_head(armature, "head"),
-        "head_top": world_tail(armature, "head"),
+        "head_base": world_head(armature, head_bone_name(armature.pose.bones.keys())),
+        "head_top": world_tail(armature, head_bone_name(armature.pose.bones.keys())),
     }
     for side_name, bone_side in (("left", "l"), ("right", "r")):
         points[f"{side_name}_shoulder"] = world_head(

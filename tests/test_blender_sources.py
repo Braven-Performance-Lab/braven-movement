@@ -1665,7 +1665,7 @@ class ExecutableMainTest(unittest.TestCase):
                     args = types.SimpleNamespace(
                         job=jobs, output=out / "render", config=None,
                         phase=None, turntable=0, animate=False,
-                        no_stills=False,
+                        no_stills=False, athlete=None,
                     )
                     raised = None
                     with mock.patch.object(renderer, "parse_args",

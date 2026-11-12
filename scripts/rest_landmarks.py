@@ -51,7 +51,8 @@ PAIRS = [
     ("spine_02", "c_spine2", "head"),
     ("spine_01", "c_spine1", "head"),
     ("neck_01", "c_neck", "head"),
-    ("head", "c_head", "head"),
+    # The rig contract's name since 12 Nov 2026 (`use_contract_names`).
+    ("Head", "c_head", "head"),
 ]
 
 

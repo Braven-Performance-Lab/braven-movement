@@ -23,7 +23,12 @@ import athlete_manifest  # noqa: E402
 from asset_licences import licence_for  # noqa: E402
 
 MASTER_ROLE = "master"
-HEAD_BONE = "head"
+# THE RIG CONTRACT'S SPELLING (`athlete_manifest.CONTRACT_BONES`, spec 3,
+# 12.7). The shared athlete already uses it; `athlete/build.py` makes the same
+# two renames on its MPFB body. Only this renderer read `head`.
+HEAD_BONE = "Head"
+# MPFB's game-engine names that the contract spells differently.
+CONTRACT_RENAMES = {"Root": "root", "head": "Head"}
 
 
 class SharedAthleteRefusal(Exception):
@@ -80,19 +85,37 @@ def master_record(manifest: dict, master: Path) -> dict:
 
 
 def head_bone_name(names) -> str:
-    """The head bone, which must be named `head`.
+    """The head bone, by the contract's name `Head`.
 
-    Main ruled on 12 Nov 2026 that Models fixes the name in the producer
-    (spec 3, 12.7), so a body with no `head` is refused here and no bone is
-    renamed. Build 09-gait-v2 still spells it `Head` and is refused until
-    the producer ships the fix.
+    Main's correction of 12 Nov 2026: the contract spells it `Head` and the
+    shared athlete already does, so the renderer reads that name. A body
+    without it is refused; the shared athlete is never renamed. The
+    renderer's own generated body gets the name from `contract_renames` when
+    it is built.
     """
     if HEAD_BONE in set(names):
         return HEAD_BONE
     raise SharedAthleteRefusal(
-        f"the rig has no bone named {HEAD_BONE!r}; the producer must name it "
-        f"so (spec 3, 12.7). The renderer never renames a bone."
+        f"the rig has no bone named {HEAD_BONE!r}, the rig contract's name "
+        f"(spec 3, 12.7)."
     )
+
+
+def contract_renames(names) -> dict:
+    """The renames that give a GENERATED body the contract's bone names.
+
+    Applied to this renderer's own MPFB body only, the same two that
+    `athlete/build.py` makes. A body carrying both spellings of one bone is
+    refused, because one of them would be lost.
+    """
+    present = set(names)
+    renames = {}
+    for old, new in CONTRACT_RENAMES.items():
+        if old in present and new in present:
+            raise SharedAthleteRefusal(f"the rig has both {old!r} and {new!r}")
+        if old in present:
+            renames[old] = new
+    return renames
 
 
 def constraint_to_mute(bone: str, kind: str, target: str) -> bool:

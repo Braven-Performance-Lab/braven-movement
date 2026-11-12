@@ -23,6 +23,7 @@ from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
     athlete_master,
     constraint_to_mute,
+    contract_renames,
     external_asset_records,
     head_bone_name,
     master_record,
@@ -97,21 +98,32 @@ class SharedAssetLicenceTest(unittest.TestCase):
             master_record(self.MANIFEST, Path("build") / "netball-athlete.blend")
 
 
-class HeadBoneTest(unittest.TestCase):
-    """Main's ruling, 12 Nov 2026: Models fixes the bone name in the producer,
-    so the renderer refuses a body with no `head` bone and never renames one."""
+class ContractNameTest(unittest.TestCase):
+    """Main's correction, 12 Nov 2026 (spec 3, 12.7): the rig contract spells
+    the bones `Head` and `root`, the shared athlete already does, and only
+    this renderer read `head`. The renderer reads the contract names; its own
+    generated body is given them when it is built; the athlete is renamed
+    in nothing."""
 
-    def test_head_is_found(self):
-        self.assertEqual(head_bone_name(["neck_01", "head"]), "head")
+    def test_the_renderer_reads_the_contract_spelling(self):
+        self.assertEqual(head_bone_name(["neck_01", "Head"]), "Head")
+        self.assertIn("Head", athlete_manifest.CONTRACT_BONES)
+        self.assertIn("root", athlete_manifest.CONTRACT_BONES)
 
     def test_the_old_spelling_is_refused_not_renamed(self):
-        with self.assertRaises(SharedAthleteRefusal) as caught:
-            head_bone_name(["neck_01", "Head"])
-        self.assertIn("head", str(caught.exception))
-
-    def test_a_rig_with_no_head_is_refused(self):
         with self.assertRaises(SharedAthleteRefusal):
-            head_bone_name(["neck_01", "HEAD_top"])
+            head_bone_name(["neck_01", "head"])
+
+    def test_the_generated_body_takes_the_contract_names(self):
+        """The same two renames `athlete/build.py` makes for the athlete."""
+        self.assertEqual(contract_renames(["Root", "pelvis", "neck_01", "head"]),
+                         {"Root": "root", "head": "Head"})
+        # A body already on the contract needs nothing.
+        self.assertEqual(contract_renames(["root", "pelvis", "Head"]), {})
+
+    def test_a_body_with_both_spellings_is_refused(self):
+        with self.assertRaises(SharedAthleteRefusal):
+            contract_renames(["Root", "root", "head"])
 
 
 class ConstraintRuleTest(unittest.TestCase):

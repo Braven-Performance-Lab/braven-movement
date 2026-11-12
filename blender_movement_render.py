@@ -83,6 +83,7 @@ from blender_mpfb_reference_catch import (  # noqa: E402
     make_material,
     orient_hand,
     orient_head_to_ball,
+    use_contract_names,
     pose_arm,
     pose_articulated_hand,
     render_view,
@@ -799,6 +800,10 @@ class Studio:
                 self.assets,
                 self.source_assets,
             ) = create_athlete(config.athlete, config.presentation)
+            # The rig contract's bone names (`Head`, `root`), as the shared
+            # athlete carries them, so every pose reader uses one spelling and
+            # the exported animation names the bones as the contract does.
+            use_contract_names(self.rig, [self.human, *self.assets])
             # THE LICENCE IS CHECKED HERE, BEFORE ANY FIGURE IS DRAWN, and not
             # at the receipt. An asset this repository has not licensed must
             # not cost a coach half an hour of rendering before it is refused,

@@ -46,7 +46,7 @@ from reference_pose_config import (  # noqa: E402
     mhclo_obj_path,
 )
 from reference_pose_contract import validate_reference_catch_receipt  # noqa: E402
-from shared_athlete import head_bone_name  # noqa: E402
+from shared_athlete import contract_renames, head_bone_name  # noqa: E402
 
 from bl_ext.blender_org.mpfb.services.humanservice import HumanService  # noqa: E402
 from bl_ext.blender_org.mpfb.services.faceservice import FaceService  # noqa: E402
@@ -1104,6 +1104,25 @@ def asset_path(*parts: str) -> Path:
     return path
 
 
+def use_contract_names(rig: bpy.types.Object, meshes) -> None:
+    """Give a GENERATED body the rig contract's bone names, as the athlete has.
+
+    `athlete/build.py` renames MPFB's `Root` and `head` to `root` and `Head`
+    for the shared athlete; this does the same for the bodies this repository
+    builds, so the renderer reads one spelling (Main, 12 Nov 2026, spec 3
+    12.7). Called by the posing callers after `create_athlete`, never inside
+    it: the kit tools read the vertex groups `create_athlete` returns. Each
+    skinned mesh's vertex group must follow the bone, which is checked.
+    """
+    for old, new in contract_renames(rig.data.bones.keys()).items():
+        rig.data.bones[old].name = new
+        for mesh in meshes:
+            groups = mesh.vertex_groups
+            if old in groups and new not in groups:
+                raise RuntimeError(f"{mesh.name}: the vertex group {old!r} did not follow its bone")
+    bpy.context.view_layer.update()
+
+
 def create_athlete(
     athlete: AthleteConfig,
     presentation: PresentationConfig,
@@ -1507,6 +1526,8 @@ def main() -> None:
         config.athlete,
         config.presentation,
     )
+    # The contract's bone names, so the exported FBX and GLB carry them too.
+    use_contract_names(rig, [human, *assets])
     character_objects = [rig, human, *assets]
     neutral_fbx = output / "braven_mpfb_athlete_neutral.fbx"
     export_fbx(neutral_fbx, character_objects, animation=False)

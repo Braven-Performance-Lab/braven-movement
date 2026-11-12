@@ -38,6 +38,11 @@ with the renderer's own `pose_phase`, through `scripts/ball_hand_gap_render.py`:
 
     blender -b --python scripts/shared_athlete_probe.py -- <netball-athlete.blend> measure out/reach-shared.json spikes/poc-output/*.job.json
 
+**Status (12 Nov 2026, `lane/shared-athlete-switch`):** the renderer now
+reads the rig contract's `Head` and the probe renames nothing; the rename
+below describes the measured runs, made against the renderer before that
+change.
+
 Three things are done in that process only and never saved:
 
 - The bone `Head` is renamed `head`, the only name the renderer uses that

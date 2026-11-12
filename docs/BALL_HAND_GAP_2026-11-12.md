@@ -104,6 +104,35 @@ This rig can therefore realise the turn only by rotating its clavicles, which
 cannot move a shoulder about 17 cm fore-and-aft. The right clavicle turns
 68.3 degrees at `facing_away` and still misses by 52 mm.
 
+### The trunk turn (landed on this branch) and the girdle-width unit (not landed)
+
+The job now carries the solve's own trunk turn and the renderer turns the
+trunk before the girdle (`0ee45ee`). The other 47 phases are identical in
+every bone and the ball. The turned drill improves a little:
+
+| Phase | Before the turn | With the turn | Turn plus girdle-width unit |
+|---|---:|---:|---:|
+| `hooks_outside_hand/facing_away` | 20.45 mm | 18.16 mm | 17.89 mm |
+| `hooks_outside_hand/contact` | 11.60 mm | 10.22 mm | 10.06 mm |
+
+Main then ruled a girdle-width unit for the shoulder shift, to land only if
+both phases went under 10 mm and no drill got worse. Neither held: the two
+phases stayed over 10 mm, `overhead_pass/lift` went from 0.176 to 0.199 mm and
+`overhead_pass/step` from 0.027 to 0.052 mm, and every drill moved 0.2 to
+1.7 mm. The change is kept, not landed, on `lane/girdle-width-unit-probe`
+(`836ab4c`), with `tests/test_girdle_width_unit.py`.
+
+**A CORRECTION.** The reason given for that ruling was that the solve's girdle
+is about 16 per cent wider per torso than this rig's. The measurement does not
+support it. The drawn girdle is 290 to 291 mm and the wanted one 334 to 339 mm
+on EVERY drill, including `chest_pass/ready`, where the right shoulder already
+sits 0.114 torsos forward of the engine's rest pose. In girdle widths the right
+shoulder at `facing_away` moves 0.555 widths forward, where a pure 48 degree
+turn moves it 0.372. So the solve holds its shoulders forward and wide of rest
+in every phase, and this rig's clavicle cannot reach that anywhere. That reach
+limit, not the unit, is the constant of about 8 mm at the neutral phases and
+most of what remains on the turned drill.
+
 ## The look
 
 This look cannot see a 1 to 2 cm anchor error either, because the hands move

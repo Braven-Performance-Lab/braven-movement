@@ -12,6 +12,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8732", "--directory", "out"],
       "port": 8732
+    },
+    {
+      "name": "studio-hosted-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["athlete/studio-api/tools/dev-studio.mjs", "--port", "5399"],
+      "port": 5399
     }
   ]
 }

@@ -1,6 +1,7 @@
 import { makeCatalog, filterAnimations, categories } from './catalog.js'
 import { createWorkspace, readWorkspace, writeWorkspace, validateWorkspace } from './workspace.js'
 import { startReview } from './review-panel.js'
+import { startTeam } from './team-panel.js'
 
 const $=id=>document.getElementById(id)
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
@@ -195,6 +196,7 @@ export function startStudio(app) {
     $('source-details').querySelectorAll('.source-link').forEach(link=>link.remove())
     document.querySelector('.panel-footer a').remove()
     startReview(app,{current,notify,openReviewTab:()=>tab('review')})
+    startTeam(app,{notify})
   }
   window.bravenStudio={catalog,get workspace(){return structuredClone(workspace)},get section(){return section}}
 }

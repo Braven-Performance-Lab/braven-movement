@@ -74,4 +74,4 @@ This runs the same `handle()` as the Worker on `127.0.0.1:5398`, with the test s
 - A read of comments returns 5000 rows at most. A longer list loses its oldest rows, and the answer has `truncated: true`.
 - The first owner is an `invitations` row that a person adds to D1 at deploy time. It is not in git.
 - A comment time must be inside the clip length that the manifest gives, plus one frame.
-- There is no upload tool for a version yet. The development server uploads the athlete folder through the same routes at start.
+- A version is uploaded from the Team screen of hosted Studio (`athlete/viewer/src/version-upload.js`). The server checks each file against the manifest; it does not run `athlete_manifest.py check`, so the author runs that before the upload.

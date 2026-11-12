@@ -16,7 +16,8 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-REVIEW_TESTS = REPO / 'athlete' / 'viewer' / 'tests' / 'review.test.mjs'
+TESTS = REPO / 'athlete' / 'viewer' / 'tests'
+REVIEW_TESTS = [TESTS / 'review.test.mjs', TESTS / 'review-owner.test.mjs']
 
 
 class StudioReviewClient(unittest.TestCase):
@@ -24,12 +25,12 @@ class StudioReviewClient(unittest.TestCase):
         node = shutil.which('node')
         self.assertIsNotNone(node, 'Node is not on PATH: the Studio review client cannot be tested on this machine')
         # UTF-8 and the spec reporter by name, for the reasons in test_studio_manifest_gate.py.
-        run = subprocess.run([node, '--test', '--test-reporter=spec', str(REVIEW_TESTS)], capture_output=True, text=True,
+        run = subprocess.run([node, '--test', '--test-reporter=spec', *map(str, REVIEW_TESTS)], capture_output=True, text=True,
                              encoding='utf-8', errors='replace', cwd=REPO)
         summary = [line for line in run.stdout.splitlines() if line.startswith(('ℹ tests', 'ℹ pass', 'ℹ fail'))]
         self.assertEqual(run.returncode, 0, '\n'.join(summary) + '\n' + run.stdout[-3000:] + run.stderr[-2000:])
         counts = {line.split()[1]: int(line.split()[2]) for line in summary}
-        self.assertGreaterEqual(counts.get('pass', 0), 23, f'fewer review client tests ran than exist: {counts}')
+        self.assertGreaterEqual(counts.get('pass', 0), 32, f'fewer review client tests ran than exist: {counts}')
         self.assertEqual(counts.get('fail', 0), 0)
 
 

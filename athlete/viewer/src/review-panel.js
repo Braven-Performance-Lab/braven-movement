@@ -128,7 +128,8 @@ export function startReview(app, { current, notify, openReviewTab }) {
         ? 'A live Tactics preview is not an animation of this version, so it takes no comment. Choose an animation from the library.'
         : 'Studio builds this movement from other animations, so it is not an animation of this version and takes no comment.'
     }
-    const { here, earlier } = splitByVersion(all, versionId, app.state.clip)
+    // A live Tactics preview shows no library animation, so it shows no animation's comments.
+    const { here, earlier } = app.state.driver === 'clips' ? splitByVersion(all, versionId, app.state.clip) : { here: [], earlier: [] }
     const names = approvers(all, versionId, app.state.clip)
     // A movement that takes no comment has no approval to show, and no list.
     $('approval-line').textContent = target ? approvalText(names) : ''

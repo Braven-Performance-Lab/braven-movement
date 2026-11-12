@@ -13,6 +13,7 @@
 import { createRequire } from 'node:module'
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
 
@@ -178,9 +179,16 @@ try {
   check('A restored setup keeps the name of its camera view', await page.evaluate(() => window.athleteStudio.state.view === 'quarter'
     && document.getElementById('three-quarter').classList.contains('selected')))
   await page.mouse.move(700, 400); await page.mouse.down(); await page.mouse.move(760, 410, { steps: 4 }); await page.mouse.up()
+  // The camera moves over the next frames (the controls are damped).
+  await page.waitForFunction(() => window.athleteStudio.state.view === 'free' && document.getElementById('comment-view').textContent === 'Camera: Own angle', { timeout: 5000 }).catch(() => {})
   check('A camera the person moved is their own angle', await page.evaluate(() => window.athleteStudio.state.view === 'free')
     && (await text('#comment-view')) === 'Camera: Own angle')
+  // Straight after a drag, while the camera would still coast: the chosen view must hold.
+  await page.mouse.move(700, 400); await page.mouse.down(); await page.mouse.move(790, 400, { steps: 3 }); await page.mouse.up()
   await page.click('#three-quarter')
+  await wait(600)
+  check('A named view chosen straight after a drag holds', await page.evaluate(() => window.athleteStudio.state.view === 'quarter'
+    && document.getElementById('three-quarter').classList.contains('selected')))
   check('An author is not offered an approval', await page.$eval('input[name="comment-kind"][value="approve"]', (el) => el.disabled))
   await page.type('#comment-list .comment .answer-form input', 'Thank you. The knee is fixed in the next version.')
   await page.click('#comment-list .comment .answer-form button')
@@ -208,6 +216,139 @@ try {
   await shot('11-phone-stage', 'Phone: the animation and the timeline with comment markers')
   await page.$eval('#comment-form', (el) => el.scrollIntoView({ block: 'start' }))
   await shot('12-phone-comment-form', 'Phone: the comment form')
+
+  check('A reviewer is offered no team screen', !(await visible('#team-open')))
+  await page.click('#sign-out')
+  await page.waitForSelector('#signin-ask:not([hidden])')
+  await page.setViewport({ width: 1440, height: 900 })
+
+  // ---- an author sees versions, and no people
+  await signInAs('author@braven.test')
+  check('An author is offered the versions and not the people', (await text('#team-open')) === 'Versions')
+  await page.click('#team-open')
+  await page.waitForSelector('#version-list li[data-version]')
+  check('The author\'s screen has no invitation form and no publish button',
+    !(await visible('#team-people')) && (await page.$$('#version-list button')).length === 0 && asked('/api/people').length === 0)
+  await page.click('#team-close')
+  await page.click('#sign-out')
+  await page.waitForSelector('#signin-ask:not([hidden])')
+
+  // ---- the owner invites, revokes, removes
+  await signInAs('owner@braven.test')
+  await page.click('#team-open')
+  await page.waitForSelector('#member-list li[data-member]')
+  check('The owner sees the people with their roles', (await page.$$eval('#member-list li', (els) => els.map((el) => el.textContent))).some((t) => /coach@braven\.test · Reviewer/.test(t)))
+  check('The owner cannot remove their own account from this screen', (await page.$$('#member-list li[data-member="owner@braven.test"] button')).length === 0)
+  await page.type('#invite-email', 'coach@braven.test')
+  await page.click('#invite-send')
+  await page.waitForSelector('#team-error:not([hidden])')
+  check('An address that is a member already is refused in words', /member already/.test(await text('#team-error')))
+  await page.$eval('#invite-email', (el) => { el.value = '' })
+  await page.type('#invite-email', 'Trainer@Braven.test')
+  await page.click('#invite-send')
+  await page.waitForSelector('#invitation-list li[data-invitation="trainer@braven.test"]')
+  await page.$eval('#notification', (el) => { el.hidden = true })
+  await shot('13-team-people', 'Team: invite a person, open invitations and people')
+  const revokeCalls = () => asked('/api/invitations/').filter((r) => r.method === 'DELETE').length
+  await page.click('#invitation-list li[data-invitation] button')
+  check('The first press on Revoke only asks to press again', revokeCalls() === 0 && (await text('#invitation-list li[data-invitation] button')) === 'Press again to revoke')
+  await page.click('#invitation-list li[data-invitation] button')
+  await page.waitForSelector('#invitation-list li.team-empty')
+  check('The second press revokes the invitation', revokeCalls() === 1)
+  await page.type('#invite-email', 'trainer@braven.test')
+  await page.click('#invite-send')
+  await page.waitForSelector('#invitation-list li[data-invitation="trainer@braven.test"]')
+
+  // The invited person signs in on another device: the link asks for the address again.
+  const other = await browser.createBrowserContext()
+  const second = await other.newPage()
+  await second.goto(url, { waitUntil: 'networkidle0' })
+  await second.type('#signin-email', 'trainer@braven.test')
+  await second.click('#signin-send')
+  await second.waitForSelector('#signin-sent:not([hidden])')
+  const { link } = await (await fetch(`${url}dev-identity/last-link?email=trainer%40braven.test`)).json()
+  const third = await (await browser.createBrowserContext()).newPage()
+  await third.goto(link)
+  await third.waitForSelector('#signin-confirm:not([hidden])')
+  await third.screenshot({ path: path.join(out, '14-sign-in-confirm-address.png') })
+  shots.push({ file: '14-sign-in-confirm-address.png', screen: 'Sign-in: the link opened on another device asks for the address' })
+  await third.type('#signin-confirm-email', 'trainer@braven.test')
+  await third.keyboard.press('Enter')
+  await third.waitForFunction(() => !!window.bravenStudio, { timeout: 60000 })
+  check('The invited person comes in as a reviewer, from a device that did not ask for the link',
+    (await third.$eval('#account-role', (el) => el.textContent)) === 'Reviewer')
+  await page.click('#team-close')
+  await page.click('#team-open')
+  await page.waitForSelector('#member-list li[data-member="trainer@braven.test"] button')
+  await page.click('#member-list li[data-member="trainer@braven.test"] button')
+  await page.click('#member-list li[data-member="trainer@braven.test"] button')
+  await page.waitForSelector('#member-list li[data-member="trainer@braven.test"].removed')
+  await third.reload()
+  await third.waitForSelector('#signin-refused:not([hidden])')
+  check('A removed person is refused on the next load, and is told why', /access to Braven Studio was removed/.test(await third.$eval('#signin-refused-note', (el) => el.textContent)))
+  await other.close()
+  await third.browserContext().close()
+
+  // ---- a new version: uploaded as a draft, published by the owner
+  const inputsFile = path.resolve('.local/dev-inputs.json')
+  const athlete = process.env.BRAVEN_ATHLETE_OUTPUT || JSON.parse(fs.readFileSync(inputsFile, 'utf8')).athleteOutput
+  const next = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-next-version-'))
+  const manifest = JSON.parse(fs.readFileSync(path.join(athlete, 'athlete-manifest.json'), 'utf8'))
+  manifest.asset.revision += 1
+  fs.writeFileSync(path.join(next, 'athlete-manifest.json'), JSON.stringify(manifest, null, 2))
+  const played = Object.entries(manifest.files).filter(([, f]) => ['model', 'library'].includes(f.role)).map(([name]) => name)
+  for (const name of played) fs.copyFileSync(path.join(athlete, name), path.join(next, name))
+  const firstVersion = await page.evaluate(() => window.athleteStudio.versionId)
+  const picker = await page.$('#version-files')
+  // The input takes a folder, as a person gives it.
+  await picker.uploadFile(next)
+  await page.waitForFunction(() => /is uploaded as a draft/.test(document.getElementById('version-progress').textContent)
+    || !document.getElementById('team-error').hidden, { timeout: 120000 })
+  check('The upload of the folder went through', (await page.$eval('#team-error', (el) => el.hidden)) || assert.fail(await text('#team-error')))
+  check('An uploaded version is a draft with a Publish button, and the published one is still what reviewers see',
+    await page.$$eval('#version-list li[data-version]', (els, first) => els.length === 2
+      && els.filter((el) => el.dataset.state === 'draft').length === 1
+      && !!els.find((el) => el.dataset.state === 'draft').querySelector('button')
+      && /the version reviewers see/.test(els.find((el) => el.dataset.version === first).textContent), firstVersion))
+  await page.$eval('#team-versions', (el) => el.scrollIntoView({ block: 'start' }))
+  await shot('15-team-draft-version', 'Team: an uploaded draft version, not yet published')
+  const publishCalls = () => asked('/publish').length
+  await page.click('#version-list li[data-state="draft"] button')
+  check('The first press on Publish only asks to press again', publishCalls() === 0)
+  await page.click('#version-list li[data-state="draft"] button')
+  await page.waitForFunction(() => document.querySelectorAll('#version-list li[data-state="published"]').length === 2)
+  check('The second press publishes', publishCalls() === 1)
+  fs.rmSync(next, { recursive: true, force: true })
+
+  // ---- the new version on screen: the earlier comments stay with their version
+  await page.goto(url, { waitUntil: 'networkidle0' })
+  await page.waitForFunction(() => !!window.bravenStudio, { timeout: 60000 })
+  await page.click('[data-tab="review"]')
+  await page.waitForSelector('#earlier-comments:not([hidden])')
+  check('After a new version is published, Studio shows that version',
+    await page.evaluate((first) => window.athleteStudio.versionId !== first && /^[0-9a-f]{64}$/.test(window.athleteStudio.versionId), firstVersion))
+  check('The comments of the earlier version are not on this timeline, are not lost, and each names its version',
+    (await page.$$('#timeline-markers .marker')).length === 0 && (await page.$$('#comment-list .comment')).length === 0
+    && (await text('#earlier-summary')) === '4 on earlier versions'
+    && (await page.$$eval('#earlier-list .comment-by', (els, first) => els.filter((el) => el.textContent.includes(`version ${first.slice(0, 8)}`)).length, firstVersion)) >= 4
+    && (await page.$$('#earlier-list button.comment-time')).length === 0)
+  check('The approval of the earlier version does not carry to the new version', (await text('#approval-line')) === 'No reviewer approved this animation in this version.')
+  await page.$eval('#earlier-comments', (el) => { el.open = true; el.scrollIntoView({ block: 'start' }) })
+  await shot('16-earlier-version-comments', 'Review tab on a new version: the comments of the earlier version, in their own list')
+
+  // ---- two findings from the first review
+  await page.click('#side')
+  await page.mouse.click(700, 420)
+  await wait(300)
+  check('The named view is the one the person chose', await page.evaluate(() => window.athleteStudio.state.view === 'side'))
+  await page.click('#three-quarter')
+  await page.mouse.click(700, 420)
+  await wait(300)
+  check('A click on the stage that moves nothing keeps the name of the camera view', await page.evaluate(() => window.athleteStudio.state.view === 'quarter'))
+  await page.select('#driver', 'tactics')
+  await page.waitForSelector('#comment-unavailable:not([hidden])')
+  check('A live Tactics preview shows no animation\'s comments',
+    !(await visible('#earlier-comments')) && !(await visible('#comment-list-heading')) && (await text('#approval-line')) === '')
 
   check('No error was thrown on the page', errors.length === 0)
 } finally {

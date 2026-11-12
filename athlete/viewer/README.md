@@ -50,6 +50,7 @@ Specification 4, phase A, adds a second build of the same app: **hosted Studio**
 
 - `BRAVEN_STUDIO_HOSTED=1 npm run build` writes `dist-hosted/`. It holds no athlete file. A signed-in person gets the published athlete version through the Studio API ([`../studio-api`](../studio-api/README.md)), and the browser checks each file against the hash that the version names. The build needs `VITE_FIREBASE_API_KEY`, the public web key that Braven Tactics ships, and it refuses to run with `VITE_DEV_IDENTITY` set.
 - Sign-in is a link by mail from Firebase, with the account of Braven Tactics. There is no password and no sign-up.
+- The owner's **Team** button opens the people and the versions: invite a person, revoke an invitation, remove a person, upload an athlete folder as a draft version, and publish it. An author gets the versions and the upload, with no publication.
 - The Review tab holds the comment form, the comments of the version on screen, and the comments of earlier versions in their own list. Each comment of this version is a marker on the timeline.
 - The screens are specified in [`docs/studio/REVIEW_LOOP_PHASE_A_SCREENS.md`](../../docs/studio/REVIEW_LOOP_PHASE_A_SCREENS.md).
 
@@ -61,7 +62,7 @@ node athlete/studio-api/tools/dev-studio.mjs --port 5399
 node tests/review-browser.mjs
 ```
 
-The launcher reads the athlete folder and the Tactics checkout from the two environment variables, or from the ignored `athlete/viewer/.local/dev-inputs.json`. The browser journey makes 34 checks and writes its screenshots to the ignored `verification/review/`. It proves the page against the stand-ins. It does not prove Firebase, D1 or R2.
+The launcher reads the athlete folder and the Tactics checkout from the two environment variables, or from the ignored `athlete/viewer/.local/dev-inputs.json`. The browser journey makes more than 50 checks and writes its screenshots to the ignored `verification/review/`. It proves the page against the stand-ins. It does not prove Firebase, D1 or R2.
 
 | File | Responsibility |
 | --- | --- |
@@ -69,6 +70,8 @@ The launcher reads the athlete folder and the Tactics checkout from the two envi
 | `src/session.js`, `src/review-gate.js` | The sign-in session and the sign-in screen |
 | `src/review-api.js` | The calls to the Studio API, and the hash check of each file |
 | `src/comments.js`, `src/review-panel.js` | The comment rules, and the form, list and timeline markers |
+| `src/team-panel.js`, `src/version-upload.js` | The owner's screen, and the upload of an athlete version from the browser |
+| `hosted-build.mjs` | The two rules of a hosted build: sign-in through Firebase only, and no athlete file in the output |
 
 ## Development and verification
 

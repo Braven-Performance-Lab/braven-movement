@@ -12,20 +12,42 @@ const MESSAGES = {
   only_a_reviewer_approves: 'Only a reviewer approves an animation.',
   role_not_allowed: 'Your role does not allow that.',
   too_many_comments: 'This version has too many comments to add one more.',
+  already_invited: 'This address has an open invitation already.',
+  already_member: 'This address is a member already. To change the role, remove the person, then invite the address again.',
+  last_owner: 'This is the last owner. Studio must keep one owner.',
+  bad_email: 'That does not look like an email address.',
+  no_open_invitation: 'That invitation is not open any more. Refresh the list.',
+  no_such_member: 'That person is not a member any more. Refresh the list.',
+  files_missing: 'This version is not complete: a file is missing. Upload it again.',
+  already_published: 'This version is published already. A published version does not change.',
+  bad_manifest: 'The server does not accept this manifest. Run the manifest check on the athlete folder.',
+}
+
+// What the sign-in screen does after the server did not admit the person:
+//   'refused'  the person is signed in and may not come in (no invitation, removed);
+//   'sign-in'  the sign-in itself is not good any more, so the person signs in again;
+//   'retry'    a server fault or no connection. That says nothing about the person.
+export function afterAdmitError(error) {
+  if (error?.status === 403) return 'refused'
+  if (error?.status === 401) return 'sign-in'
+  if (error?.code === 'offline' || error?.status >= 500) return 'retry'
+  // A SignInError has no status: the session could not give a token.
+  if (error?.status === undefined && typeof error?.code === 'string') return 'sign-in'
+  return 'retry'
 }
 
 const hex = (buffer) => Array.from(new Uint8Array(buffer), (b) => b.toString(16).padStart(2, '0')).join('')
 export const sha256Hex = async (bytes) => hex(await crypto.subtle.digest('SHA-256', bytes))
 
 export function createApi({ session, fetch: fetchImpl = (...a) => globalThis.fetch(...a), base = '/api' }) {
-  async function request(method, path, { json, raw = false } = {}) {
+  async function request(method, path, { json, bytes, raw = false } = {}) {
     const token = await session.token()
     let response
     try {
       response = await fetchImpl(base + path, {
         method,
         headers: { authorization: `Bearer ${token}`, ...(json !== undefined ? { 'content-type': 'application/json' } : {}) },
-        ...(json !== undefined ? { body: JSON.stringify(json) } : {}),
+        ...(json !== undefined ? { body: JSON.stringify(json) } : bytes !== undefined ? { body: bytes } : {}),
       })
     } catch {
       throw new ApiError(0, 'offline', 'Studio could not reach its server. Check the connection, then try again.')
@@ -84,6 +106,24 @@ export function createApi({ session, fetch: fetchImpl = (...a) => globalThis.fet
       if (versionId) query.set('version', versionId)
       if (clipId) query.set('clip', clipId)
       return request('GET', `/comments?${query}`)
+    },
+    // The owner's calls. The server checks the role; the page only decides what to offer.
+    people: () => request('GET', '/people'),
+    invite: (email, role) => request('POST', '/invitations', { json: { email, role } }),
+    revoke: (email) => request('DELETE', `/invitations/${encodeURIComponent(email)}`),
+    remove: (uid) => request('POST', `/people/${encodeURIComponent(uid)}/remove`),
+    publish: (versionId) => request('POST', `/versions/${versionId}/publish`),
+    // A version goes up as its manifest, then each file. The server and its bucket check them.
+    createVersion: (manifestBytes) => request('PUT', '/versions', { bytes: manifestBytes }),
+    async putFile(versionId, name, bytes) {
+      try {
+        return await request('PUT', `/versions/${versionId}/files/${encodeURIComponent(name)}`, { bytes })
+      } catch (error) {
+        if (error.code === 'wrong_bytes' || error.code === 'wrong_size') {
+          throw new ApiError(error.status, error.code, `${name} is not the file the manifest names. The server did not keep it.`)
+        }
+        throw error
+      }
     },
     addComment: (comment) => request('POST', '/comments', { json: comment }),
     answer: (parentId, body) => request('POST', '/comments', { json: { parentId, body } }),

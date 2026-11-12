@@ -1,9 +1,10 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
 import { acceptAthlete, copyAccepted, readAccepted } from './manifest-gate.mjs'
+import { checkHostedBuild, checkHostedOutput } from './hosted-build.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const tactics = path.resolve(process.env.BRAVEN_TACTICS_PATH || path.join(here, '../../../../braven-tactics-netball-athlete'))
@@ -42,13 +43,10 @@ function buildReceipt(dist, extra) {
   fs.writeFileSync(path.join(dist,'studio-build.json'),JSON.stringify({app:'braven-studio',schemaVersion:1,
     buildId:createHash('sha256').update(JSON.stringify({files,...extra})).digest('hex'),builtAt:new Date().toISOString(),...extra,files},null,2))
 }
-export default defineConfig(({ command }) => {
-  // The local stand-in for the sign-in service is for `vite dev` against the development API
-  // only. A build that held it would send a coach's sign-in to an address that is not Firebase.
-  if (hosted && command === 'build') {
-    if (process.env.VITE_DEV_IDENTITY) throw new Error('VITE_DEV_IDENTITY is set: a hosted build must sign in through Firebase. Unset it.')
-    if (!process.env.VITE_FIREBASE_API_KEY) throw new Error('Set VITE_FIREBASE_API_KEY to the Firebase web API key (the public one Braven Tactics ships).')
-  }
+export default defineConfig(({ command, mode }) => {
+  // A hosted build signs in through Firebase and nothing else (hosted-build.mjs). The check
+  // reads what vite itself will put in the page: the .env files of this folder, then the shell.
+  if (hosted && command === 'build') checkHostedBuild({ ...loadEnv(mode, here, 'VITE_'), ...process.env })
   return {
     resolve: { alias: { '@tactics': path.join(tactics, 'src'), '@': path.join(tactics, 'src') }, dedupe: ['three'] },
     define: { 'import.meta.env.VITE_STUDIO_MODE': JSON.stringify(hosted ? 'hosted' : 'local') },
@@ -61,7 +59,7 @@ export default defineConfig(({ command }) => {
         if (hosted) {
           const dist = path.join(here, 'dist-hosted')
           // The hosted page is public. It must hold no athlete file, whatever a later change copies.
-          if (fs.existsSync(path.join(dist, 'athlete-assets'))) throw new Error('dist-hosted holds athlete-assets: the athlete must leave through the API only.')
+          checkHostedOutput(dist)
           buildReceipt(dist, { mode: 'hosted' })
           return
         }

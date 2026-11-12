@@ -76,6 +76,9 @@ function markView(name) {
 }
 function view(name) {
   const pose = viewPose(name)
+  // Spend what is left of an earlier drag first. With damping on, the controls would go on
+  // turning the camera after it is placed, and the person would not be at the view they chose.
+  controls.enableDamping = false; controls.update(); controls.enableDamping = true
   camera.position.copy(pose.position); controls.target.copy(pose.target)
   controls.update()
   markView(name)
@@ -90,7 +93,10 @@ function namedView() {
 }
 view('quarter')
 // A camera the person moved is their own angle, not a named view. A comment records which.
-controls.addEventListener('start', () => markView('free'))
+// The view is read each time the camera really moves. OrbitControls says 'start' for a click
+// that moves nothing, and with damping the camera still moves after 'end': neither event says
+// where the camera is. A camera that is at a named view keeps the name.
+controls.addEventListener('change', () => { const name = namedView(); if (name !== state.view) markView(name) })
 new ResizeObserver(() => { camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(host.clientWidth, host.clientHeight) }).observe(host)
 
 let model, mixer, clips, activeAction, rig, tacticRoot, helper, tacticHelper, originalHeight

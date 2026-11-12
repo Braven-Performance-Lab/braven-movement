@@ -42,13 +42,20 @@ Three things are done in that process only and never saved:
 
 - The bone `Head` is renamed `head`, the only name the renderer uses that
   differs; the vertex group follows the rename, and the probe checks it.
-  The owner's spec 3 (12.7) rules that the producer fixes the bone-name case.
+  The contract spells it `Head` (spec 3, 12.7); the renderer is the side
+  that changes to read it (Main, 12 Nov 2026).
 - The assigned Action (`Jog`) is cleared and every bone returns to its bind
   pose.
 - The four IK constraints are muted, because they would override the arm and
   the leg the renderer poses.
 
 All 51 phases of the 12 drills pose, with no failure.
+
+Re-run at `b3c8685` plus the round 2 fix, with the stricter probe (only the
+four `CTRL_` IK constraints muted, any other refused; every descendant
+linked, the ball's subtree left out): 51 phases, no failure, and every bone
+0.0 mm from the first run. So build 09-gait-v2 carries only those four
+constraints.
 
 ## The same instrument on both bodies (step 3)
 
@@ -125,10 +132,15 @@ reach limit stays, because both MPFB bodies have the same clavicle.
    empty scene, clear its Action, and mute its four IK constraints (the build's
    only constraints; refuse any other). This probe
    does exactly that, in its own process.
-2. The bone-name case: `Head` against the renderer's `head`. Spec 3 (12.7)
-   rules that the producer fixes it, and Main ruled on 12 Nov that the
-   renderer refuses a body with no `head` bone and never renames one. Only
-   this probe renames it, for build 09-gait-v2.
+2. The bone-name case: `Head` against the renderer's `head`. The rig
+   contract spells it `Head` (and `root`) and the athlete already does; Main
+   corrected on 12 Nov that the RENDERER reads the contract names and the
+   athlete is renamed in nothing. Only this probe renames it, in its own
+   process, because the renderer on main still reads `head`.
+
+   **A CORRECTION.** An earlier version of this item said that the renderer
+   refuses a body with no `head` bone and that the producer fixes the name.
+   Main withdrew that ruling the same day.
 3. The athlete's location: the delivered file is outside the repository. The
    renderer must find it through the athlete manifest, never a machine path
    (MAN-5).

@@ -9,9 +9,11 @@ settings never enter the scene, so both bodies are drawn in the renderer's
 room. Opening the file instead lit the shared athlete with two light rigs.
 
 In this process only, and never saved:
-- the bone `Head` is renamed `head`, the one name the renderer uses that
-  differs, and the vertex group follows (checked). Only when the build has
-  `Head` and no `head`; Models fixes the producer (spec 3, 12.7);
+- the bone `Head` is renamed `head`, the one name the renderer on main
+  reads differently, and the vertex group follows (checked). The rig
+  contract spells it `Head` (spec 3, 12.7) and the athlete follows the
+  contract; it is the renderer that changes to read `Head` (Main, 12 Nov
+  2026). Until that lands this probe adapts the athlete, in its own process;
 - the assigned Action is cleared and every bone returns to its bind pose;
 - the four IK constraints (`lowerarm_*` to `CTRL_hand_*`, `calf_*` to
   `CTRL_foot_*`) are muted, because they would override the arm and leg the
@@ -66,9 +68,15 @@ def append_athlete(path: str):
 
     def under_rig(obj):
         # EVERY DESCENDANT, not only the direct children: a mesh parented to
-        # the body would otherwise be loaded and not drawn, in silence.
+        # the body would otherwise be loaded and not drawn, in silence. The
+        # walk stops at anything LEFT OUT, so the file's ball takes its own
+        # children (seams, for example) with it.
+        if obj.name in LEFT_OUT:
+            return False
         parent = obj.parent
         while parent is not None:
+            if parent.name in LEFT_OUT:
+                return False
             if parent is rig:
                 return True
             parent = parent.parent
@@ -77,7 +85,7 @@ def append_athlete(path: str):
     # Only the athlete enters the scene. The file's lights, camera, floor and
     # ball stay loaded but unlinked, so they do not render.
     for obj in target.objects:
-        if obj is not None and under_rig(obj) and obj.name not in LEFT_OUT:
+        if obj is not None and under_rig(obj):
             collection.objects.link(obj)
     if any(o.name.startswith(RIG_NAME + ".") for o in bpy.data.objects):
         raise SystemExit("a second copy of the rig was appended")
@@ -88,9 +96,10 @@ def shared_studio(config):
     rig = bpy.data.objects[RIG_NAME]
     body = bpy.data.objects[BODY_NAME]
     bones = rig.data.bones
-    # The renderer uses `head`; build 09-gait-v2 spells it `Head`. Models fixes
-    # the producer (spec 3, 12.7). Until then this probe renames it, and only
-    # when the build has `Head` and no `head`.
+    # The renderer on main reads `head`; the contract and the athlete spell it
+    # `Head`, and the renderer is the side that changes (Main, 12 Nov 2026).
+    # Until then this probe renames it in its own process, and only when the
+    # build has `Head` and no `head`.
     if "head" not in bones:
         if "Head" not in bones:
             raise SystemExit(f"{RIG_NAME} has no bone named head or Head")

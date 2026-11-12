@@ -89,8 +89,8 @@ try{
   check('Corrupt browser data has a recovery copy and a visible message',await recoveryPage.evaluate(hash=>localStorage.getItem(`braven-studio.workspace.v1.${hash}.recovery`)==='{broken'&&document.getElementById('notification-text').textContent.includes('recovery copy'),asset))
   await recoveryContext.close()
   await page.click('[data-section="models"]');check('Models library contains the real available model revision',await page.evaluate(async()=>{
-    const manifest=await(await fetch('/athlete-assets/manifest.json')).json(),text=document.getElementById('library-results').textContent
-    return text.includes('Netball athlete')&&text.includes(`Revision ${manifest.revision}`)
+    const manifest=await(await fetch('/athlete-assets/athlete-manifest.json')).json(),text=document.getElementById('library-results').textContent
+    return text.includes('Netball athlete')&&text.includes(`Revision ${manifest.asset.revision}`)
   }))
   await page.click('#model-card');await page.click('[data-tab="animate"]');await page.select('#driver','tactics')
   check('Tactics driver remains connected',await page.evaluate(()=>window.athleteStudio.rig.authored&&window.athleteStudio.state.driver==='tactics'&&window.athleteStudio.rig.group.parent.visible))

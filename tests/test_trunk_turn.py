@@ -137,6 +137,23 @@ class TrunkTurnWiringTest(unittest.TestCase):
         self.assertLess(names.index("pose_trunk_turn"), names.index("pose_girdle"))
         self.assertLess(names.index("pose_stance"), names.index("pose_trunk_turn"))
 
+    def test_the_girdle_is_told_the_turn_so_the_clavicle_angle_is_its_own(self):
+        """`rest_girdle` is read before the trunk turns. Without the turn,
+        `clavicleTurnedDegrees` includes up to 48 degrees of trunk and stops
+        saying how far the clavicle itself turned."""
+        tree = ast.parse((REPO / "blender_movement_render.py").read_text(encoding="utf-8"))
+        pose_phase = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "pose_phase")
+        call = next(
+            n for n in ast.walk(pose_phase)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "pose_girdle"
+        )
+        self.assertEqual(len(call.args), 4, "pose_girdle must be given the trunk turn")
+        pose_girdle = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "pose_girdle")
+        self.assertTrue(any(
+            isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "trunk_turn_matrix"
+            for n in ast.walk(pose_girdle)
+        ), "the clavicle's rest axis must be carried through the turn")
+
 
 if __name__ == "__main__":
     unittest.main()

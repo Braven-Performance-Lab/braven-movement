@@ -79,6 +79,15 @@ not address either, which the probe confirms.
 
 ## `netball_one_hand_high_pass` cannot be posed at its ready phase
 
+**Status: DRAWN since `a484302` (12 Nov 2026) by option C below; the grip
+itself is open with the coach.** The renderer no longer raises: where
+`axis_complaint` refutes the named axis, `applied_flexion_axis` applies the
+limit about the axis that turned. The other eleven drills are identical in
+every bone. Everything below the status line was measured on `4a54964` and
+earlier, before option C. The grip question is in
+`docs/FINDING_HIGH_PASS_READY_GRIP.md`, and the 110.9 degree reading below was
+taken on the hand posed about the rejected axis: on the drawn hand it is 27.7.
+
     FLEXION_AXIS: r index is set to flex about axis 0, which carries only 0.44
     of the turn: x=18.5 y=-7.2 z=42.2 degrees.
 

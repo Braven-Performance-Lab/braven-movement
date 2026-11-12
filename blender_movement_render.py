@@ -332,6 +332,11 @@ def pose_trunk_turn(rig, degrees: float) -> float:
     `spine_01`, the first bone above the pelvis, rotated about world Z through
     the pelvis head: the arms, the clavicles and the head ride on it.
 
+    MEASURED, NOT ASSUMED (12 Nov 2026): `spine_01` is NOT connected to the
+    pelvis on this rig (`use_connect` False), so Blender keeps the translation
+    this sets. At a 48 degree turn its head travels 30.9 mm around the vertical
+    through the pelvis head, which sits 3.8 cm in front of it.
+
     A turn of zero touches no bone, so the eleven drills that do not turn are
     drawn from exactly the pose they had before.
     """
@@ -347,7 +352,7 @@ def pose_trunk_turn(rig, degrees: float) -> float:
     return degrees
 
 
-def pose_girdle(rig, phase: dict, rest: dict) -> dict:
+def pose_girdle(rig, phase: dict, rest: dict, trunk_turn: float = 0.0) -> dict:
     """Put the shoulder girdle where the solve put it, and report the fit.
 
     Until 2026-09-04 this renderer never posed a clavicle. It held one girdle
@@ -429,8 +434,11 @@ def pose_girdle(rig, phase: dict, rest: dict) -> dict:
         over = report["offsetMm"] - reachable
         worst = max(worst, report["offsetMm"])
         excess = max(excess, over)
+        # The clavicle's OWN turn: its rest axis is carried through the trunk
+        # turn first, because `rest_girdle` is read before the trunk turns and
+        # the angle would otherwise include up to 48 degrees of trunk.
         turned = math.degrees(
-            rest["clavicleAxis"][side].angle(
+            (Matrix(trunk_turn_matrix(trunk_turn)) @ rest["clavicleAxis"][side]).angle(
                 (rendered - pivot).normalized()
             )
         )
@@ -588,7 +596,7 @@ def pose_phase(rig, phase: dict, limits: dict, basis: dict, foot_baseline: dict,
     # because the ball is placed from the shoulder midpoint and every arm is
     # aimed from its own shoulder. Posing it afterwards would move the
     # shoulders out from under targets already computed.
-    girdle = pose_girdle(rig, phase, rest)
+    girdle = pose_girdle(rig, phase, rest, turned)
     # A frame nobody can check must not reach a coach. `out of reach` passes,
     # because a bone that cannot stretch is anatomy; a MISSING field does not,
     # because it renders the pre-fix figure and would otherwise print PASS.

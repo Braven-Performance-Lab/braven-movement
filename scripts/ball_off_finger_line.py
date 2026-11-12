@@ -5,11 +5,18 @@ about the bone's own x. So the axis that carries the flexion is decided by where
 the ball is RELATIVE TO THE HAND. This measures that, so the paper can say why
 one pose of twelve turns about z.
 
-NEUTRALISES `axis_complaint` FOR THIS PROCESS ONLY, so the refused pose can be
-measured at all. Nothing on disk changes and the renderer is untouched: the
-substitution lives in this process's own module objects and dies with it. It is
-here because a frame the guard refuses cannot otherwise be measured, and
-"could not measure it" is not a finding.
+It measures the pose THE RENDERER DRAWS. Until option C (`a484302`,
+`applied_flexion_axis`) the guard refused `netball_one_hand_high_pass/ready`,
+and this script disabled `axis_complaint` in its own process so that pose could
+be measured at all. Option C no longer refuses it, and disabling the guard now
+would make every refuted name stand, so the script would measure a hand posed
+about axis 0 while the renderer draws it about axis 2. So nothing is disabled.
+
+THE READING DEPENDS ON THAT CHOICE. The finger line is read from the posed
+finger, and the posed finger depends on the axis its flexion was limited
+about. With the guard disabled (the hand posed about axis 0) the right hand at
+`ready` read 110.9 degrees; on the hand the renderer draws after option C it
+reads 27.7 (12 Nov 2026, `4220714` plus this change).
 
     blender -b --python-exit-code 9 -P scripts/ball_off_finger_line.py --
 """
@@ -23,13 +30,6 @@ REPO = Path(__file__).resolve().parents[1]
 for extra in (REPO, REPO / "spikes"):
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
-
-import finger_curl  # noqa: E402
-
-finger_curl.axis_complaint = lambda *a, **k: None
-import blender_mpfb_reference_catch as reference  # noqa: E402
-
-reference.axis_complaint = lambda *a, **k: None
 
 import blender_movement_render as R  # noqa: E402
 from blender_mpfb_reference_catch import world_head, world_tail  # noqa: E402

@@ -1,5 +1,12 @@
 # The twelfth drill: whose assumption is the flexion axis?
 
+**Status (12 Nov 2026): option C below is implemented (`a484302`) and the
+`ready` phase is drawn. This paper was measured on 7 Sep and is kept as it
+was.** One reading needs its scope: the 110.9 degrees "ball off the finger
+line" was taken with the guard disabled, so the finger was posed with its
+flexion limited about x. On the hand option C draws it reads 27.7 degrees.
+Refer to `docs/FINDING_HIGH_PASS_READY_GRIP.md`.
+
 `netball_one_hand_high_pass` is absent from the `2413f9d` library. Its `ready`
 phase cannot be posed:
 

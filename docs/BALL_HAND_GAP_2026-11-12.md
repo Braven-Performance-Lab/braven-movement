@@ -169,5 +169,6 @@ the other nine drills are checked by their posed geometry, which needs no image.
 
 ## What this does not cover
 
-- `netball_one_hand_high_pass/ready` has no figure, so nothing about its ball
-  is known from the render.
+- Measured on `4a54964`, before option C: `netball_one_hand_high_pass/ready`
+  had no figure, so the 50-phase tables above leave it out. Option C
+  (`a484302`) draws it; its readings are in `docs/FINDING_HIGH_PASS_READY_GRIP.md`.

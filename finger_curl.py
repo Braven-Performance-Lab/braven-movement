@@ -200,9 +200,9 @@ def applied_flexion_axis(
     carried the turn.
 
     This draws `netball_one_hand_high_pass/ready`. It does NOT show that grip
-    is anatomical: the finger there turns through more than a right angle to
-    reach a ball 110.9 degrees off its line, and whether a hand holds a ball
-    that way is a coaching question, recorded in
+    is anatomical: the right index there turns 72.7 degrees about z, an axis no
+    other grip flexes about, and whether a finger can do that is the question
+    the guard existed to ask. It is a coaching question, recorded in
     `docs/FINDING_HIGH_PASS_READY_GRIP.md`.
     """
     complaint = axis_complaint(

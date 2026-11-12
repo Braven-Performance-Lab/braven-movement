@@ -160,8 +160,17 @@ so each technique names it in `gradedClip`.
 
 The writer takes the shipped pose clips file as an input
 (`athlete_manifest.py write <folder> --pose-clips <tactics>/public/figures/clips.json`)
-and refuses one that is not JSON, that has two pose clips made from one drill, or that
-has a pose clip with no build: a clip that cannot say what made it cannot be a record.
+and refuses, with the code `format`, a file that:
+
+- is not JSON, or is not an object of clips by id;
+- has a pose clip whose `movementId` is not a drill name (a non-empty string);
+- has two pose clips made from one drill;
+- has a pose clip with no build, because a clip that cannot say what made it cannot
+  be a record;
+- has a pose clip whose `graded` is not `true` or `false`;
+- links none of the folder's techniques. A wrong file passed by mistake, such as the
+  athlete's own library, links nothing, and the manifest would then say that no
+  technique has a graded record.
 
 Read on 12 November 2026, candidate `09-gait-v2` against Tactics `main` at `14c9b38`:
 9 of the 12 techniques have a pose clip, and 4 of those 9 pose clips are graded. The

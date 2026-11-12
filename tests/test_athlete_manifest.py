@@ -347,9 +347,11 @@ class Refusals(ManifestTest):
         self.assertRefuses("format", am.graded_pose_clips, b"[]")
 
     def test_writer_refuses_a_movement_id_that_is_not_a_drill_name(self):
-        odd = json.loads(POSE_CLIPS)
-        odd["pass.netball.chest-pass"]["movementId"] = ["netball_chest_pass"]
-        self.assertRefuses("format", am.graded_pose_clips, json.dumps(odd).encode())
+        for odd_id in (["netball_chest_pass"], ""):
+            with self.subTest(movementId=odd_id):
+                odd = json.loads(POSE_CLIPS)
+                odd["pass.netball.chest-pass"]["movementId"] = odd_id
+                self.assertRefuses("format", am.graded_pose_clips, json.dumps(odd).encode())
 
     def test_writer_refuses_a_graded_flag_that_is_not_a_boolean(self):
         odd = json.loads(POSE_CLIPS)

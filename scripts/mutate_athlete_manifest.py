@@ -92,6 +92,8 @@ CLAUSES = [
                        "if len(data) != entry['bytes']:"),
     ('fps type only', "if not isinstance(clip.get('fps'), int) or clip['fps'] <= 0:", "if clip['fps'] <= 0:"),
     ('pose clips hash form', "and re.match(r'^[0-9a-f]{64}$', manifest['source']['poseClipsSha256'])", 'and True'),
+    ('movementId type only', 'if not isinstance(movement, str) or not movement:', 'if not isinstance(movement, str):'),
+    ('movementId empty only', 'if not isinstance(movement, str) or not movement:', 'if not movement:'),
     ('graded clip id', "and POSE_CLIP_ID.match(link['clipId'])", 'and True'),
     ('graded clip bool', "and isinstance(link.get('graded'), bool)", 'and True'),
     ('graded clip build', "and isinstance(link.get('build'), str) and COMMIT.match(link['build'])", 'and True'),

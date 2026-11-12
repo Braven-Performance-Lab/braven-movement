@@ -99,3 +99,50 @@ So the gap is mainly the two REST postures, which the displacement field
 assumes are equivalent, and second the clavicle length. It is not a defect
 in how the renderer applies the shift: `rotate_bone_toward` lands on the
 nearest reachable point by construction.
+
+## Options (goal step 3)
+
+### B, measured: send the shift from the engine's STANDING posture, not its rest
+
+Simulated by subtracting the engine's `chest_pass/ready` shift (left
+0.044048, -0.114037, -0.014476; right -0.043878, -0.114333, -0.014548
+torsos) from every phase of copies of the jobs, then posing all phases with
+the unchanged renderer. `python scripts/compare_reach.py out/reach-main.json
+out/reach-optB.json`:
+
+| | Now (`09bf701`) | Option B |
+|---|---:|---:|
+| Shoulder miss, median / max | 23.19 / 41.13 mm | 3.35 / 24.80 mm |
+| Anchor error, median / max | 7.53 / 18.16 mm | 0.19 / 17.61 mm |
+| Phases over 10 mm | 2 | 1 (`hooks_outside_hand/facing_away`) |
+| Ball centre moves, median / max | | 41.9 / 52.7 mm |
+| Largest bone move per drill | | 42.9 to 54.7 mm |
+
+Six phases get worse by more than 0.5 mm: `overhead_pass` lift, step and
+release (to 4.50, 4.52, 3.73 mm), `one_hand_high_pass` ready and lift (to
+7.68, 3.34 mm) and `deflect_high/ready` (to 4.21 mm), the drills that raise
+the arms.
+
+The cost is that EVERY figure's ball moves about 4 cm back, because on main
+the drawn shoulders already follow most of the 4.9 cm forward part of the
+shift and B removes it. Whether that is a correction depends on whether this
+rig's rest pose is the engine's rest or its standing posture. Its clavicle,
+2.85 degrees back, lies between them (32.96 at rest, 15.29 standing). That is
+a modelling judgment and no number here settles it. B also changes a job
+field that the movement side owns.
+
+### A, not measured: send the clavicle's rotation instead of the shoulder's translation
+
+Each body turns its own clavicle by the same angles from its own reference.
+Always reachable by construction; the ball would follow this rig's anatomy.
+Needs a new job field and the same choice of reference as B.
+
+### C, not measured: turn this rig's rest clavicles back to the engine's rest
+
+Rotate the rest clavicles about 30 degrees back so both rests match, and keep
+the field. Changes this rig's anatomy at rest and every figure; the length
+difference remains.
+
+### D: keep and record
+
+The gap stays as recorded in `docs/KNOWN_ISSUES.md`.

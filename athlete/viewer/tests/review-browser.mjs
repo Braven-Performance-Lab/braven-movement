@@ -183,7 +183,12 @@ try {
   await page.waitForFunction(() => window.athleteStudio.state.view === 'free' && document.getElementById('comment-view').textContent === 'Camera: Own angle', { timeout: 5000 }).catch(() => {})
   check('A camera the person moved is their own angle', await page.evaluate(() => window.athleteStudio.state.view === 'free')
     && (await text('#comment-view')) === 'Camera: Own angle')
+  // Straight after a drag, while the camera would still coast: the chosen view must hold.
+  await page.mouse.move(700, 400); await page.mouse.down(); await page.mouse.move(790, 400, { steps: 3 }); await page.mouse.up()
   await page.click('#three-quarter')
+  await wait(600)
+  check('A named view chosen straight after a drag holds', await page.evaluate(() => window.athleteStudio.state.view === 'quarter'
+    && document.getElementById('three-quarter').classList.contains('selected')))
   check('An author is not offered an approval', await page.$eval('input[name="comment-kind"][value="approve"]', (el) => el.disabled))
   await page.type('#comment-list .comment .answer-form input', 'Thank you. The knee is fixed in the next version.')
   await page.click('#comment-list .comment .answer-form button')

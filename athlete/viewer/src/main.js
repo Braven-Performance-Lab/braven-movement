@@ -76,6 +76,9 @@ function markView(name) {
 }
 function view(name) {
   const pose = viewPose(name)
+  // Spend what is left of an earlier drag first. With damping on, the controls would go on
+  // turning the camera after it is placed, and the person would not be at the view they chose.
+  controls.enableDamping = false; controls.update(); controls.enableDamping = true
   camera.position.copy(pose.position); controls.target.copy(pose.target)
   controls.update()
   markView(name)

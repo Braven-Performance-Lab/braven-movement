@@ -44,7 +44,9 @@ number that says whether a FIGURE is right is `ballAnchorErrorMm`.
 
 The clavicle is turned up to 68.33 degrees to follow the girdle. Nothing in this
 lane bounds that angle, and a real clavicle's elevation and protraction are
-limited. That is a missing instrument.
+limited. That is a missing instrument. (Measured before the trunk turn, when
+the angle included the trunk. Since `d252a34` `clavicleTurnedDegrees` is the
+clavicle's own turn: 0.56 to 28.80 degrees on `09bf701`.)
 
 ### With the trunk turn (12 Nov 2026): two phases remain over the rule
 
@@ -95,9 +97,15 @@ and `scripts/rig_rest_clavicle.py` on `09bf701`, both sides:
 The engine stands by swinging a long clavicle forward from 33 degrees back,
 which carries the shoulder 4.9 cm forward AND 1.9 cm out. This rig's shorter
 clavicle already points almost straight out, so it can follow that forward
-movement only inward. That is the median 23.19 mm per-shoulder miss (21.85 mm
-of it across) at every neutral phase, measured with
-`scripts/ball_hand_gap_render.py`.
+movement only inward. Over all 102 shoulders of all 51 phases the median miss
+is 23.19 mm (21.85 mm of it across), measured with
+`scripts/ball_hand_gap_render.py`. The drills that raise the arms miss less:
+`deflect_high`, `overhead_pass` and `one_hand_high_pass` have drill medians
+of 5 to 13 mm.
+
+The rig's rest clavicle (2.85 degrees back) is further forward than the
+engine's STANDING posture (15.29), not between its rest and standing angles,
+as the record first said.
 
 FOUR READINGS, one instrument, all 51 phases (anchor error median / max,
 phases over 10 mm, phases more than 0.5 mm worse, ball centre move median):

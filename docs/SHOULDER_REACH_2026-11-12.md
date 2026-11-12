@@ -133,10 +133,16 @@ the arms.
 The cost is that EVERY figure's ball moves about 4 cm back, because on main
 the drawn shoulders already follow most of the 4.9 cm forward part of the
 shift and B removes it. Whether that is a correction depends on whether this
-rig's rest pose is the engine's rest or its standing posture. Its clavicle,
-2.85 degrees back, lies between them (32.96 at rest, 15.29 standing). That is
-a modelling judgment and no number here settles it. B also changes a job
-field that the movement side owns.
+rig's rest pose is the engine's rest or its standing posture. Its clavicle is
+2.85 degrees back: FURTHER FORWARD than the engine's standing posture (15.29)
+and far from its rest (32.96). By that number this rig's rest is on the
+standing side, or past it. B also changes a job field that the movement side
+owns.
+
+**A CORRECTION (12 Nov 2026, review of `3127993`).** The first version of this
+paragraph said the rig's clavicle "lies between" the engine's rest and
+standing angles and that no number settles the question. 2.85 is not between
+15.29 and 32.96. Main ruled option D on that framing.
 
 ### A and C, measured, beside B
 

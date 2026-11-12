@@ -755,7 +755,10 @@ def load_shared_athlete(master: Path, master_sha256: str):
     - The file is hashed again just before it is read, against the manifest's
       SHA-256 the validator checked, so the bytes drawn are the bytes named.
     """
-    if sha256(master) != master_sha256:
+    # Lower case, as the Models lane's validator compares it
+    # (`athlete_manifest.py`, `entry['sha256'].lower()`): an upper-case hash
+    # it passed would otherwise read here as a changed file.
+    if sha256(master) != master_sha256.lower():
         raise SharedAthleteRefusal(f"{master.name} changed after its manifest was validated")
     bpy.ops.wm.read_factory_settings(use_empty=True)
     with bpy.data.libraries.load(str(master), link=False) as (source, target):

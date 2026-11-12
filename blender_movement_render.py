@@ -283,7 +283,10 @@ def reset_pose(rig, basis: dict) -> None:
     bpy.context.view_layer.update()
 
 
-GIRDLE_FIELD = "shoulderShiftFromRestInTorsos"
+# Girdle widths, not torso lengths: a turn moves a shoulder on a circle of half
+# the girdle width, and the solve's girdle is about 16 per cent wider per torso
+# than this rig's. Refer to `rest_girdle_width` in spikes/export_blender_job.py.
+GIRDLE_FIELD = "shoulderShiftFromRestInGirdles"
 
 
 
@@ -307,6 +310,9 @@ def rest_girdle(rig) -> dict:
         "pelvis": pelvis,
         "offset": {side: shoulders[side] - pelvis for side in ("l", "r")},
         "torso": (midpoint - pelvis).length,
+        # The divisor the transmitted shift is scaled by: this rig's own
+        # shoulder-to-shoulder distance at rest.
+        "girdle": (shoulders["l"] - shoulders["r"]).length,
         # The clavicle's own length. It is the RADIUS of everything the girdle
         # can reach, because the bone rotates about its sternal end and does
         # not stretch.
@@ -388,6 +394,7 @@ def pose_girdle(rig, phase: dict, rest: dict) -> dict:
         return {
             "verdict": UNAVAILABLE,
             "restTorsoM": round(rest["torso"], 6),
+            "restGirdleM": round(rest["girdle"], 6),
             "worstOffsetMm": None,
             "sides": {},
         }
@@ -400,7 +407,7 @@ def pose_girdle(rig, phase: dict, rest: dict) -> dict:
     wanted = {
         side: Vector(shoulder_position(
             shift[side], tuple(rest["offset"][side]), tuple(pelvis),
-            rest["torso"],
+            rest["girdle"],
         ))
         for side in ("l", "r")
     }
@@ -441,7 +448,7 @@ def pose_girdle(rig, phase: dict, rest: dict) -> dict:
             "reachableMissMm": round(reachable, 4),
             "beyondReachableMm": round(over, 4),
             "perAxisMm": [round(value, 4) for value in report["perAxisMm"]],
-            "shiftInTorsos": shift[side],
+            "shiftInGirdles": shift[side],
         }
     # THE NUMBER THE BALL CARRIES. The ball is placed from the shoulder
     # MIDPOINT, so a per-shoulder miss is not what lands in the figure. The two
@@ -467,6 +474,7 @@ def pose_girdle(rig, phase: dict, rest: dict) -> dict:
     return {
         "verdict": verdict,
         "restTorsoM": round(rest["torso"], 6),
+        "restGirdleM": round(rest["girdle"], 6),
         "worstOffsetMm": round(worst, 4),
         "worstBeyondReachableMm": round(excess, 4),
         # What the BALL inherits, in millimetres.

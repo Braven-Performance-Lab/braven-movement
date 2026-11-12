@@ -282,6 +282,22 @@ def rest_torso(rest_points, index) -> float:
     return float(np.linalg.norm(middle - pelvis))
 
 
+def rest_girdle_width(rest_points, index) -> float:
+    """The distance between the two shoulders, at REST, in Blender metres.
+
+    The unit `shoulderShiftFromRestInGirdles` crosses in. A trunk turn moves a
+    shoulder on a circle whose radius is half this width, so a shift divided by
+    it lands, on a body with a different width, where that body's own turn
+    would put its shoulder. Divided by the torso instead, it asked a rig whose
+    girdle is narrower per torso for the solve's distance: 16.8 cm against
+    12.6 cm at `hooks_outside_hand/facing_away`.
+    """
+    return float(np.linalg.norm(
+        to_blender(rest_points[index["l_uparm"]])
+        - to_blender(rest_points[index["r_uparm"]])
+    ))
+
+
 def _stance(points, index, rest_points=None) -> dict:
     """The stance, in leg lengths, measured from the pelvis.
 
@@ -391,6 +407,19 @@ def phase_job(result, index, frame: int, method, rest_points) -> dict:
     centre = to_blender(held.centre)
     radius = float(result["radiusCm"]) / 100.0
     torso = rest_torso(rest_points, index)
+    girdle_width = rest_girdle_width(rest_points, index)
+    # Each shoulder's pelvis-relative displacement from rest, in metres. Sent
+    # below in two units; the renderer reads the girdle widths.
+    shoulder_shift = {
+        side: (
+            to_blender(points[index[f"{side}_uparm"]])
+            - to_blender(points[index["root"]])
+        ) - (
+            to_blender(rest_points[index[f"{side}_uparm"]])
+            - to_blender(rest_points[index["root"]])
+        )
+        for side in ("l", "r")
+    }
 
     job = {
         "frame": int(frame),
@@ -466,6 +495,16 @@ def phase_job(result, index, frame: int, method, rest_points) -> dict:
                 )
                 / torso
             ]
+            for side in ("l", "r")
+        },
+        # THE SAME DISPLACEMENT IN GIRDLE WIDTHS, the unit the renderer reads.
+        # A turn moves a shoulder on a circle of half the girdle width, so each
+        # body must scale it by its own girdle, not its torso: the solve's
+        # girdle is about 16 per cent wider per torso than the rendering rig's,
+        # and in torso lengths the rig was asked for 16.8 cm where its own
+        # 48 degree turn moves 12.6 (`hooks_outside_hand/facing_away`).
+        "shoulderShiftFromRestInGirdles": {
+            side: [round(float(v), 6) for v in shoulder_shift[side] / girdle_width]
             for side in ("l", "r")
         },
         # THE TRUNK TURN THE SOLVE APPLIED, in degrees about the vertical

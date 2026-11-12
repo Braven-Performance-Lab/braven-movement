@@ -338,6 +338,7 @@ class TheJobCarriesItsOwnAnchor(unittest.TestCase):
             _stance,
             blender_arm,
             phase_job,
+            rest_girdle_width,
             to_blender,
         )
 
@@ -393,9 +394,29 @@ class TheJobCarriesItsOwnAnchor(unittest.TestCase):
                             sides,
                         ),
                     )
+                # THE TRUNK TURN, from the solve's own `turns` and nothing rebuilt.
+                self.assertEqual(
+                    job["trunkTurnDegrees"], round(float(result["turns"][frame]), 6)
+                )
+                # THE GIRDLE SHIFT IN GIRDLE WIDTHS: the same displacement as
+                # FIELD, divided by the solve's own rest shoulder width.
+                width = rest_girdle_width(rest_points, index)
+                for side in ("l", "r"):
+                    shift = (
+                        to_blender(points[index[f"{side}_uparm"]])
+                        - to_blender(points[index["root"]])
+                    ) - (
+                        to_blender(rest_points[index[f"{side}_uparm"]])
+                        - to_blender(rest_points[index["root"]])
+                    )
+                    self.assertEqual(
+                        job["shoulderShiftFromRestInGirdles"][side],
+                        [round(float(v), 6) for v in shift / width],
+                    )
                 self.assertEqual(
                     set(job),
-                    {"frame", "arms", "hands", "stance", FIELD, "ball"}
+                    {"frame", "arms", "hands", "stance", FIELD, "ball",
+                     "trunkTurnDegrees", "shoulderShiftFromRestInGirdles"}
                     | ({"grip"} if sides else set()),
                     f"{movement_id} frame {frame} carries an unexpected key set",
                 )

@@ -32,6 +32,20 @@ measured on 7 Sep (`docs/FLEXION_AXIS_PAPER.md`), and it has not changed.
   catch a finger turning past its licence, and at this grip the finger turns
   through more than a right angle to reach the ball.
 
+## The figure option C draws
+
+Rendered on `a484302`, the commit that implements option C. The receipt
+records the right index with `namedAxis` 0 and `appliedAxis` 2, turned
+x=26.8 y=-19.9 z=72.7 degrees.
+
+- The right hand is under and behind the ball, wrist bent back, fingers
+  pointing up. The ball is at chin height.
+- In the front view the ball touches her chin and mouth. The receipt's body
+  clearance agrees: 51 skin vertices inside the ball, at most 8.63 mm deep.
+  The fingers are outside it (nearest digit 5.42 mm).
+- For scale, on `main` `netball_chest_pass/release` already has 188 vertices
+  inside the ball, at most 20.25 mm deep.
+
 ## The question for the coach
 
 At `ready` in the one-hand high pass, where is the ball relative to the

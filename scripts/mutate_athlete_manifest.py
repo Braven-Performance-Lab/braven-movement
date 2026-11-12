@@ -26,6 +26,7 @@ TEST = REPO / 'tests' / 'test_athlete_manifest.py'
 # exactly one row here; WRITE_MUTATIONS removes a call rather than a refusal and is counted apart.
 MUTATIONS = [
     ('file not a GLB', "if magic != b'glTF' or kind != 0x4E4F534A:", 'if False:'),
+    ('format absent', 'if not (folder / MANIFEST_NAME).is_file():', 'if False:'),
     ('format', "if manifest.get('format') != FORMAT or manifest.get('formatVersion') != FORMAT_VERSION:", 'if False:'),
     ('format review', "if clip.get('review') not in REVIEW_STATES:", 'if False:'),
     ('path local text', 'if LOCAL_PATH.search(text):', 'if False:'),

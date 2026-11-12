@@ -121,7 +121,7 @@ holds. Each refusal has a code, so that a test can name the refusal it expects.
 
 | Code | The validator refuses when |
 |---|---|
-| `format` | `format` is not `braven-athlete-manifest`, or `formatVersion` is not a version it knows. |
+| `format` | The folder has no `athlete-manifest.json` (a build from before this format), `format` is not `braven-athlete-manifest`, or `formatVersion` is not a version it knows. |
 | `path` | A file path is absolute, has a drive letter, has a `\` or has a `..` part; or any text in the manifest names a place on one machine, such as a drive letter or a home folder (MAN-5). The validator does not follow symbolic links: the pipeline writes none, and the `file` check hashes what it reads. |
 | `file` | A file in `files` is missing, or its size or hash differs. |
 | `role` | `files` has no `model`, or more than one, or no `library` while `clips` holds a technique. |

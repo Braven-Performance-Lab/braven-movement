@@ -202,6 +202,10 @@ class Refusals(ManifestTest):
         self.folder.edit(lambda m: m["files"].pop("movement-library.json"))
         self.assertRefuses("role", am.validate, self.root)
 
+    def test_format_legacy_folder_with_no_manifest(self):
+        (self.root / am.MANIFEST_NAME).unlink()
+        self.assertRefuses("format", am.validate, self.root)
+
     def test_format_unknown_review_state(self):
         self.folder.edit(lambda m: m["clips"][0].update(review="approved"))
         self.assertRefuses("format", am.validate, self.root)

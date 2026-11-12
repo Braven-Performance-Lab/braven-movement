@@ -174,6 +174,8 @@ def write(folder: Path, manifest: dict) -> Path:
 def validate(folder: Path, supported_families=None) -> dict:
     """Return the manifest if the folder matches it; raise ManifestRefusal with its code if not."""
     folder = Path(folder)
+    if not (folder / MANIFEST_NAME).is_file():
+        raise ManifestRefusal('format', f'no {MANIFEST_NAME}: write it with athlete_manifest.py write <folder>')
     manifest = json.loads((folder / MANIFEST_NAME).read_text(encoding='utf-8'))
     if manifest.get('format') != FORMAT or manifest.get('formatVersion') != FORMAT_VERSION:
         raise ManifestRefusal('format', f"{manifest.get('format')!r} version {manifest.get('formatVersion')!r}")

@@ -837,8 +837,9 @@ def max_finger_base_deviation_degrees(armature: bpy.types.Object) -> float:
 
 
 def orient_head_to_ball(armature: bpy.types.Object, ball_centre: Vector) -> None:
-    # Looked up, not assumed: the render rig says `head`, the rig contract and
-    # the shared athlete `Head`.
+    # The rig contract's `Head` (spec 3, 12.7). The shared athlete spells it so,
+    # and the generated body gets it from `use_contract_names`; a rig without
+    # it is refused rather than guessed at.
     name = head_bone_name(armature.pose.bones.keys())
     bone = armature.pose.bones[name]
     pivot = world_head(armature, name)

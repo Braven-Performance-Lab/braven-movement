@@ -25,6 +25,7 @@ from shared_athlete import (  # noqa: E402
     athlete_record,
     constraint_to_mute,
     contract_renames,
+    driver_is_inert,
     external_asset_records,
     head_bone_name,
     master_record,
@@ -170,6 +171,26 @@ class ConstraintRuleTest(unittest.TestCase):
                 constraint_to_mute("skirt_04", kind, target)
 
 
+class DriverRuleTest(unittest.TestCase):
+    """Review round 2: drivers were neither muted nor refused. Build
+    09-gait-v2 has four, and each drives only the influence of one of the
+    four IK constraints the loader mutes, so they change nothing. That is
+    the only kind of driver accepted; any other is refused."""
+
+    MUTED = {("lowerarm_l", "Hand IK (enable on rig custom properties)")}
+
+    def test_a_driver_on_a_muted_constraints_influence_is_accepted(self):
+        path = 'pose.bones["lowerarm_l"].constraints["Hand IK (enable on rig custom properties)"].influence'
+        self.assertTrue(driver_is_inert(path, self.MUTED))
+
+    def test_any_other_driver_is_refused(self):
+        for path in ('pose.bones["lowerarm_r"].constraints["Hand IK (enable on rig custom properties)"].influence',
+                     'pose.bones["spine_02"].rotation_quaternion',
+                     'pose.bones["lowerarm_l"].constraints["Hand IK (enable on rig custom properties)"].pole_angle'):
+            with self.assertRaises(SharedAthleteRefusal):
+                driver_is_inert(path, self.MUTED)
+
+
 class SharedAthleteWiringTest(unittest.TestCase):
     """The Blender side of the switch, pinned on the syntax tree.
 
@@ -207,6 +228,8 @@ class SharedAthleteWiringTest(unittest.TestCase):
         names = {name for _, name in self.calls(self.function("load_shared_athlete"))}
         self.assertIn("head_bone_name", names)
         self.assertIn("constraint_to_mute", names)
+        # Review round 2: drivers are checked, not left in place unread.
+        self.assertIn("driver_is_inert", names)
 
     def test_the_loader_hashes_the_file_before_it_reads_it(self):
         loader = self.function("load_shared_athlete")

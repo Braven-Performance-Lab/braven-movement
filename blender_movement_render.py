@@ -52,6 +52,7 @@ from shared_athlete import (  # noqa: E402
     athlete_master,
     athlete_record,
     constraint_to_mute,
+    driver_is_inert,
     external_asset_records,
     head_bone_name,
     master_record,
@@ -732,6 +733,13 @@ SHARED_LEFT_OUT = ("Movement_Ball",)
 def load_shared_athlete(master: Path, master_sha256: str):
     """The shared athlete's rig and meshes, in an empty scene of their own.
 
+    NOT YET RUN BY THE RENDERER. `Studio` calls this only after the licence
+    check, and that check refuses the master build file until the owner rules
+    on its licence (`Main/athlete-build-licence`). So today every `--athlete`
+    run stops with `LicenceUndetermined` before this function. This function
+    ran once on 09-gait-v2 from a script that skips the licence check, and
+    drew nothing (`docs/SHARED_ATHLETE_2026-11-12.md`).
+
     Measured on 12 Nov 2026 (`docs/SHARED_ATHLETE_2026-11-12.md`):
     - OPENING the build file brought its own Key, Fill and Rim lights, camera,
       floor and world, and lit the athlete twice. So the scene starts empty,
@@ -782,11 +790,37 @@ def load_shared_athlete(master: Path, master_sha256: str):
     head_bone_name(rig.pose.bones.keys())
     if rig.animation_data:
         rig.animation_data.action = None
+    muted = set()
     for bone in rig.pose.bones:
         for constraint in bone.constraints:
             if constraint_to_mute(bone.name, constraint.type, getattr(constraint, "subtarget", "")):
                 constraint.mute = True
+                muted.add((bone.name, constraint.name))
         bone.matrix_basis = Matrix.Identity(4)
+    # Review round 2 of PR #152: OBJECT constraints and DRIVERS were neither
+    # muted nor refused. 09-gait-v2 has no object constraint, and its only
+    # drivers are the rig's four on the influence of the IK constraints muted
+    # above, which change nothing. Anything else is refused, never muted.
+    for obj in (rig, *meshes):
+        if obj.constraints:
+            raise SharedAthleteRefusal(
+                f"{master.name}: {obj.name} carries an object constraint "
+                f"({obj.constraints[0].type}); the renderer accepts none")
+        # (on the object itself?, its animation data). Compared by that flag,
+        # never by `is`: Blender returns a new Python wrapper at every access,
+        # so `holder is obj.animation_data` was False and refused 09-gait-v2.
+        holders = [(True, obj.animation_data)]
+        shape_keys = getattr(getattr(obj, "data", None), "shape_keys", None)
+        if shape_keys is not None:
+            holders.append((False, shape_keys.animation_data))
+        for on_object, holder in holders:
+            for driver in (holder.drivers if holder else ()):
+                if obj != rig or not on_object:
+                    raise SharedAthleteRefusal(
+                        f"{master.name}: {obj.name} carries a driver on "
+                        f"{driver.data_path}; the renderer accepts only the rig's "
+                        f"drivers on the influence of a constraint it mutes")
+                driver_is_inert(driver.data_path, muted)
     bpy.context.view_layer.update()
     body = next((m for m in meshes if m.name == SHARED_BODY), None)
     if body is None:

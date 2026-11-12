@@ -140,6 +140,25 @@ def contract_renames(names) -> dict:
     return renames
 
 
+def driver_is_inert(data_path: str, muted) -> bool:
+    """True for a driver that can change nothing; a refusal for any other.
+
+    Review round 2 of PR #152: drivers were neither muted nor refused. Build
+    09-gait-v2 has four, and each drives the INFLUENCE of one of the four IK
+    constraints the loader mutes (`IK_hand_l` and its siblings, rig custom
+    properties). A muted constraint has no effect at any influence, so those
+    drivers are left in place. `muted` holds (bone, constraint) pairs. Any
+    other driver could move the body the renderer poses, so it is refused.
+    """
+    for bone, constraint in muted:
+        if data_path == f'pose.bones["{bone}"].constraints["{constraint}"].influence':
+            return True
+    raise SharedAthleteRefusal(
+        f"the rig carries a driver on {data_path}; the renderer accepts only "
+        f"drivers on the influence of a constraint it mutes."
+    )
+
+
 def constraint_to_mute(bone: str, kind: str, target: str) -> bool:
     """True for the constraints the renderer mutes; a refusal for any other.
 

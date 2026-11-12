@@ -458,6 +458,15 @@ class CommandLine(ManifestTest):
                 am.main(["write", str(self.root)])
         self.assertFalse((self.root / am.MANIFEST_NAME).exists())
 
+    def test_write_that_fails_on_disk_leaves_the_old_manifest_whole(self):
+        folder = Folder(self.root)
+        folder.write_v1()
+        before = (self.root / am.MANIFEST_NAME).read_bytes()
+        with mock.patch.object(am.os, "replace", side_effect=OSError("disk full")):
+            with self.assertRaises(OSError):
+                am.write(self.root, am.convert_legacy(self.root, kit_id="another-kit"))
+        self.assertEqual((self.root / am.MANIFEST_NAME).read_bytes(), before)
+
     def test_write_keeps_the_manifest_when_the_folder_matches(self):
         Folder(self.root)
         self.assertEqual(am.main(["write", str(self.root)]), 0)

@@ -15,7 +15,8 @@ async function open(dir){
   const page=await browser.newPage();page.on('pageerror',e=>errors.push(String(e)))
   await page.setRequestInterception(true)
   page.on('request',r=>{const name=r.url().split('/athlete-assets/')[1]?.split('?')[0]
-    if(['netball-athlete.glb','movement-library.json','manifest.json'].includes(name))r.respond({status:200,contentType:name.endsWith('glb')?'model/gltf-binary':'application/json',body:fs.readFileSync(path.join(dir,name))})
+    // Studio reads athlete-manifest.json; the candidate folder needs one (athlete_manifest.py write).
+    if(['netball-athlete.glb','movement-library.json','athlete-manifest.json'].includes(name))r.respond({status:200,contentType:name.endsWith('glb')?'model/gltf-binary':'application/json',body:fs.readFileSync(path.join(dir,name))})
     else r.continue()
   })
   await page.goto(process.env.STUDIO_URL||'http://127.0.0.1:5397/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>window.bravenStudio);return page

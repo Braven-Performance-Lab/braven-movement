@@ -232,7 +232,8 @@ function download(name, data) {
 }
 
 async function init() {
-  const manifestResponse=await fetch('/athlete-assets/manifest.json')
+  // The checked manifest (docs/ATHLETE_MANIFEST.md): Studio serves no other description of the model.
+  const manifestResponse=await fetch('/athlete-assets/athlete-manifest.json')
   if(!manifestResponse.ok)throw new Error('The model manifest is missing. Rebuild Studio with the athlete output directory.')
   const manifest=await manifestResponse.json()
   movementLibrary = await fetch('/athlete-assets/movement-library.json').then(r => r.ok ? r.json() : {techniques:[]}).catch(() => ({techniques:[]}))
@@ -280,8 +281,8 @@ async function init() {
   appearance(); playClip('netball_chest_pass'); sample()
   window.athleteStudio = { state, model, rig, bones, clips, mixer, scene, renderer, camera, controls,
     sample, playClip, selectClip, enterPose, appearance, updateVisibility, movementLibrary, view, duration,
-    assetHash:manifest.files['netball-athlete.glb'].sha256.toLowerCase(),
-    assetRevision:manifest.revision,
+    assetHash:Object.values(manifest.files).find(f=>f.role==='model').sha256.toLowerCase(),
+    assetRevision:manifest.asset.revision,
     pause:()=>{advancePlayback(performance.now());state.playing=false;sample()},
     seek:time=>{if(state.poseMode)playClip(state.clip);previous=performance.now();state.playing=false;state.time=Math.max(0,Math.min(time,duration()-.001));sample()},
     captureSetup, applySetup,

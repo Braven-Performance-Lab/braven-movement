@@ -87,6 +87,8 @@ WRITES = [
                       '    path = Path(folder) / MANIFEST_NAME'),
     ('restore on refusal', '                written.write_bytes(before)', '                pass'),
     ('remove on failure', '                written.unlink(missing_ok=True)', '                pass'),
+    ('atomic write', "partial.write_text(json.dumps(manifest, indent=2) + '\\n', encoding='utf-8')\n    os.replace(partial, path)",
+                     "path.write_text(json.dumps(manifest, indent=2) + '\\n', encoding='utf-8')"),
 ]
 # Ways a refusal can be lost without its guard being switched off.
 ROBUSTNESS = [

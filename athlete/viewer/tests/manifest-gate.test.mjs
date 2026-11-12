@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { checkAthlete } from '../manifest-gate.mjs'
+import { acceptAthlete, checkAthlete, copyAccepted, readAccepted } from '../manifest-gate.mjs'
 
 // The gate Studio's config runs before it serves an athlete. The folder is built by the host
 // tests' own Folder helper (tests/test_athlete_manifest.py), so Studio and the validator's
@@ -46,6 +46,61 @@ test('Studio refuses a build from before the format', () => {
     fs.rmSync(path.join(dir, 'athlete-manifest.json'))
     assert.throws(() => checkAthlete(dir), /REFUSED format:/)
   } finally { fs.rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('Studio serves the checked manifest and the files it lists, and nothing else', () => {
+  const dir = folder()
+  try {
+    const accepted = acceptAthlete(dir)
+    assert.deepEqual([...accepted.entries.keys()].sort(),
+      ['athlete-manifest.json', 'movement-library.json', 'netball-athlete.blend', 'netball-athlete.glb'])
+    assert.ok(fs.existsSync(path.join(dir, 'manifest.json')), 'the legacy manifest is in the folder')
+    assert.throws(() => readAccepted(accepted, 'manifest.json'), /not a file this athlete's manifest lists/)
+    assert.equal(readAccepted(accepted, 'netball-athlete.blend').toString(), 'master')
+  } finally { fs.rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('Studio refuses to serve a file that changed after it checked the athlete', () => {
+  const dir = folder()
+  try {
+    const accepted = acceptAthlete(dir)
+    fs.writeFileSync(path.join(dir, 'netball-athlete.blend'), 'MASTER')
+    assert.throws(() => readAccepted(accepted, 'netball-athlete.blend'), /changed after Studio checked/)
+  } finally { fs.rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('a build copies only the listed files, removes what an earlier build left, and checks every copy', () => {
+  const dir = folder()
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-dist-'))
+  try {
+    fs.writeFileSync(path.join(out, 'manifest.json'), '{"left":"by an earlier build"}')
+    copyAccepted(acceptAthlete(dir), out)
+    assert.deepEqual(fs.readdirSync(out).sort(),
+      ['athlete-manifest.json', 'movement-library.json', 'netball-athlete.blend', 'netball-athlete.glb'])
+    assert.equal(fs.readFileSync(path.join(out, 'netball-athlete.blend')).toString(), 'master')
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(out, { recursive: true, force: true }) }
+})
+
+test('a build refuses when the manifest changed between start-up and the copy', () => {
+  const dir = folder()
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-dist-'))
+  try {
+    const accepted = acceptAthlete(dir)
+    const manifestPath = path.join(dir, 'athlete-manifest.json')
+    const m = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); m.kit.id = 'another-kit'
+    fs.writeFileSync(manifestPath, JSON.stringify(m))
+    assert.throws(() => copyAccepted(accepted, out), /manifest changed during the build/)
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(out, { recursive: true, force: true }) }
+})
+
+test('a build refuses a listed file that changed after start-up, even with the manifest unchanged', () => {
+  const dir = folder()
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-dist-'))
+  try {
+    const accepted = acceptAthlete(dir)
+    fs.writeFileSync(path.join(dir, 'netball-athlete.blend'), 'MASTER')
+    assert.throws(() => copyAccepted(accepted, out), /Studio refuses the athlete.*REFUSED file:/)
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(out, { recursive: true, force: true }) }
 })
 
 test('Studio says so when it cannot run the check at all', () => {

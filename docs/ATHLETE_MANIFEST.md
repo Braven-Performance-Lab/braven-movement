@@ -124,23 +124,29 @@ holds. Each refusal has a code, so that a test can name the refusal it expects.
 
 | Code | The validator refuses when |
 |---|---|
-| `format` | The folder has no `athlete-manifest.json` (a build from before this format); the manifest is not JSON; `format` is not `braven-athlete-manifest`; `formatVersion` is not a version it knows; a clip's `review` is not one of the four states; or a clip's `fps` is not a whole number above zero. |
+| `format` | The folder has no `athlete-manifest.json` (a build from before this format); the manifest is not JSON or is not a JSON object; `format` is not `braven-athlete-manifest`; `formatVersion` is not a version it knows; a clip's `review` is not one of the four states; or a clip's `fps` is not a whole number above zero. |
 | `path` | A file path has a `\`, is absolute or starts with a drive letter, or has a `..` part; or any text in the manifest names a place on one machine: a drive letter with a separator, a UNC share, a home folder (`~/`), or a root path of two or more parts such as `/opt/x` (MAN-5). The validator does not follow symbolic links: the pipeline writes none, and the `file` check hashes what it reads. |
-| `file` | A file in `files` is missing, or its size or hash differs; or the model is not a GLB, is too short, or has a JSON chunk that cannot be read. |
+| `file` | A file in `files` is missing, or its size or hash differs; or the model is not a GLB, is too short, or has a JSON chunk that cannot be read or is not a JSON object. |
 | `role` | `files` has no `model`, or more than one, or no `library` while `clips` holds a technique. |
 | `clip-set` | The GLB's animations are not exactly the ids in `clips`, the manifest lists one clip twice, or the GLB has two animations with one name. |
-| `clip-timing` | A clip's duration in the GLB differs by more than half a frame at its `fps` from the manifest's `seconds`, from the library's `seconds`, or from the library's frame count (`(frameCount - 1) / fps`). |
-| `library` | The library is not JSON; it was made for another model (its `assetSha256` is not the model's hash); it lists one technique twice; its techniques are not exactly the `technique` clips; or a technique's frame count, frame rate, contact or release differs from its clip entry. |
+| `clip-timing` | A clip's duration in the GLB differs by more than half a frame at its `fps` from the manifest's `seconds`, from the library's `seconds`, or from the library's frame count (`(frameCount - 1) / fps`); or the library gives no `seconds`, or one that is not a number. |
+| `library` | The library is not JSON or is not a JSON object; it was made for another model (its `assetSha256` is not the model's hash); it lists one technique twice; its techniques are not exactly the `technique` clips; or a technique's frame count, frame rate, contact or release differs from its clip entry. |
 | `rig` | The GLB's joint count is not `jointCount`; its joint names do not hash to `jointSetSha256`; `contractBones` is not the list this validator knows; or a contract bone is missing from the model with that exact spelling and case. |
 | `family` | `rig.family` is not a family the consumer supports. The family is always checked: a consumer that names no family supports `braven-athlete-v6` only. |
 
-A consumer runs the validator before it uses the set. On this change the validator and
-its command line exist in Movement. Making each consumer run it is separate work:
+A consumer runs the validator before it uses the set.
 
-- the Braven Tactics importer: pull request Braven-Performance-Lab/braven-tactics#730;
-- Braven Studio: branch `lane/models-studio-manifest`.
+- **Braven Studio** runs `athlete_manifest.py check` before its dev server, build or preview
+  starts, and stops with the refusal code. It then serves only `athlete-manifest.json` and the
+  files it lists, and hashes each file again when it serves or copies it, so a folder that
+  changes after the check is not served (athlete/viewer/manifest-gate.mjs).
+- **The Braven Tactics importer** runs a mirror of this validator, with the same codes, before
+  it writes its sidecar: pull request Braven-Performance-Lab/braven-tactics#730, not yet merged.
+  Until it lands, Tactics checks only the model's hash.
 
-Until those land, nothing outside this repository refuses a mismatched set.
+`write` writes the manifest beside the build and swaps it in, so a failed write leaves the
+manifest that was there before. The command line puts that manifest back, or removes the new
+one, when the check that follows fails for any reason.
 
 ## 4. What this does not decide
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import struct
 import sys
@@ -64,7 +65,7 @@ def read_glb(path: Path) -> dict:
     try:
         doc = json.loads(data[20:20 + size])
         # A chunk whose top level is not an object fails on doc.get with AttributeError, caught below.
-        names =[a['name'] for a in doc.get('animations', [])]
+        names = [a['name'] for a in doc.get('animations', [])]
         durations = [max(doc['accessors'][s['input']]['max'][0] for s in a['samplers'])
                      for a in doc.get('animations', [])]
         skins = doc.get('skins', [])
@@ -195,7 +196,10 @@ def write(folder: Path, manifest: dict) -> Path:
     """Write the manifest, refusing a local path before anything reaches the disk."""
     _check_paths(manifest)
     path = Path(folder) / MANIFEST_NAME
-    path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+    # Written beside the target, then swapped in: a failed write leaves the old manifest whole.
+    partial = path.with_name(MANIFEST_NAME + '.partial')
+    partial.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+    os.replace(partial, path)
     return path
 
 

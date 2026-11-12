@@ -18,6 +18,7 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "athlete"))
 
 import athlete_manifest  # noqa: E402
+import shared_athlete  # noqa: E402
 from asset_licences import CC0, LicenceUndetermined  # noqa: E402
 from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
@@ -122,6 +123,21 @@ class AthleteRecordTest(unittest.TestCase):
         self.assertEqual(record, {
             "kind": "shared", "name": "Braven netball athlete", "revision": 9,
             "glbSha256": "a" * 64, "masterSha256": "b" * 64, "rigFamily": "braven-athlete-v6"})
+
+    def test_every_hash_a_receipt_copies_is_lower_case(self):
+        # Review round 5: the validator accepts upper-case hex, and a receipt
+        # that copied it would not compare byte for byte with the others.
+        upper = {**self.MANIFEST, "files": {
+            name: {**entry, "sha256": entry["sha256"].upper()}
+            for name, entry in self.MANIFEST["files"].items()}}
+        master = Path("build") / "netball-athlete.blend"
+        record = athlete_record(upper, master)
+        self.assertEqual((record["glbSha256"], record["masterSha256"]), ("a" * 64, "b" * 64))
+        with mock.patch.object(shared_athlete, "licence_for", return_value=("CC0", "test")):
+            self.assertEqual(master_record(upper, master)["sha256"], "b" * 64)
+            assets = {"source": {"externalAssets": [
+                {"name": "skin.png", "sha256": "D" * 64, "licence": "CC0"}]}}
+            self.assertEqual(external_asset_records(assets)[0]["sha256"], "d" * 64)
 
     def test_a_manifest_with_no_model_file_is_refused(self):
         files = {k: v for k, v in self.MANIFEST["files"].items() if v["role"] != "model"}

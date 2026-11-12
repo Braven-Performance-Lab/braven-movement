@@ -66,7 +66,7 @@ def external_asset_records(manifest: dict) -> list[dict]:
     records = []
     for asset in manifest["source"]["externalAssets"]:
         licence, source = licence_for(asset["name"])
-        records.append({"path": asset["name"], "sha256": asset["sha256"],
+        records.append({"path": asset["name"], "sha256": asset["sha256"].lower(),
                         "licence": licence, "licenceSource": source,
                         "manifestLicence": asset["licence"]})
     return records
@@ -83,7 +83,7 @@ def master_record(manifest: dict, master: Path) -> dict:
     # and a build folder placed under `assets/kit/` would otherwise be
     # licensed as own work by where it sits.
     licence, source = licence_for(master.name)
-    return {"path": master.name, "sha256": manifest["files"][master.name]["sha256"],
+    return {"path": master.name, "sha256": manifest["files"][master.name]["sha256"].lower(),
             "licence": licence, "licenceSource": source}
 
 
@@ -92,6 +92,9 @@ def athlete_record(manifest: dict, master: Path) -> dict:
 
     The GLB is the file whose role is `model`, the runtime asset Tactics and
     Studio load; the master is the file this renderer loads.
+
+    Every hash is written in lower case: the validator accepts upper-case
+    hex, and a receipt must compare byte for byte with the others.
     """
     models = [name for name, entry in manifest["files"].items() if entry.get("role") == "model"]
     if len(models) != 1:
@@ -100,8 +103,8 @@ def athlete_record(manifest: dict, master: Path) -> dict:
         "kind": "shared",
         "name": manifest["asset"]["name"],
         "revision": manifest["asset"]["revision"],
-        "glbSha256": manifest["files"][models[0]]["sha256"],
-        "masterSha256": manifest["files"][master.name]["sha256"],
+        "glbSha256": manifest["files"][models[0]]["sha256"].lower(),
+        "masterSha256": manifest["files"][master.name]["sha256"].lower(),
         "rigFamily": manifest["rig"]["family"],
     }
 

@@ -38,6 +38,42 @@ with the renderer's own `pose_phase`, through `scripts/ball_hand_gap_render.py`:
 
     blender -b --python scripts/shared_athlete_probe.py -- <netball-athlete.blend> measure out/reach-shared.json spikes/poc-output/*.job.json
 
+**Status (12 Nov 2026, `lane/shared-athlete-switch`):** the renderer now
+reads the rig contract's `Head` and the probe renames nothing; the rename
+below describes the measured runs, made against the renderer before that
+change.
+
+**The renderer does not draw the shared athlete yet.** The `--athlete`
+option refuses every run with `LicenceUndetermined`. The licence check runs
+before the load, and the athlete's own build file has no licence
+determination until the owner rules (`Main/athlete-build-licence`). So no
+`--athlete` render exists. Every shared-athlete number in this report comes
+from the probe, which skips the licence check and marks its receipts "NOT
+CHECKED". The renderer's loader (`load_shared_athlete`) ran once on build
+09-gait-v2 from a script that skips the licence check. It loaded
+`Athlete_Body` and 11 more meshes, muted the four IK constraints and kept
+the four drivers below. That run drew no figure.
+
+The loader refuses any object constraint on the rig or its meshes. It also
+refuses any driver on those objects, on their data (the armature, the
+meshes), on shape keys, on materials and on material node trees, with one
+exception.
+Build 09-gait-v2 has four drivers, one on the influence of each muted IK
+constraint, from the rig custom properties `IK_hand_l`, `IK_hand_r`,
+`IK_foot_l` and `IK_foot_r`. A muted constraint has no effect at any
+influence, so the loader keeps those four drivers.
+
+`scripts/shared_athlete_loader_check.py` runs the loader on a build with the
+licence check skipped, and draws no figure:
+
+    blender -b --python scripts/shared_athlete_loader_check.py -- <repo> <athlete build folder>
+
+On 09-gait-v2 the clean load passed, with the four drivers kept and the four
+IK constraints muted. Then the script added one defect at a time after the
+load. The loader refused all seven: an object constraint on the body, and a
+driver on the rig object, the armature data, the mesh data, a material, a
+material node tree and a mesh object.
+
 Three things are done in that process only and never saved:
 
 - The bone `Head` is renamed `head`, the only name the renderer uses that

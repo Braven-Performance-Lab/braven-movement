@@ -9,11 +9,9 @@ settings never enter the scene, so both bodies are drawn in the renderer's
 room. Opening the file instead lit the shared athlete with two light rigs.
 
 In this process only, and never saved:
-- the bone `Head` is renamed `head`, the one name the renderer on main
-  reads differently, and the vertex group follows (checked). The rig
-  contract spells it `Head` (spec 3, 12.7) and the athlete follows the
-  contract; it is the renderer that changes to read `Head` (Main, 12 Nov
-  2026). Until that lands this probe adapts the athlete, in its own process;
+- nothing is renamed: the renderer reads the rig contract's `Head` (spec 3,
+  12.7), as the athlete spells it. Until that change, this probe renamed
+  `Head` to `head` in its own process;
 - the assigned Action is cleared and every bone returns to its bind pose;
 - the four IK constraints (`lowerarm_*` to `CTRL_hand_*`, `calf_*` to
   `CTRL_foot_*`) are muted, because they would override the arm and leg the
@@ -92,20 +90,16 @@ def append_athlete(path: str):
     return rig
 
 
-def shared_studio(config):
+def shared_studio(config, athlete_folder=None):
+    # The same signature as `R.Studio`, which `R.main` calls with the
+    # `--athlete` folder. This probe loads its own file and ignores it.
     rig = bpy.data.objects[RIG_NAME]
     body = bpy.data.objects[BODY_NAME]
     bones = rig.data.bones
-    # The renderer on main reads `head`; the contract and the athlete spell it
-    # `Head`, and the renderer is the side that changes (Main, 12 Nov 2026).
-    # Until then this probe renames it in its own process, and only when the
-    # build has `Head` and no `head`.
-    if "head" not in bones:
-        if "Head" not in bones:
-            raise SystemExit(f"{RIG_NAME} has no bone named head or Head")
-        bones["Head"].name = "head"
-        if "head" not in body.vertex_groups or "Head" in body.vertex_groups:
-            raise SystemExit("the head vertex group did not follow the bone rename")
+    # The renderer reads the contract's `Head` and refuses a body without it
+    # (`shared_athlete.head_bone_name`), so the athlete is used as it is.
+    if "Head" not in bones:
+        raise SystemExit(f"{RIG_NAME} has no bone named Head, the rig contract's name")
     if rig.animation_data:
         rig.animation_data.action = None
     # ONLY the four IK constraints that drive the limbs from the CTRL_* targets
@@ -122,6 +116,10 @@ def shared_studio(config):
     foot_baseline = {f"foot_{side}": rig.pose.bones[f"foot_{side}"].matrix.copy() for side in ("l", "r")}
     studio = SimpleNamespace(rig=rig, basis=basis, foot_baseline=foot_baseline, config=config,
                              human=body, build=generated_from(), sourceBlend=SOURCE)
+    # Every receipt names its athlete (`render_job` writes this). A probe render
+    # says what it is, so it never reads as the renderer's own --athlete route.
+    studio.athlete = {"kind": "probe", "sourceBlend": Path(SOURCE).name,
+                      "probe": "scripts/shared_athlete_probe.py"}
     if MODE == "render":
         studio.world_colour = config.presentation.studio.world_color
         studio.assets = [o for o in bpy.context.scene.objects

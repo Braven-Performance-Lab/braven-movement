@@ -46,6 +46,7 @@ from reference_pose_config import (  # noqa: E402
     mhclo_obj_path,
 )
 from reference_pose_contract import validate_reference_catch_receipt  # noqa: E402
+from shared_athlete import contract_renames, head_bone_name  # noqa: E402
 
 from bl_ext.blender_org.mpfb.services.humanservice import HumanService  # noqa: E402
 from bl_ext.blender_org.mpfb.services.faceservice import FaceService  # noqa: E402
@@ -836,12 +837,16 @@ def max_finger_base_deviation_degrees(armature: bpy.types.Object) -> float:
 
 
 def orient_head_to_ball(armature: bpy.types.Object, ball_centre: Vector) -> None:
-    bone = armature.pose.bones["head"]
-    pivot = world_head(armature, "head")
+    # The rig contract's `Head` (spec 3, 12.7). The shared athlete spells it so,
+    # and the generated body gets it from `use_contract_names`; a rig without
+    # it is refused rather than guessed at.
+    name = head_bone_name(armature.pose.bones.keys())
+    bone = armature.pose.bones[name]
+    pivot = world_head(armature, name)
     current_forward = (armature.matrix_world @ bone.matrix).to_3x3().col[2].normalized()
     desired_forward = (ball_centre - pivot).normalized()
     delta = current_forward.rotation_difference(desired_forward)
-    apply_world_rotation(armature, "head", pivot, delta.to_matrix())
+    apply_world_rotation(armature, name, pivot, delta.to_matrix())
 
 
 def joint_angle_degrees(a: Vector, pivot: Vector, b: Vector) -> float:
@@ -903,8 +908,8 @@ def project_pose_landmarks(
     scene = bpy.context.scene
     points: dict[str, Vector] = {
         "ball_center": ball.location.copy(),
-        "head_base": world_head(armature, "head"),
-        "head_top": world_tail(armature, "head"),
+        "head_base": world_head(armature, head_bone_name(armature.pose.bones.keys())),
+        "head_top": world_tail(armature, head_bone_name(armature.pose.bones.keys())),
     }
     for side_name, bone_side in (("left", "l"), ("right", "r")):
         points[f"{side_name}_shoulder"] = world_head(
@@ -1098,6 +1103,25 @@ def asset_path(*parts: str) -> Path:
     if not path.is_file():
         raise FileNotFoundError(path)
     return path
+
+
+def use_contract_names(rig: bpy.types.Object, meshes) -> None:
+    """Give a GENERATED body the rig contract's bone names, as the athlete has.
+
+    `athlete/build.py` renames MPFB's `Root` and `head` to `root` and `Head`
+    for the shared athlete; this does the same for the bodies this repository
+    builds, so the renderer reads one spelling (Main, 12 Nov 2026, spec 3
+    12.7). Called by the posing callers after `create_athlete`, never inside
+    it: the kit tools read the vertex groups `create_athlete` returns. Each
+    skinned mesh's vertex group must follow the bone, which is checked.
+    """
+    for old, new in contract_renames(rig.data.bones.keys()).items():
+        rig.data.bones[old].name = new
+        for mesh in meshes:
+            groups = mesh.vertex_groups
+            if old in groups and new not in groups:
+                raise RuntimeError(f"{mesh.name}: the vertex group {old!r} did not follow its bone")
+    bpy.context.view_layer.update()
 
 
 def create_athlete(
@@ -1503,6 +1527,8 @@ def main() -> None:
         config.athlete,
         config.presentation,
     )
+    # The contract's bone names, so the exported FBX and GLB carry them too.
+    use_contract_names(rig, [human, *assets])
     character_objects = [rig, human, *assets]
     neutral_fbx = output / "braven_mpfb_athlete_neutral.fbx"
     export_fbx(neutral_fbx, character_objects, animation=False)

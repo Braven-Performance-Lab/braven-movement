@@ -32,11 +32,24 @@ const MUTATIONS = [
   ['an author can build an approval', 'src/comments.js', "if (kind === 'approve' && role !== 'reviewer')", 'if (false)'],
   ['a time past the clip is built', 'src/comments.js', ' && tStart <= clip.end))', '))'],
   ['an empty comment is built', 'src/comments.js', "if (kind !== 'approve' && !text)", 'if (false)'],
+  ['a hosted build keeps the stand-in for the sign-in service', 'hosted-build.mjs', 'if (env.VITE_DEV_IDENTITY) {', 'if (false) {'],
+  ['a hosted build has no Firebase key', 'hosted-build.mjs', 'if (!env.VITE_FIREBASE_API_KEY) {', 'if (false) {'],
+  ['a hosted build has the stand-in key', 'hosted-build.mjs', "if (env.VITE_FIREBASE_API_KEY === 'development-stand-in') {", 'if (false) {'],
+  ['a hosted folder holds athlete-assets', 'hosted-build.mjs', "if (fs.existsSync(path.join(dist, 'athlete-assets'))) {", 'if (false) {'],
+  ['a hosted folder holds a model', 'hosted-build.mjs', 'else if (ATHLETE_FILE.test(entry.name)) throw', 'else if (false) throw'],
+  ['a server fault signs the person out', 'src/review-api.js', "if (error?.code === 'offline' || error?.status >= 500) return 'retry'", "if (error?.code === 'offline') return 'retry'; if (error?.status >= 500) return 'sign-in'"],
+  ['a refusal is treated as a fault', 'src/review-api.js', "if (error?.status === 403) return 'refused'", ''],
+  ['a bad token keeps the session', 'src/review-api.js', "if (error?.status === 401) return 'sign-in'", ''],
+  ['a master goes up with the version', 'src/version-upload.js', "const PLAYED_ROLES = ['model', 'library']", "const PLAYED_ROLES = ['model', 'library', 'master']"],
+  ['a file of another size goes up', 'src/version-upload.js', 'if (file.size !== entry.bytes) throw', 'if (false) throw'],
+  ['a missing file is not noticed', 'src/version-upload.js', 'if (!file) throw new Error(`${name} is not among the files, and the manifest names it.`)', 'if (!file) continue'],
+  ['any JSON is taken as a manifest', 'src/version-upload.js', "manifest.format !== 'braven-athlete-manifest' || ", ''],
+  ['an email in a path is not encoded', 'src/review-api.js', '`/invitations/${encodeURIComponent(email)}`', '`/invitations/${email}`'],
   ['a marker leaves the timeline', 'src/comments.js', 'const clamp = (value) => Math.min(1, Math.max(0, value))', 'const clamp = (value) => value'],
 ]
 
 function summary() {
-  const run = spawnSync(process.execPath, ['--test', '--test-reporter=spec', 'tests/review.test.mjs'], { cwd: root, encoding: 'utf8' })
+  const run = spawnSync(process.execPath, ['--test', '--test-reporter=spec', 'tests/review.test.mjs', 'tests/review-owner.test.mjs'], { cwd: root, encoding: 'utf8' })
   const count = (name) => Number(new RegExp(`^ℹ ${name} (\\d+)$`, 'm').exec(run.stdout)?.[1] ?? NaN)
   return { tests: count('tests'), pass: count('pass'), fail: count('fail') }
 }

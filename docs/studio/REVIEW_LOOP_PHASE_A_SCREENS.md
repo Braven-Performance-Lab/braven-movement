@@ -31,6 +31,7 @@ Shown over all of Studio when nobody is signed in. Requirement ACC-2.
 | Link sent | "Check your mail", with the address the link went to, and a way to use another address. |
 | Confirm the address | Shown when the link is opened on a device that did not ask for it. The person types the address again. |
 | Not invited | "You cannot come in yet", the reason in words, the address that is signed in, and two buttons: try again, or use another address. |
+| Server fault | The same card with the title "Studio could not check your access". The person stays signed in and tries again. A fault of the server never sends a person back to the email step. |
 
 Rules:
 
@@ -42,8 +43,9 @@ Rules:
 
 - The header shows the person's name and role (Reviewer, Author or Owner) and a "Sign out"
   button, in the place of the "Local workspace" label.
-- Hosted Studio shows no download link, because the published version serves no file to
-  download.
+- Hosted Studio shows no link that downloads a file of the athlete, because the published
+  version serves no such file. "Export workspace", "Import workspace" and "Capture" stay: they
+  handle the person's own setups and a picture of the screen.
 - The private notes of the Review tab stay, with the heading "Private notes on this browser"
   and the statement that the team does not read them.
 
@@ -87,8 +89,42 @@ Requirement FBK-5.
 - Each comment of the version on screen is a marker above the timeline track, at its time.
 - A comment on one moment is a dot. A comment on a range is a bar from its start to its end.
 - A marker goes to its moment, opens the Review tab and highlights its comment.
-- The Review tab shows the number of comments on this version.
+- The Review tab shows the number of comments on this version. With no comment it shows no
+  number.
+- "Refresh" beside the count reads the comments again, for a person who waits for an answer.
 - Comments of earlier versions are never on the timeline.
+
+## Screen 5: team and versions
+
+Requirements ACC-2 and ACC-3, and ruling 12.6 (a person publishes each version). A dialog that
+the header button opens. The button reads "Team" for an owner and "Versions" for an author. A
+reviewer has no such button.
+
+For an owner, from top to bottom:
+
+1. **Invite a person:** the email address, the role (Reviewer, Author or Owner) and one primary
+   button, "Invite". One line says what each role does. One line says that Studio sends no mail
+   for an invitation: the owner tells the person the Studio address.
+2. **Open invitations:** the address, the role and the date, with "Revoke".
+3. **People:** the name, the address, the role and the date they joined, with "Remove". A
+   removed person stays in the list, struck through, with the date: their comments keep an
+   author. The owner's own row has no "Remove".
+4. **Athlete versions:** the revision and the first 8 characters of the version hash. A
+   published version says when it was published, and which one reviewers see. A draft says that
+   reviewers do not see it, and has "Publish".
+5. **Upload a version:** one button to choose the athlete folder. Studio sends the manifest,
+   the model and the movement library, and says which step it is at. The result is a draft.
+
+An author sees items 4 and 5, with no "Publish".
+
+Rules:
+
+- **Revoke, Remove and Publish take two presses.** The first press changes the button to
+  "Press again to …" in the error colour for six seconds, and sends nothing. A publication
+  cannot be taken back, and a removal locks a person out at once.
+- A refusal from the server shows as a sentence at the top of the dialog.
+- After a publication the screen says that reviewers get the version the next time they open
+  Studio. The version on the owner's own screen does not change before a reload.
 
 ## What phase A does not show
 

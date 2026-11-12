@@ -2,7 +2,7 @@
 // person is signed in AND the Studio API admits them. There is no sign-up here: an address with
 // no invitation is told so, and nothing of the athlete is loaded.
 import { createSession } from './session.js'
-import { createApi } from './review-api.js'
+import { afterAdmitError, createApi } from './review-api.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -43,14 +43,15 @@ export function signIn() {
         $('account-role').textContent = roleLabel[me.role] || me.role
         resolve({ session, api, me })
       } catch (error) {
-        if (error.status === 403) {
-          $('signin-refused-address').textContent = session.current()?.email || ''
-          show('refused', error.message, true)
-        } else if (error.code === 'offline') {
-          show('refused', error.message, true)
-        } else {
+        const next = afterAdmitError(error)
+        if (next === 'sign-in') {
           session.signOut()
           show('ask', error.message, true)
+        } else {
+          // Refused, or a fault that says nothing about the person: they stay signed in.
+          $('signin-refused-title').textContent = next === 'refused' ? 'You cannot come in yet' : 'Studio could not check your access'
+          $('signin-refused-address').textContent = session.current()?.email || ''
+          show('refused', next === 'refused' || error.code === 'offline' ? error.message : 'The Studio server has a fault. Your sign-in is kept. Try again in a minute.', true)
         }
       }
     }

@@ -9,7 +9,7 @@
 <header class="app-header">
 <a class="brand" href="/" aria-label="Braven Studio home"><span class="brand-mark">B</span><span>Braven <strong>Studio</strong></span></a>
 <nav class="library-nav" aria-label="Studio library"><button data-section="animations" class="selected" aria-current="page">Animations</button><button data-section="kits">Kits</button><button data-section="models">Models</button><button data-section="saved">Saved <span id="saved-count">0</span></button></nav>
-<div class="header-actions"><span class="local-label" id="local-label">Local workspace</span><div id="account" class="account" hidden><span class="account-who"><span id="account-name"></span><span id="account-role" class="role-badge"></span></span><button id="sign-out" class="light-button">Sign out</button></div><button id="save-setup" class="light-button" disabled>Save setup</button></div>
+<div class="header-actions"><span class="local-label" id="local-label">Local workspace</span><div id="account" class="account" hidden><span class="account-who"><span id="account-name"></span><span id="account-role" class="role-badge"></span></span><button id="team-open" class="light-button" hidden>Team</button><button id="sign-out" class="light-button">Sign out</button></div><button id="save-setup" class="light-button" disabled>Save setup</button></div>
 </header>
 <main class="workspace">
 <section class="library" aria-label="Asset library">
@@ -75,6 +75,16 @@
 </aside>
 </main>
 <dialog id="save-dialog"><form id="save-form"><div class="dialog-heading"><h2>Save this setup</h2><button type="button" id="close-save" aria-label="Close save dialog">×</button></div><p>Keep the kit, movement, camera and pose together.</p><label for="setup-name">Setup name</label><input id="setup-name" maxlength="80" required placeholder="e.g. Chest pass — wrist review"><label for="setup-note">Review notes <span>(optional)</span></label><textarea id="setup-note" maxlength="4000" rows="4"></textarea><p class="hint">Saved in this browser. You can export it from Saved.</p><p id="save-error" class="error" role="alert" hidden></p><div class="dialog-actions"><button type="button" id="cancel-save">Cancel</button><button type="submit" class="primary-button">Save setup</button></div></form></dialog>
+<dialog id="team-dialog" class="team-dialog" aria-labelledby="team-title"><div class="dialog-heading"><h2 id="team-title">Team and versions</h2><button type="button" id="team-close" aria-label="Close">×</button></div>
+<p id="team-error" class="error" role="alert" hidden></p>
+<section id="team-people"><h3>Invite a person</h3>
+<form id="invite-form" class="invite-form"><div><label for="invite-email">Email address</label><input id="invite-email" type="email" required autocomplete="off" placeholder="coach@example.org"></div><div><label for="invite-role">Role</label><select id="invite-role"><option value="reviewer">Reviewer</option><option value="author">Author</option><option value="owner">Owner</option></select></div><button id="invite-send" class="primary-button">Invite</button></form>
+<p class="hint">A reviewer is a coach or a trainer: they comment and approve. An author changes the animations. An owner invites people and publishes versions.</p><p class="hint">Studio sends no mail for an invitation. Tell the person the Studio address. They sign in with this email address.</p>
+<h3>Open invitations</h3><ul id="invitation-list" class="team-list"></ul>
+<h3>People</h3><ul id="member-list" class="team-list"></ul></section>
+<section id="team-versions"><h3>Athlete versions</h3><p class="hint">Reviewers see the version that was published last. A published version cannot be changed or taken back.</p><ul id="version-list" class="team-list"></ul>
+<h3>Upload a version</h3><p class="hint">Run the manifest check on the athlete folder first, then choose that folder. Studio sends the manifest, the model and the movement library. The Blender files stay on this computer.</p><input id="version-files" type="file" multiple webkitdirectory hidden><button type="button" id="version-choose">Choose the athlete folder</button><p id="version-progress" class="hint" role="status" hidden></p></section>
+</dialog>
 <div id="notification" class="notification" role="status" hidden><span id="notification-text"></span><button id="undo-delete" hidden>Undo</button><button id="close-notification" aria-label="Dismiss message">×</button></div>
 <div id="signin" class="signin" hidden><div class="signin-card" role="dialog" aria-modal="true" aria-labelledby="signin-title">
 <div class="signin-brand"><span class="brand-mark">B</span><h1 id="signin-title">Braven Studio</h1></div>
@@ -82,7 +92,7 @@
 <div id="signin-sent" hidden><h2>Check your mail</h2><p>A sign-in link is on its way to <strong id="signin-sent-address"></strong>. Open it on this device.</p><button type="button" id="signin-again" class="text-button">Use another address</button></div>
 <div id="signin-confirm" hidden><h2>Confirm your address</h2><p>This link was opened on another device or browser. Type the address the mail came to.</p><form id="signin-confirm-form"><label for="signin-confirm-email">Email address</label><input id="signin-confirm-email" type="email" autocomplete="email" required><p id="signin-confirm-note" class="hint" role="alert" hidden></p><button class="primary-button wide-button">Sign in</button></form></div>
 <div id="signin-busy" hidden><p id="signin-busy-note" role="status"></p></div>
-<div id="signin-refused" hidden><h2>You cannot come in yet</h2><p id="signin-refused-note" role="alert"></p><p class="hint">Signed in as <strong id="signin-refused-address"></strong></p><div class="button-row"><button type="button" id="signin-retry">Try again</button><button type="button" id="signin-other">Use another address</button></div></div>
+<div id="signin-refused" hidden><h2 id="signin-refused-title">You cannot come in yet</h2><p id="signin-refused-note" role="alert"></p><p class="hint">Signed in as <strong id="signin-refused-address"></strong></p><div class="button-row"><button type="button" id="signin-retry">Try again</button><button type="button" id="signin-other">Use another address</button></div></div>
 </div></div>
 <script type="module" src="/src/main.js"></script>
 </body></html>

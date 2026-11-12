@@ -77,6 +77,45 @@ section already records is the CLAVICLE LENGTH, 20.4 per cent, with a rest
 orientation difference that a divisor cannot remove. A girdle-width unit does
 not address either, which the probe confirms.
 
+### The cause, and why no shift convention closes it (12 Nov 2026)
+
+**Ruled by Main: keep the gap. The limit is proven and recorded.** Whether
+this rig is worth fixing depends on which body the manual figures use, which
+Main has put to the owner.
+
+THE CAUSE IS THE TWO CLAVICLES. Measured with `scripts/engine_rest_clavicle.py`
+and `scripts/rig_rest_clavicle.py` on `09bf701`, both sides:
+
+| Clavicle | Length | Back of straight out |
+|---|---:|---:|
+| Engine, rest | 17.65 cm | 32.96 deg |
+| Engine, `chest_pass/ready` | 17.65 cm | 15.29 deg |
+| This rig, rest | 12.63 cm | 2.85 deg |
+
+The engine stands by swinging a long clavicle forward from 33 degrees back,
+which carries the shoulder 4.9 cm forward AND 1.9 cm out. This rig's shorter
+clavicle already points almost straight out, so it can follow that forward
+movement only inward. That is the median 23.19 mm per-shoulder miss (21.85 mm
+of it across) at every neutral phase, measured with
+`scripts/ball_hand_gap_render.py`.
+
+FOUR READINGS, one instrument, all 51 phases (anchor error median / max,
+phases over 10 mm, phases more than 0.5 mm worse, ball centre move median):
+
+| Option | Anchor error | Over 10 mm | Worse | Ball moves |
+|---|---:|---:|---:|---:|
+| D, now (kept) | 7.53 / 18.16 mm | 2 | | |
+| A, the engine's clavicle rotation | 13.72 / 21.14 mm | 49 | 51 | 7.0 mm |
+| B, shift from the engine's standing posture | 0.19 / 17.61 mm | 1 | 6 | 41.9 mm |
+| C, this rig's rest clavicle turned to the engine's | 0.21 / 26.70 mm | 3 | 7 | 57.9 mm |
+
+A sends the engine's own value and still fails, because the same rotation
+puts the shoulder of a 12.6 cm clavicle from a straight rest somewhere other
+than that of a 17.7 cm clavicle from 33 degrees back. B and C move every ball
+4 to 6 cm and make the arm-raising phases worse. The detail is in
+`docs/SHOULDER_REACH_2026-11-12.md`; the option probes are parked on
+`lane/shoulder-reach-option-probes` (`d900c70`).
+
 ## `netball_one_hand_high_pass` cannot be posed at its ready phase
 
 **Status: DRAWN since `a484302` (12 Nov 2026) by option C below; the grip

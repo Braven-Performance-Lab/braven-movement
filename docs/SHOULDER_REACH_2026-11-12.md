@@ -102,6 +102,13 @@ nearest reachable point by construction.
 
 ## Options (goal step 3)
 
+**Ruling, 12 Nov 2026 (Main): keep the gap (option D).** No shift convention
+closes it. The option probes are PARKED, not on main:
+`scripts/girdle_option_probe.py`, `scripts/engine_clavicle_directions.py`,
+`scripts/compare_reach.py` and `scripts/compare_options.py` are on branch
+`lane/shoulder-reach-option-probes` at `d900c70`. Every command below that
+names them runs on that branch.
+
 ### B, measured: send the shift from the engine's STANDING posture, not its rest
 
 Simulated by subtracting the engine's `chest_pass/ready` shift (left

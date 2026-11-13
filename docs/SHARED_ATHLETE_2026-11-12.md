@@ -78,8 +78,13 @@ material node tree and a mesh object.
 
 On 13 Nov 2026 the check gained three cases: a driver in a node group
 nested in a material, a driver in a geometry-nodes modifier group, and an
-image empty under the rig, put in a saved copy of the build. The loader
-refused all ten. The output of that run is
+image empty under the rig, put in a saved copy of the build. A fourth case
+puts a driver on the node tree of a later material: on `Kit_Skirt`, the
+second of `Kit_Primary` and `Kit_Accent`. Every material's embedded tree is
+named 'Shader Nodetree', so the first version of the check, which kept
+trees by name, read only the first material on each mesh. That case printed
+NOT REFUSED with it. The loader now keeps trees by their Blender pointer, and
+it refused all eleven cases. The output of that run is
 `docs/evidence/shared-athlete-loader-check-2026-11-13.txt`.
 
 Three things are done in that process only and never saved:

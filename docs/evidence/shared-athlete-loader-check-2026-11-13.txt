@@ -1,5 +1,5 @@
 scripts/shared_athlete_loader_check.py on build 09-gait-v2, 13 Nov 2026
-HEAD before: d4e7d1cb6a3853b1b3667cab945e76936f8f295c
+HEAD before: 60cc8d674badcaa3d48eb4313f32ac1407304553
 Code changes not committed (tracked .py files): 0
 netball-athlete.blend sha256: 952342962192575331a479f00a5d926b04750aea808b778f25ab0ebb4bcd6576
 Blender: Blender 4.5.12 LTS (hash 84afd5f785f7 built 2026-07-21 01:33:53)
@@ -20,5 +20,7 @@ REFUSED driver on a material node tree | netball-athlete.blend: Athlete_Body car
 REFUSED driver on a mesh object | netball-athlete.blend: Athlete_Body carries a driver on location; the renderer accepts only the rig's drivers 
 REFUSED driver in a node group nested in a material | netball-athlete.blend: Athlete_Body carries a driver on nodes["Value"].outputs[0].default_value; the renderer 
 REFUSED driver in a geometry-nodes modifier group | netball-athlete.blend: Athlete_Body carries a driver on nodes["Value"].outputs[0].default_value; the renderer 
+LATER MATERIAL ON Kit_Skirt materials: ['Kit_Primary', 'Kit_Accent'] driver on Kit_Accent
+REFUSED driver on a later material's node tree | netball-athlete.blend: Kit_Skirt carries a driver on nodes["Value"].outputs[0].default_value; the renderer acc
 
-HEAD after: d4e7d1cb6a3853b1b3667cab945e76936f8f295c
+HEAD after: 60cc8d674badcaa3d48eb4313f32ac1407304553

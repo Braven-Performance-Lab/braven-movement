@@ -247,3 +247,72 @@ def curl_directions(
         )
         for angle in cumulative_angles(knuckle_degrees, curl_degrees)
     ]
+
+
+# How close the opened fingers must come to the change the job asked for.
+OPEN_TOLERANCE_DEGREES = 1.0
+OPEN_ITERATIONS = 40
+
+
+class FingerOpenError(ValueError):
+    pass
+
+
+def knuckle_release_for(change_at, asked_degrees: float, ceiling_degrees: float) -> tuple[float, float]:
+    """How far to back the knuckles off the ball, and the change that gives.
+
+    The wrist flick of the release opens the throwing fingers. The engine's
+    solve says by HOW MUCH, as a change of the wrist-knuckle-tip angle of the
+    middle finger (`fingerOpenDegrees` in the job). This hand is a different
+    hand, so the same change is searched for on it: every knuckle the grip
+    solve flexed is backed off by one amount, and ``change_at(amount)`` poses
+    that and returns how far this hand's own angle opened.
+
+    THE TWO HANDS ARE NOT MEASURED AT THE SAME POINT. The engine reads its
+    angle to the last finger JOINT its skeleton has; the renderer reads to
+    the fingerTIP of its own rig. So the receipt's asked and gave agree as a
+    change on each hand, and are not one angle read twice.
+
+    ``ceiling_degrees`` is the largest flexion the grip solve gave a knuckle;
+    backing off further would bend a finger backward. Returns the amount and
+    the change it gave. Refuses a negative ask, which would press the fingers
+    into the ball, and an ask this hand cannot make, because a figure that
+    silently shows less than the solve is not the candidate it is labelled.
+    """
+    asked = float(asked_degrees)
+    if not math.isfinite(asked):
+        raise FingerOpenError(
+            f"the job asks the fingers to open {asked_degrees!r} degrees, "
+            "which is not a number"
+        )
+    if asked < 0.0:
+        raise FingerOpenError(
+            f"the job asks the fingers to close {-asked:.1f} degrees past the "
+            "grip, which presses them into the ball"
+        )
+    if asked == 0.0:
+        return 0.0, float(change_at(0.0))
+    most = float(change_at(ceiling_degrees))
+    if most + OPEN_TOLERANCE_DEGREES < asked:
+        raise FingerOpenError(
+            f"the job asks the fingers to open {asked:.1f} degrees and this "
+            f"hand opens {most:.1f} with every knuckle off the ball"
+        )
+    low, high = 0.0, float(ceiling_degrees)
+    for _ in range(OPEN_ITERATIONS):
+        middle = 0.5 * (low + high)
+        if float(change_at(middle)) < asked:
+            low = middle
+        else:
+            high = middle
+    amount = 0.5 * (low + high)
+    gave = float(change_at(amount))
+    # The search assumes the hand opens steadily as its knuckles back off. A
+    # hand that does not can leave the answer far from the ask, so what was
+    # found is checked and never assumed.
+    if abs(gave - asked) > OPEN_TOLERANCE_DEGREES:
+        raise FingerOpenError(
+            f"the job asks the fingers to open {asked:.1f} degrees and the "
+            f"nearest this hand came is {gave:.1f}"
+        )
+    return amount, gave

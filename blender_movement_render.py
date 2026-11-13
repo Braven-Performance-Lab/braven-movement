@@ -52,10 +52,12 @@ from shared_athlete import (  # noqa: E402
     athlete_master,
     athlete_record,
     constraint_to_mute,
+    descendant_is_mesh,
     driver_is_inert,
     external_asset_records,
     head_bone_name,
     master_record,
+    node_tree_holders,
 )
 from girdle_agreement import (  # noqa: E402
     AGREES,
@@ -786,6 +788,9 @@ def load_shared_athlete(master: Path, master_sha256: str):
 
     meshes = [o for o in target.objects if o is not None and under_rig(o)]
     for mesh in meshes:
+        # Before any link: only meshes are drawn under the rig.
+        descendant_is_mesh(mesh.name, mesh.type)
+    for mesh in meshes:
         collection.objects.link(mesh)
     if any(o.name.startswith(SHARED_RIG + ".") for o in bpy.data.objects):
         raise SharedAthleteRefusal(f"{master.name}: a second copy of the rig was loaded")
@@ -822,11 +827,17 @@ def load_shared_athlete(master: Path, master_sha256: str):
             shape_keys = getattr(data, "shape_keys", None)
             if shape_keys is not None:
                 holders.append((False, shape_keys.animation_data))
+        # Every node tree, with each group nested in it (review rounds 6 and
+        # 7): the materials' trees, and each geometry-nodes modifier's group.
+        trees = [slot.material.node_tree for slot in getattr(obj, "material_slots", ())
+                 if slot.material is not None]
+        trees += [modifier.node_group for modifier in obj.modifiers if modifier.type == "NODES"]
         for slot in getattr(obj, "material_slots", ()):
             if slot.material is not None:
                 holders.append((False, slot.material.animation_data))
-                if slot.material.node_tree is not None:
-                    holders.append((False, slot.material.node_tree.animation_data))
+        seen = set()
+        for node_tree in trees:
+            holders.extend((False, holder) for holder in node_tree_holders(node_tree, seen))
         for on_object, holder in holders:
             for driver in (holder.drivers if holder else ()):
                 if obj != rig or not on_object:

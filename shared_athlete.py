@@ -162,6 +162,43 @@ def driver_is_inert(data_path: str, muted) -> bool:
     )
 
 
+def node_tree_holders(tree, seen=None) -> list:
+    """The animation data of a node tree and of every group nested in it.
+
+    Review rounds 6 and 7 of PR #152: a node group inside a material's tree,
+    and the group of a geometry-nodes modifier, are node trees of their own
+    with their own animation data, and a driver there can change what is
+    drawn. Each group is read once, by NAME: Blender gives a new Python
+    wrapper at every access, so `id()` or `is` cannot tell two reads apart,
+    and a node tree's name is unique among node trees.
+    """
+    if tree is None:
+        return []
+    seen = set() if seen is None else seen
+    if tree.name in seen:
+        return []
+    seen.add(tree.name)
+    holders = [tree.animation_data]
+    for node in tree.nodes:
+        holders.extend(node_tree_holders(getattr(node, "node_tree", None), seen))
+    return holders
+
+
+def descendant_is_mesh(name: str, kind: str) -> bool:
+    """True for a mesh; a refusal for any other object under the rig.
+
+    The loader links every descendant of the rig and draws it. Build
+    09-gait-v2 has only meshes there. Any other kind (an empty, a curve, a
+    light) was never measured, and an image empty stopped the loader with an
+    AttributeError rather than this refusal (review round 6 of PR #152).
+    """
+    if kind == "MESH":
+        return True
+    raise SharedAthleteRefusal(
+        f"{name} under the rig is a {kind}; the renderer draws only meshes there."
+    )
+
+
 def constraint_to_mute(bone: str, kind: str, target: str) -> bool:
     """True for the constraints the renderer mutes; a refusal for any other.
 

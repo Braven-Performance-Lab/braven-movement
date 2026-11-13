@@ -33,18 +33,18 @@ leading it.**
 | 2 | How wide should the elbows sit? | agenda, `ac240b2` |
 | 3 | Ball arrival speed and return speed | agenda, `ac240b2` |
 | 4 | Do her fingers close too fast? | agenda, `ac240b2` |
-| 5 | Does the second hand travel too far? | agenda, `ac240b2`; ledger row at `KNOWN_ISSUES.md:2033` |
+| 5 | Does the second hand travel too far? | agenda, `ac240b2`; ledger row "The second hand travels 14 cm out to meet the ball, and a coach must rule" in `KNOWN_ISSUES.md` |
 | 6 | Is she showing her arm span while she waits? | agenda, `ac240b2` |
 | 7 | STRUCK | agenda; withdrawn on a second-solution reading |
 | 8 | The elbow dial's number | agenda, `ac240b2` |
 | 9 | The release timing fix, which waits on item 1 | agenda, `ac240b2` |
 | 10 | Which passes does the board need? | agenda `fcb7ca1`; contract question 2 |
-| 11 | One band floor, missed by 0.05 degrees | agenda `3f95fd1`; ledger "For the coach agenda" |
+| 11 | One band floor, missed by 0.05 degrees | agenda `3f95fd1`; ledger "For the coach agenda", in `KNOWN_ISSUES.md` at `b48512a` |
 | 12 | The bounce pass has no bounce | agenda `431bf3a` |
 | 13 | The one hand high pass's ungraded cue | agenda `6228b3d` |
 | 14 | A one-handed pass is harder to place | agenda `6228b3d`; ledger determinacy row |
 | 15 | Every pass clip stops before the ball arrives | agenda `56e70a3` |
-| 16 | The landing's cue may be ungradeable | agenda `b214bc4`; ledger row at `KNOWN_ISSUES.md:516` |
+| 16 | The landing's cue may be ungradeable | agenda `b214bc4`; ledger "The landing's own cue is graded by an instrument that cannot see the jump", in `KNOWN_ISSUES.md` at `b48512a` |
 | 17 | The hand that was posed wrongly | **found by this gather**; page question 1; fix at `fde5d5a` |
 | 18 | The two angles of the release hand | **found by this gather**; `.remember/ORCHESTRATOR-STATE.md`; paper at `f7af647`, not on main |
 | 19 | Which cues are distances rather than shapes? | the ledger row on two deleted checkpoints; added 2026-09-09 |

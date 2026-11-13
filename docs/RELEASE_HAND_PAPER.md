@@ -138,7 +138,7 @@ its set. So the engine's one-handed drill exceeds her fastest release of any
 kind, in the category where she is slower.
 
 **None of this is new to the repository, which is the uncomfortable part.**
-`docs/KNOWN_ISSUES.md` has recorded it since before this paper began, under "The
+`docs/KNOWN_ISSUES.md` (at `b48512a`) has recorded it since before this paper began, under "The
 hands are not already moving": the right wrist runs 0.55 cm per frame before the
 chest pass release and 4.09 after it, a step of 7.4, and 10.2 on the overhead.
 Worse, **section 1's own close-up table above prints 245.5 cm/s at frame 77**.

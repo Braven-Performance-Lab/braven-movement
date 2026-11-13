@@ -251,7 +251,7 @@ def across_release(character) -> None:
 
     THE CORRECTION THAT PROMPTED THIS. An earlier reading of this paper compared
     the engine's hand with the filmed athlete's using the frames BEFORE release
-    only, and concluded the engine's arm is slow. `docs/KNOWN_ISSUES.md` already
+    only, and concluded the engine's arm is slow. `docs/KNOWN_ISSUES.md` at `b48512a` already
     recorded, under "The hands are not already moving", that the wrist multiplies
     its speed in the single frame AFTER release. Both readings are in the same
     solve and the paper had printed the second one without reading it.

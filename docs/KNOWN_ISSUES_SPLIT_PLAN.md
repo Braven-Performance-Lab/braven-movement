@@ -130,6 +130,38 @@ archive file. Then a reference by path or by title stays correct, and no
 gate-4 file needs an edit. The one stale citation goes to Main as a gate-4
 item. It is not edited here.
 
+## What was done (13 November 2026)
+
+- `docs/KNOWN_ISSUES.md` now holds 42 short entries: one for each of the 33 open
+  sections and one for each of the 9 mixed sections with an open part. Every
+  "## " title of the old register is still in it, as an entry or as one line
+  under "Moved out of this register" that names where its text went.
+- A script checked every number, commit id and file name in each entry against
+  that entry's own section at `b48512a`. A **Since then** line is a later
+  ruling, taken from the specs, and is checked by hand: six entries have one.
+- `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md` and
+  `docs/ENGINEERING_RULES.md` are copied by line range, unchanged, and no part
+  is copied twice. The full text of the 7 rules stays in the register under
+  "Rules on their way to spec 1" until spec 1 states them.
+- Fixed: 10 citations of a closed title now name the archive. One of them,
+  in `spikes/possession_solve.py`, already quoted the title wrongly on `main`.
+  8 citations of a line number, or of a subsection of an open section, now name
+  the section title or `b48512a`. One more title that was already wrong on
+  `main` is corrected ("three cues" is "six cues").
+- Checks on this tree: the host suite passes (521 tests, 28 skipped), and so
+  do the video spike tests for the edited modules.
+
+### For Main: two gate-4 drill files cite text that is not in the register
+
+Not edited, because gate 4 covers these files (spec 1, decision 12.7).
+
+- `spikes/movements/netball_overhead_pass.json` cites "No units-correct height
+  measure, and one cue already wants it" twice. That title was already gone
+  from the register at `b48512a`. The section is now "A height measure exists
+  now: `ballHeightCm`, above the court".
+- `spikes/movements/netball_chest_pass.ball.json` names a sentence in the
+  register as stale. That sentence is now only in the register at `b48512a`.
+
 ## Branches
 
 One branch holds the register, the archive and the rules file (Main, answer 3).

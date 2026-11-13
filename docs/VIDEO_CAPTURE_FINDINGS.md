@@ -29,7 +29,7 @@
 > ledger sampled at every EIGHTH frame, the best of all correspondences spread
 > by 10.8 frames and no offset fitted. Re-read at a step of one frame the same
 > events give -78 three times. Refer to "A ledger without its reading step
-> nearly cost a real pairing" in `docs/KNOWN_ISSUES.md`.
+> nearly cost a real pairing" in `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
 >
 > A file name is not an identity. Every artefact carries `source.videoSha256`,
 > and `source_matches()` in `spikes/video_keypoints.py` compares it with the
@@ -914,7 +914,7 @@ readings are 16.7 ms apart; every "frame" in this section says which rate it
 belongs to, because the whole argument turns on the two rates differing. The
 measurement and its provenance are recorded in `docs/WRIST_AND_PACE.md` and in
 "RESOLVED: a field called secondsPerFrame held the solver's cost" in
-`docs/KNOWN_ISSUES.md` — the entry that corrected these rates from computer
+`docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md` — the entry that corrected these rates from computer
 time to track time. Nothing accelerates the ball at the moment it leaves. That is
 the mechanism behind what Marius saw when he said the wrist action was missing,
 and whether the carry should accelerate before release is decided by measuring
@@ -1075,7 +1075,7 @@ were recorded in the ball-in-frame annotation as "gesture" repetitions, and one
 of them scored BEST OF TWELVE on the alignment — the elbow curve of a woman
 clapping fits the catch reference better than any real catch in the set. Refer
 to "The alignment ranked a sync clap above every real catch" in
-`docs/KNOWN_ISSUES.md`. The slate between repetitions asked for in section 14 is
+`docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`. The slate between repetitions asked for in section 14 is
 what separates them; without it a clap becomes a graded repetition.
 
 ## What was measured, and how well

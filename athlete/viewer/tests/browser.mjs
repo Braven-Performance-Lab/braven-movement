@@ -109,7 +109,10 @@ try {
   // The complete Tactics board, with its evaluated timeline, not just the studio adapter.
   const tactics=await browser.newPage()
   const loaded=[]
-  tactics.on('response',r=>{if(r.url().includes('netball-athlete.glb'))loaded.push({url:r.url(),status:r.status()})})
+  // Every GLB the page asks for. Which one is the athlete is Tactics' own answer, read below:
+  // Tactics serves /figures/braven-athlete/athlete.glb (since ab973de), never netball-athlete.glb,
+  // which is only the file its import tool reads. A fixed name here broke once already.
+  tactics.on('response',r=>{if(new URL(r.url()).pathname.endsWith('.glb'))loaded.push({url:r.url(),status:r.status()})})
   tactics.on('pageerror',e=>errors.push('Tactics: '+String(e)))
   await tactics.goto(process.env.TACTICS_URL||'http://127.0.0.1:5392/',{waitUntil:'networkidle0'})
   await tactics.waitForFunction(()=>!!window.__editor)
@@ -130,7 +133,8 @@ try {
       previewBallsHidden:tokens.every(t=>t.skinned.group.getObjectByName('Movement_Ball')?.visible===false),
       materialNames:[...new Set(tokens.flatMap(t=>t.skinned.materials.map(m=>m.name)))]}
   })
-  check('Full Tactics application loads the generated GLB',loaded.some(r=>r.status===200))
+  const athleteAsset=await tactics.evaluate(async()=>(await import('/src/core/athleteMotion.ts')).athleteAsset)
+  check('Full Tactics application loads the athlete file it names',typeof athleteAsset==='string'&&loaded.some(r=>new URL(r.url).pathname===athleteAsset&&r.status===200))
   check('All 14 netball players use the authored rig',real.characters===14&&real.authored===14&&real.allHaveSkirt)
   check('Tactics retains its own ball without 14 duplicated preview balls',real.previewBallsHidden)
   const boardAt=async time=>{
@@ -140,7 +144,7 @@ try {
   }
   const boardBefore=await boardAt(.1),boardAfter=await boardAt(1.2)
   check('Tactics play timeline moves the loaded athletes',difference(boardBefore,boardAfter)>.1)
-  report.tactics={...real,requests:loaded}
+  report.tactics={...real,athleteAsset,requests:loaded}
   await tactics.screenshot({path:path.join(output,'verification/tactics-board.png')})
   check('No browser JavaScript errors',errors.length===0)
   report.assetSha256=JSON.parse(fs.readFileSync(path.join(output,'manifest.json'),'utf8')).files['netball-athlete.glb'].sha256

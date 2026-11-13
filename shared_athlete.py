@@ -168,16 +168,21 @@ def node_tree_holders(tree, seen=None) -> list:
     Review rounds 6 and 7 of PR #152: a node group inside a material's tree,
     and the group of a geometry-nodes modifier, are node trees of their own
     with their own animation data, and a driver there can change what is
-    drawn. Each group is read once, by NAME: Blender gives a new Python
-    wrapper at every access, so `id()` or `is` cannot tell two reads apart,
-    and a node tree's name is unique among node trees.
+    drawn. Each tree is read once, by its Blender POINTER: Blender gives a
+    new Python wrapper at every access, so `id()` or `is` cannot tell two
+    reads apart. NEVER BY NAME: every material's embedded tree is named
+    'Shader Nodetree', and linked groups from two libraries can share a name,
+    so a check by name read only the first material on a mesh (review round
+    1 of the re-render branch). `id()` serves only an object with no pointer,
+    as in a test.
     """
     if tree is None:
         return []
     seen = set() if seen is None else seen
-    if tree.name in seen:
+    key = tree.as_pointer() if hasattr(tree, "as_pointer") else id(tree)
+    if key in seen:
         return []
-    seen.add(tree.name)
+    seen.add(key)
     holders = [tree.animation_data]
     for node in tree.nodes:
         holders.extend(node_tree_holders(getattr(node, "node_tree", None), seen))

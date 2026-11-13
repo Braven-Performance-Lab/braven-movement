@@ -53,7 +53,26 @@ CASES = {
     "driver on a mesh object": lambda: body().driver_add("location", 0),
     "driver in a node group nested in a material": lambda: nested_group_driver(),
     "driver in a geometry-nodes modifier group": lambda: geometry_nodes_driver(),
+    "driver on a later material's node tree": lambda: later_material_driver(),
 }
+
+
+def later_material_driver():
+    # Every embedded tree is named 'Shader Nodetree'; a check by name read
+    # only a mesh's FIRST material. So the driver goes on the last of two or
+    # more DIFFERENT materials: Kit_Shorts has one material in two slots, and
+    # a driver there sat on the first tree, which even the old check read.
+    for obj in rig().children_recursive:
+        materials = {}
+        for slot in getattr(obj, "material_slots", ()):
+            if slot.material is not None and slot.material.node_tree is not None:
+                materials.setdefault(slot.material.name, slot.material)
+        if obj.type == "MESH" and len(materials) >= 2:
+            last = list(materials.values())[-1]
+            print("LATER MATERIAL ON", obj.name, "materials:", list(materials), "driver on", last.name)
+            value_node_driver(last.node_tree)
+            return
+    raise RuntimeError("no mesh under the rig has two different materials with node trees")
 
 
 def value_node_driver(group):

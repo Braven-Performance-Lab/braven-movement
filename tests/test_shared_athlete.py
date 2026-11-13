@@ -227,6 +227,26 @@ class NodeTreeHolderTest(unittest.TestCase):
                    SimpleNamespace(node_tree=inner), SimpleNamespace(), drivers="top-data")
         self.assertEqual(node_tree_holders(top), ["top-data", "middle-data", "inner-data"])
 
+    def test_two_trees_with_one_name_are_both_read(self):
+        # Review round 1 of the re-render branch (must): every material's
+        # embedded tree is named 'Shader Nodetree', so a check by name read
+        # only the first material on a mesh and skipped every later one.
+        first = tree("Shader Nodetree", drivers="first-data")
+        second = tree("Shader Nodetree", drivers="second-data")
+        seen = set()
+        holders = node_tree_holders(first, seen) + node_tree_holders(second, seen)
+        self.assertEqual(holders, ["first-data", "second-data"])
+
+    def test_identity_is_the_blender_pointer_when_there_is_one(self):
+        # Blender gives a new wrapper at each read, so two reads of one tree
+        # share only `as_pointer()`.
+        one = tree("Group", drivers="group-data")
+        one.as_pointer = lambda: 4096
+        again = tree("Group", drivers="group-data")
+        again.as_pointer = lambda: 4096
+        seen = set()
+        self.assertEqual(node_tree_holders(one, seen) + node_tree_holders(again, seen), ["group-data"])
+
     def test_a_group_that_contains_itself_ends(self):
         loop = tree("Loop", drivers="loop-data")
         loop.nodes.append(SimpleNamespace(node_tree=loop))

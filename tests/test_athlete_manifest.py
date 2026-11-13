@@ -175,6 +175,34 @@ class ConvertAndAccept(ManifestTest):
         self.assertIn("gradedClip", clips["netball_overhead_pass"])
         self.assertIsNone(clips["netball_overhead_pass"]["gradedClip"])
 
+    def test_the_three_held_passes_link_no_graded_record_even_when_their_clips_are_shipped(self):
+        # Main ruled on 13 Nov 2026 (lane board, Models/models-tactics-export-to-main): the bounce,
+        # overhead and one-hand high passes ship as pose clips that meet their checkpoints, and still
+        # link no graded record until the mechanical release lands. The pose clips file here holds
+        # all three, graded, exactly as the export from main wrote them.
+        held = ["netball_bounce_pass", "netball_overhead_pass", "netball_one_hand_high_pass"]
+        shipped = {"pass.netball.chest-pass": {"movementId": TECHNIQUE, "graded": True,
+                                               "generatedFrom": {"commit": CHEST_BUILD}}}
+        for movement, clip_id in zip(held, ["pass.netball.bounce-pass", "pass.netball.overhead-pass",
+                                            "pass.netball.one-hand-high-pass"]):
+            shipped[clip_id] = {"movementId": movement, "graded": True, "generatedFrom": {"commit": "b" * 40}}
+        folder = Folder(self.root)
+        for movement in held:
+            folder.library["techniques"].append(dict(folder.library["techniques"][0], clip=movement, movementId=movement))
+            folder.animations[movement] = folder.animations[TECHNIQUE]
+        (self.root / "movement-library.json").write_text(json.dumps(folder.library))
+        (self.root / "netball-athlete.glb").write_bytes(glb_bytes(folder.animations, folder.joints))
+        clips = {c["id"]: c for c in am.convert_legacy(self.root, kit_id="k",
+                                                        pose_clips=json.dumps(shipped).encode())["clips"]}
+        self.assertEqual(clips[TECHNIQUE]["gradedClip"]["clipId"], "pass.netball.chest-pass")
+        for movement in held:
+            with self.subTest(movement=movement):
+                self.assertIn("gradedClip", clips[movement])
+                self.assertIsNone(clips[movement]["gradedClip"])
+                self.assertIn("mechanical release", am.HELD_FROM_GRADED_RECORD[movement])
+        self.assertIn("coach item 12", am.HELD_FROM_GRADED_RECORD["netball_bounce_pass"])
+        self.assertEqual(sorted(am.HELD_FROM_GRADED_RECORD), sorted(held))
+
     def test_writer_refuses_a_pose_clips_file_that_links_no_technique(self):
         # The wrong file passed by mistake: the athlete's own library, an empty object.
         folder = Folder(self.root)

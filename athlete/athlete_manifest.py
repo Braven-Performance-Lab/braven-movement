@@ -119,6 +119,20 @@ def _history(legacy: dict) -> list:
     return entries
 
 
+# Techniques whose shipped pose clip is NOT linked as the graded record, each with the reason.
+# Main ruled on 13 Nov 2026 (lane board, Models/models-tactics-export-to-main): the three passes
+# ship as pose clips exported from main, kept exactly as measured, and their gradedClip stays null,
+# so the board marks them "not graded" (spec 3, decision C-6). Remove a line when its reason is gone.
+_RELEASE = ("meets its coaching checkpoints on this build, but the mechanical release is not on main "
+            "and changes this pass, so the graded record waits for the release and a new export")
+HELD_FROM_GRADED_RECORD = {
+    "netball_bounce_pass": _RELEASE + "; it also has an open defect its checkpoints cannot see: "
+                           "the clip ends before the ball bounces (coach item 12)",
+    "netball_overhead_pass": _RELEASE,
+    "netball_one_hand_high_pass": _RELEASE,
+}
+
+
 def graded_pose_clips(pose_clips: bytes) -> dict:
     """Each Tactics pose clip by the drill it was solved from (its movementId).
 
@@ -173,7 +187,9 @@ def convert_legacy(folder: Path, *, kit_id: str, pose_clips: bytes, sport: str =
             entry.update(kind='technique', fps=int(t['fps']), frameCount=t['frameCount'],
                          movementId=t['movementId'], jobSha256=t.get('jobSha256'),
                          contactFrame=t.get('contactFrame'), releaseFrame=t.get('releaseFrame'),
-                         review=_review(t), gradedClip=graded.get(t['movementId']))
+                         review=_review(t),
+                         gradedClip=None if t['movementId'] in HELD_FROM_GRADED_RECORD
+                         else graded.get(t['movementId']))
         else:
             entry.update(kind='general', fps=int(gaits.get(name, {}).get('fps', GENERAL_FPS)), review='not-graded')
         clips.append(entry)

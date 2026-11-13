@@ -1,6 +1,6 @@
 """How smoothly the second hand travels out to meet the ball, PER DRILL.
 
-`docs/KNOWN_ISSUES.md` describes the snatch drill in full, then carries the hooks
+`docs/KNOWN_ISSUES.md` at `b48512a` describes the snatch drill in full, then carries the hooks
 drill along in one sentence: "The hooks drill is the same shape". The ramp
 figures that follow are given once, for both. **That sentence also carries a
 travel figure for the hooks drill that this tree does not reproduce**, so the
@@ -46,7 +46,7 @@ value would make the frame count an artefact of a choice nobody stated. Three ar
 reported, and the count is only quoted when it is stable across them.
 
 THE SECOND HAND'S ARRIVAL PHASE IS NOT NAMED THE SAME ON BOTH DRILLS. The snatch
-has `join`; the hooks drill has `gather`. `docs/KNOWN_ISSUES.md` names both keys.
+has `join`; the hooks drill has `gather`. `docs/KNOWN_ISSUES.md` at `b48512a` names both keys.
 Each drill's step is reported at its own phase, named, rather than one substituted
 silently for the other.
 

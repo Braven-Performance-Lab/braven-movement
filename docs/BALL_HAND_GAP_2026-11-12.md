@@ -51,7 +51,7 @@ ball is in the wrong place relative to the body, the hands go with it and the
 gap above still reads zero. The gap is blind to that error, and that error is
 the defect FIG-2 describes: `pose_phase` places the ball from the rig's own
 shoulder midpoint, so the ball carries the girdle's error one for one
-(`docs/KNOWN_ISSUES.md`, "The ball is anchored to a landmark the job does not
+(`docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`, "The ball is anchored to a landmark the job does not
 transmit").
 
 The render instrument therefore also reads the girdle receipt's

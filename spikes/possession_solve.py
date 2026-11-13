@@ -521,8 +521,8 @@ def solve_movement(
         # changes between runs because it measures how busy the machine was.
         # Dividing an angle by it produced "degrees per second of computer
         # time" twice, and both readings reached documents before they were
-        # caught. Refer to "A field called secondsPerFrame holds the solver's
-        # cost" in docs/KNOWN_ISSUES.md.
+        # caught. Refer to "RESOLVED: a field called secondsPerFrame held the
+        # solver's cost" in docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md.
         "solveSecondsPerFrame": seconds / track.frames,
         "turnedByDegrees": round(turned_by, 2),
         "turns": turns,

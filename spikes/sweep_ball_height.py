@@ -1,4 +1,4 @@
-"""The instruments behind every figure the `ballHeightCm` ledger row quotes.
+"""The instruments behind every figure the `ballHeightCm` ledger row quoted.
 
     pixi run --frozen -- python -B sweep_ball_height.py           the sweep
     pixi run --frozen -- python -B sweep_ball_height.py --fine    across the basin
@@ -48,7 +48,8 @@ configuration the arm finds to hold it, and an arm measure does not.
 NOTHING SHIPPED FAILS BECAUSE OF IT. The lift's graded elbow reads 60.56 and
 54.07 across the boundary, inside its 20 to 85 band. The release checkpoints
 barely move under this lever -- and "barely" is measured, not assumed, which is
-why the release columns are printed here. Refer to the ledger row.
+why the release columns are printed here. Refer to the ledger row in
+docs/KNOWN_ISSUES.md at b48512a; spec 1 GRD-9 now states the rule.
 """
 import json
 import shutil
@@ -175,7 +176,8 @@ def sweep(character, copy) -> None:
 def wrist(character) -> None:
     """The ball against the wrist, the peaks, and the follow-through pair.
 
-    Every figure the ledger quotes for "there is no wrist height", measured
+    Every figure the ledger quoted for "there is no wrist height" (in
+    docs/KNOWN_ISSUES.md at b48512a), measured
     here so the table is not a number without an instrument.
     """
     print("    ball centre minus the HOLDING wrist, over the frames she holds")

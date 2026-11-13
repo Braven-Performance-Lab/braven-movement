@@ -84,7 +84,7 @@ MINIMUM_MEANINGFUL_BAND_DEGREES = 5.0
 #
 # That is this project's recurring fault class, appearing in the derivation of
 # the threshold meant to prevent it. `segment_measures` calls it the
-# units-across-a-boundary fault and counts six; `docs/KNOWN_ISSUES.md` names
+# units-across-a-boundary fault and counts six; `docs/KNOWN_ISSUES.md` at `b48512a` names
 # instances up to a sixth. An earlier version of this comment said "twelve
 # times", which is a count from a lane's own notes and not from anything in
 # this repository -- a number without its inputs, in the comment that exists to

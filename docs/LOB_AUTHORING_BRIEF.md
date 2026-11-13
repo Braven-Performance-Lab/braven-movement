@@ -176,7 +176,7 @@ whole difference was the release height. The finding is sharper for the
 correction: the constant is fine at the near end of the manual's stated 5 to 7 m
 and has become a lob by the far end, with no change to the number and nothing
 in the file saying so. **THE 7 M FIGURE IS ALREADY ON MAIN AND THIS IS A CITATION, NOT A NEW
-FINDING.** `docs/KNOWN_ISSUES.md` lines 1563-1566 and `docs/WRIST_AND_PACE.md`
+FINDING.** `docs/KNOWN_ISSUES.md` at `b48512a`, "The pace has no author either", and `docs/WRIST_AND_PACE.md`
 lines 165-168 already publish the 302 cm against a 305 cm goalpost. What is
 added here is the 5 m end, which shows the constant is distance-dependent across
 the manual's own range rather than simply too slow.
@@ -195,7 +195,7 @@ receipt on this drill will cover less than it appears to.
 |---|---|
 | "reach the highest point where the defender is" | **NONE.** No defender is modelled, and nothing reports the ball's apex on an outgoing launch. `author_flight.py` writes `peakHeightCm` for an INCOMING flight only. |
 | "come down on the receivers outside hand (Face side)" | **NONE.** No receiver is modelled. The launch has a target point and nobody standing at it. |
-| "Pull the ball up as high as arm can go" | **QUALIFIED.** `leftShoulderElevationDegrees` and `rightShoulderElevationDegrees` do read the arm overhead and DO grade it on `netball_overhead_pass`. But the measure is IMPURE at exactly this height: it reads arm FOLD as well, leaking 8.2 degrees non-monotonically at a 184.4 cm ball centre, which is the lob's own height. No units-correct height measure in centimetres exists. Refer to the `docs/KNOWN_ISSUES.md` row "No units-correct distance measures, and three cues already want them", which names this cue as what a height measure would guard. An earlier draft said an unqualified YES. |
+| "Pull the ball up as high as arm can go" | **QUALIFIED.** `leftShoulderElevationDegrees` and `rightShoulderElevationDegrees` do read the arm overhead and DO grade it on `netball_overhead_pass`. But the measure is IMPURE at exactly this height: it reads arm FOLD as well, leaking 8.2 degrees non-monotonically at a 184.4 cm ball centre, which is the lob's own height. No units-correct height measure in centimetres exists. Refer to the `docs/KNOWN_ISSUES.md` row "No units-correct distance measures, and six cues already want them", which names this cue as what a height measure would guard. An earlier draft said an unqualified YES. |
 | "Keep hand behind the ball and fingers up" | **PARTLY.** `spikes/hand_orientation.py` reports `thumbUpDegrees`, `fingerUpDegrees` and `thumbToBallDegrees` into every receipt, so "fingers up" IS measured. It is REPORT-ONLY: the module says so on its first line, it is absent from `MEASURE_UNITS`, and no checkpoint can read it. Refer to `spikes/hand_orientation.py` and `docs/HAND_MIRROR_EVIDENCE.md:221`. An earlier draft cited `docs/COACH_REVIEW_2026-08-30.md`, which predates the instrument and says the engine measures no hand orientation. |
 
 **The apex is the one worth building.** It is the lob's defining quantity, the

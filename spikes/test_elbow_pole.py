@@ -300,7 +300,7 @@ class TheContactSeparationOnTheEvidencedPopulation(unittest.TestCase):
     separation at contact on the manual's 38.6 cm. That mean was taken across
     the whole library, and it agreed: 38.58 cm. But the 38.6 cm figure is read
     from photographs of a snatch AT CONTACT with the arm at 0.85 to 0.90 of
-    full extension, as `docs/KNOWN_ISSUES.md` already states, and the library
+    full extension, as `docs/KNOWN_ISSUES.md` at `b48512a` already states, and the library
     mixes two populations. Six drills put both hands on the ball at contact and
     averaged 36.57 cm. Two put one hand on it, so their other elbow is not on
     the ball at all, and they averaged 44.60. The two averaged to 38.58, which

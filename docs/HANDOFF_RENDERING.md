@@ -29,7 +29,7 @@
 > ledger sampled at every EIGHTH frame, the best of all correspondences spread
 > by 10.8 frames and no offset fitted. Re-read at a step of one frame the same
 > events give -78 three times. Refer to "A ledger without its reading step
-> nearly cost a real pairing" in `docs/KNOWN_ISSUES.md`.
+> nearly cost a real pairing" in `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
 >
 > A file name is not an identity. Every artefact carries `source.videoSha256`,
 > and `source_matches()` in `spikes/video_keypoints.py` compares it with the

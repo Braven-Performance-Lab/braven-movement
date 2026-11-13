@@ -186,7 +186,7 @@ zero, and the single occurrence in `verify_tactics_clip.py` is an unrelated note
 about BLAS.** The Tactics side of the boundary has no notion of a variant.
 
 **That is a decision and not an oversight**, and
-`docs/KNOWN_ISSUES.md:2460-2470` records it under the heading "The exporter is
+`docs/KNOWN_ISSUES.md` at `b48512a` records it under the heading "The exporter is
 untouched, and that is deliberate": inventing a `(movement, variant)` key would
 answer Marius's question by writing code rather than by asking him. A first
 version of this section called it omission rather than decision, which
@@ -1056,7 +1056,8 @@ difference between consecutive positions. Section 0 adds that no code in
 
 **And the release speed is not solved from the body. It is one authored
 constant.** `author_flight.DEFAULT_SPEED_CM` is `600.0` cm/s, the one speed the
-whole library uses. `docs/KNOWN_ISSUES.md:2096` records what that means:
+whole library uses. `docs/KNOWN_ISSUES.md` at `b48512a`, "The ball speed for the
+whole library is one undocumented constant", records what that means:
 
 > 600 cm/s has no coach, no measurement and no source, and its own comment says
 > a game pass is faster. Nothing grades it.

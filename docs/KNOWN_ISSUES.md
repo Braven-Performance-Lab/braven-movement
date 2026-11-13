@@ -78,6 +78,7 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 - **Instrument:** Not recorded in the register.
 - **Owner:** Movement
 - **Waits for:** It waits for a smoothing fix, which the agreed order places after the tactics spike and before the clips ship.
+- **Status:** Ruled, not built. Spec 1 decision 12.2 sets the limit at the worst step a coach has seen without comment, taken to the coach morning. No per-frame step gate is on `main` at `9b35621`.
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 390](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L390)
 
 ## Centimetres are stored in a field called degrees
@@ -96,6 +97,7 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 - **Instrument:** `sweep_ball_height.py`
 - **Owner:** Movement
 - **Waits for:** Marius's gate-4 ruling on whether the prose note may be corrected, and on the step-1 checkpoint itself, closes it.
+- **Status:** Ruled, not built. Spec 1 decision 12.7 settles gate 4: a sport scientist proposes, Marius approves. The prose note in `netball_one_hand_high_pass.json` is still uncorrected on `main` at `9b35621`.
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 899](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L899)
 
 ## No units-correct distance measures, and six cues already want them
@@ -105,6 +107,7 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 - **Instrument:** Not recorded in the register.
 - **Owner:** Movement
 - **Waits for:** It waits for an ahead-of-chest measure built as its own unit of work, with its own anchor argument stated and measured.
+- **Status:** Ruled, not built. Spec 1 decision 12.3: grade the six distance cues, chest pass first. No ahead-of-chest or step-length measure is on `main` at `9b35621`.
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 1075](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L1075)
 
 ## A release clip ends before its ball lands
@@ -177,7 +180,7 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 - **Instrument:** Not recorded in the register.
 - **Owner:** Movement
 - **Waits for:** Event-anchored phases, already queued, would fix this together with the landing checkpoints.
-- **Since then:** Spec 1 decision 12.8 (13 November 2026) keeps the two-hand catch's pull-in at 0.72 and leaves this class to the event-anchored phases. `scripts/pull_in_frame.py` counts the pairs (`docs/PULL_IN_FRAME_2026-11-12.md`).
+- **Status:** Ruled, not built. Board ruling Main/catch-pullin-12-8 (13 November 2026) leaves this class to the event-anchored phases, which are not on `main` at `9b35621`. `scripts/pull_in_frame.py` counts the phase and key pairs that share a name (`docs/PULL_IN_FRAME_2026-11-12.md`).
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 1612](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L1612)
 
 ## What is left above 10 degrees, in full
@@ -206,15 +209,6 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 - **Owner:** Movement
 - **Waits for:** Not stated in the register.
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 1944](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L1944)
-
-## The waiting hand's own history
-
-- **Finding:** Before the correction, `netball_hooks_outside_hand` waited with its free arm at 0.927 to 0.999 of full extension, mean 0.979. After it, the contact elbow separation moved from 30.2 cm to 37.4, against the manual's 38.6.
-- **Build:** Not recorded in the register.
-- **Instrument:** Not recorded in the register.
-- **Owner:** Movement
-- **Waits for:** A coach may still rule that a facing-away wait belongs nearer full stretch, using the `ready` dial in the technique file.
-- **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 1982](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L1982)
 
 ## Two callers still measure the reach from the midpoint
 
@@ -277,7 +271,7 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 - **Instrument:** Not recorded in the register.
 - **Owner:** Movement
 - **Waits for:** The coach morning answers whether 6.00 m/s is a drill feed and whether she returns the ball at its arrival pace.
-- **Since then:** Spec 1 decision 12.9: the ball leaves at the speed the hands carry it into release, and the assigned speed goes in the same change. Main's release goal builds it. It is not on `main` at `b48512a`.
+- **Status:** Ruled, not built. Spec 1 decision 12.9: the ball leaves at the speed the hands carry it into release. That launch is built on `lane/mechanical-release` (`c98edd1`) and has not landed. `spikes/author_flight.py` on `main` at `9b35621` still has `DEFAULT_SPEED_CM = 600.0`.
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 2367](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L2367)
 
 ## The four contact hitches are one sub-frame timing defect
@@ -402,6 +396,7 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 
 ### Moved out of this register
 
+- The waiting hand's own history: closed on 13 November 2026. Commit `a6c7406` (27 August 2026) fixed the over-extended wait, before this register was written: `spikes/possession.py` wraps the ready point in `within_every_shoulder`. A coach may still move the `ready` dial in the technique file, and that needs no build. Its text is in this file [at b48512a, line 1982](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L1982).
 - A per-hand ready offset is a design candidate, not a gap: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
 - The environment must be activated, not merely located: an engineering rule: refer to `docs/ENGINEERING_RULES.md`.
 - The record of the four, as it was diagnosed: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
@@ -445,6 +440,7 @@ the engine, so its entries live here.
 - **Instrument:** Not recorded in the register.
 - **Owner:** Video and footage
 - **Waits for:** Marius decides whether to move either poster, which costs one number in `PAIR1_SECTIONS` and a re-pin of two digests.
+- **Status:** Ruled, not built, and waiting on the owner. Spec 2 decision 11.7 says to use the stance frame, 560, for both posters, but 560 is outside the `release-rep09` window (598 to 653), and `check_poster` refuses it. The owner chooses again in Main/poster-11-7-again.
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 4723](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L4723)
 
 ### Moved out of this register

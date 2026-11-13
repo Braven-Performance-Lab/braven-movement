@@ -233,7 +233,7 @@ candidates.
 | 15, truncation | the four arrival frames | ready |
 | 16, landing | three readings and their bands | ready |
 | A, a second grader | nothing. It is a question about people. | ready |
-| 10, B, C | the two written lists | ready |
+| B (with item 10), C | the two written lists | ready |
 
 **Four footage sections exist** in `.remember/erin-page/erin-stage/video-clips-v2/`:
 catch, hold, ready and release, each front and side with a poster. **Run 2's
@@ -311,8 +311,9 @@ her eyes, and would leave every LOOK item for a second sitting.
 
 **Decisions Marius takes with her answers in hand:**
 
-- which passes the engine authors next, and whether the clip vocabulary changes
-  (items 10 and B);
+- whether the clip vocabulary changes (item B). Which passes the engine
+  authors next is ruled: all eight, in the manual's names (spec 1, decision
+  12.4, which answers item 10);
 - whether a pass clip must carry the ball to the catch (item 15);
 - the manual's cited title (item C).
 

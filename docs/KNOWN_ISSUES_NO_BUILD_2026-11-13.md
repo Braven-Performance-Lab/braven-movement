@@ -85,11 +85,65 @@ recommendation in spec 2 and did not check it against the window. The owner's
 sign-off accepted the recommendation as written. A sharper release poster
 inside 598 to 653, or a new window, needs his choice.
 
-## What follows from this, for Main
+## What was done in the register (step 3)
 
-- Step 3 of the goal closes entries that are gone or ruled. Only entry 1982 is
-  gone. The 6 ruled entries are not built, so closing them would hide a defect
-  that is still on `main`. Models proposes to mark them "Ruled, not built" with
-  the decision, and to keep them open until the ruling is built.
-- The 21 true entries and the 3 unknown entries need a build and an instrument.
-  Step 4 lists the lane and the script for each.
+Main answered on 13 November 2026 (lane board, Models/models-ki31-classes-to-main):
+
+- Entry 1982 is closed. It moves to the Movement area's list "Moved out of
+  this register", with the commit that closed it.
+- The 6 ruled entries stay open. Each has a **Status** line, "Ruled, not
+  built", that names its decision. Entry 2367 also says that the launch from
+  the hands is built on `lane/mechanical-release` (`c98edd1`), which has not
+  landed. Entry 4723 says it waits for the owner on Main/poster-11-7-again.
+- For entries 1612 and 2367, the Status line replaces the older **Since
+  then** line, which said the same ruling. The instrument that line named for
+  1612, `scripts/pull_in_frame.py`, moves into the Status line.
+
+## The entries still true or unknown, and how to measure each (step 4)
+
+24 entries are true or unknown. 8 of them need no measurement:
+
+| Line | Entry | What closes it, instead of a measurement |
+|---:|---|---|
+| 292 | Reference catch is not yet a final coaching sample | A coach accepts the sample (Rendering and modelling: Blender). |
+| 315 | Presentation is ready for review, not final publication | A coach accepts it, then the final kit replaces the placeholder (Blender). |
+| 323 | Reference media is local-only | The owner establishes publication rights. |
+| 1335 | The moment gap is recorded every run and compared on none of them | A rule for a moved gap, then a comparison in `spikes/verify_tactics_clip.py`, with a test. |
+| 1353 | The coach animation exporter has no tests | A schema and round-trip test for `spikes/export_coach_animations.py`. |
+| 1998 | Two callers still measure the reach from the midpoint | A guard at `spikes/possession.py:626` and `:678`, before a drill both turns and releases. |
+| 2076 | A free hand with no post-contact key would rest at the contact point | A refusal in `resting_point` (`spikes/possession.py:558-560`) for a technique whose only key is the contact offset. |
+| 2176 | The term named continuity is a pull toward the rest pose | Already measured (35 values, 0 verdicts). It waits for a decision with a better cold start. |
+
+16 need a measurement on a build of `main`. "No script" means that the
+register names none and no script on `main` measures that quantity.
+
+| Line | Entry | Lane | Script |
+|---:|---|---|---|
+| 330 | Five coaching phases cannot fail | Movement | `spikes/build_library.py` (`phaseSeparation`) |
+| 1270 | A release clip ends before its ball lands | Movement, with the clip contract | `spikes/verify_tactics_clip.py`, plus a frame-to-target count: no script |
+| 1415 | FIVE coaching checkpoints now fail | Movement | `spikes/build_library.py` (the verdicts) |
+| 1435 | AND THE DIAGNOSIS BELOW IS SUPERSEDED: the bands were never wrong | Movement, after the coach morning picks the release frame | `spikes/build_library.py` |
+| 1527 | The follow-through is rough where the arm now moves | Movement | `spikes/snap_report.py` |
+| 1588 | The deflect carry still passes close to her face | Movement | No script: a ball-to-face distance per frame |
+| 1721 | What is left above 10 degrees, in full | Movement | `spikes/snap_report.py`, over the whole library |
+| 1735 | How wide the elbows sit with the ball at the chest | Movement | No script at the chest. `spikes/measure_elbow_width.py` measures at contact only |
+| 1944 | The cold-start seed set is four copies of one pose | Movement | `spikes/measure_seed_variety.py` (`pixi run seeds`) |
+| 2025 | The mean elbow separation agreed with the manual by mixing two populations | Movement | `spikes/measure_elbow_width.py` |
+| 2235 | The residual the cold-start test cannot see | Movement | `spikes/test_cold_start.py` cannot see it. No script |
+| 2316 | The second hand travels 14 cm out to meet the ball | Movement | `scripts/second_hand_ramp.py` |
+| 2389 | The four contact hitches are one sub-frame timing defect | Movement, release work | `scripts/sweep_carry_timing.py` |
+| 2420 | The sub-frame defect is at the athlete's release only | Movement, release work | `scripts/sweep_carry_timing.py` |
+| 2723 | The pace has no author either | Movement | No script: `docs/WRIST_AND_PACE.md` measured it against three strip-proved repetitions of her video |
+| 3747 | A one-handed release is far less determined than a two-handed one | Movement | No script: a sweep of `up` and `ahead`, with and without a constraint |
+
+The lane board has no lane named Movement. Main holds the release work, and
+`lane/mechanical-release` changes the release timing. So entries 1435, 2389
+and 2420 may change when it lands, and they are best measured after it.
+
+## What is left for Main
+
+- 16 measurements, in the table above. Each needs a lane, and 6 of them need a
+  script first.
+- 8 entries close by a coach, the owner, a test or a decision, not by a
+  measurement.
+- Decision 11.7 is with the owner as Main/poster-11-7-again.

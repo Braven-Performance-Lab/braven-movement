@@ -33,7 +33,12 @@ def moved(old: dict, new: dict) -> dict:
     ball = [math.dist(o[:3], n[:3]) for o, n in zip(old["ball"], new["ball"])]
     return {"poseMax": max(pose), "poseMean": sum(pose) / len(pose), "ballMaxM": max(ball, default=0.0),
             "gradedBefore": old["graded"], "gradedAfter": new["graded"],
-            "buildBefore": old["generatedFrom"]["commit"], "buildAfter": new["generatedFrom"]["commit"]}
+            "buildBefore": _build(old), "buildAfter": _build(new)}
+
+
+def _build(clip: dict) -> str:
+    """The build a clip names. Clips exported before 14 September 2026 name none."""
+    return (clip.get("generatedFrom") or {}).get("commit") or "unstamped"
 
 
 def shipped_clips(tactics: Path) -> dict:

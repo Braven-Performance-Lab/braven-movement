@@ -165,6 +165,54 @@ link. The delivery changes no picture and no "not graded" mark: both are the
 same before and after. What a coach sees of these three passes is the rig
 clip, which comes with the athlete export, not with a pose clip.
 
+## The athlete's 18 rig clips, and what it costs to replace the passes
+
+Main asked on 13 November 2026 (lane board, Models/models-tactics-records-not-animations)
+for this count and cost before anything is built. Read from the athlete
+candidate `09-gait-v2` (`2b48758b`), the athlete Tactics imports, and its
+`movement-library.json`, `athlete-manifest.json` and `athlete/README.md`.
+
+**None is from a stock library, and none is motion capture.**
+
+| Clips | Count | Where they come from |
+|---|---:|---|
+| Ready, Defence, Receive_pass, Jump_reach | 4 | Authored by hand as examples (`athlete/README.md`). Jump_reach has a gravity correction. |
+| Jog, Run | 2 | Authored by hand, then rebuilt by the gait work (`gaitRebuild`). |
+| The 12 netball techniques | 12 | The engine's solve at `b4f7074`, retargeted onto the athlete in Blender. Each then has a realism correction: the body rescaled to 9.81 m/s2 gravity, and the ball's flight authored at a fixed throw speed. Three have a gravity correction (Jump_reach above, the hooks jump and the double-foot landing). |
+
+The four pass clips, in detail:
+
+| Pass | Ball after release, as authored | The engine's motion since `b4f7074` |
+|---|---|---|
+| Chest pass | 12 m/s | Not changed |
+| Bounce pass | 12 m/s, bouncing at 0.667 s | Not changed |
+| Overhead pass | 14 m/s | Not changed |
+| One-hand high pass | 17 m/s | Not changed |
+
+**How "not changed" was measured.** The pose clips of the four passes were
+exported at `b4f7074` and at `c99e697` (and `b9deaeb`, the same `spikes/`), and
+compared with `scripts/clip_moved.py`: pose and ball are equal on every frame.
+The Blender jobs, which the rig is baked from, were exported at both builds and
+compared field by field: every shared number is equal. The one field only main
+writes, `trunkTurnDegrees`, is 0.0 at every phase of all four passes. These
+exports are measurements and were not shipped.
+
+**What a replacement costs.** The chain is six stages:
+
+1. `athlete/export_movement_library.py`, with pixi and the MHR assets.
+2. `athlete/import_movement_library.py` in Blender, onto the base athlete.
+3. `athlete/correct_jumps.py`, the gravity correction.
+4. The realism correction, which authors the ball's flight.
+5. The gait rebuild for Jog and Run.
+6. Verification, a new manifest, a Studio rebuild, the Tactics import, and
+   the owner's look.
+
+**Today that chain changes no motion in any pass**, because the engine's motion
+is the same as the athlete's source. The mechanical release is what changes all
+four, and it also replaces the authored throw speeds: spec 1 decision 12.9 rules
+that the ball leaves at the speed of the hands. So a replacement is worth
+running once, after the release lands, and not before.
+
 ## Questions for Main
 
 1. Deliver the three pass clips from `main` now and export them again after

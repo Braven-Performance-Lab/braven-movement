@@ -29,6 +29,12 @@ class ClipMoved(unittest.TestCase):
         self.assertAlmostEqual(m["poseMean"], 0.3 / 30)
         self.assertAlmostEqual(m["ballMaxM"], 0.5)
 
+    def test_a_clip_from_before_build_stamps_is_named_unstamped(self):
+        old = clip([[0.1] * 15], [[0, 1, 2, 1]])
+        del old["generatedFrom"]
+        m = clip_moved.moved(old, clip([[0.1] * 15], [[0, 1, 2, 1]], commit="a" * 40))
+        self.assertEqual((m["buildBefore"], m["buildAfter"]), ("unstamped", "a" * 40))
+
     def test_a_different_frame_count_is_refused(self):
         with self.assertRaises(SystemExit):
             clip_moved.moved(clip([[0] * 15] * 2, []), clip([[0] * 15] * 3, []))

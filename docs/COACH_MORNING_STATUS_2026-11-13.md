@@ -82,7 +82,7 @@ From `docs/FINDING_HIGH_PASS_READY_GRIP.md` on `main`:
 | 2 and 8 | Elbow width at 31.3 and 37.3 | The Blender lane's goal for items 2 and 4 (step 7 of 8 at 14:05) |
 | 4 | Fingers, full speed and slowed | The Blender lane; its render waits for Main to land the renderer's finger field |
 | 18 | The flick candidates | Main's goal "Make the release mechanical". Five candidates are rendered, and the owner decides whether they go before the coach (Main/flick-candidates-look) |
-| 6 | A ready still on the shared athlete | Nobody yet |
+| 6 | The snatch `ready` figure, quarter and side views | Made by the Blender lane (build `96ba152`, named on 13 November): wrists 11.00 cm apart against the engine's 20.08 cm, no arm span |
 
 The state of the renders is read from the lane board at 14:05 on 13 November
 2026, not from `main`.
@@ -96,3 +96,10 @@ The state of the renders is read from the lane board at 14:05 on 13 November
 3. The running order counts 21 live items in 20 entries. With item 10 merged
    into item B, the count changes. Do I update the running order in the same
    change?
+
+Main answered on 13 November 2026 (lane board, Models/models-coach-morning-status-to-main):
+
+1. The Blender lane. It named the figure the same day: `two_hand_snatch_pull_in`
+   at `ready`, quarter and side views (lane board, Blender/blender-item6-figure-for-models).
+2. Yes: item 10 merges into item B.
+3. Yes: the running order's counts change in the same change.

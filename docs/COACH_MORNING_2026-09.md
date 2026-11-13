@@ -21,7 +21,7 @@ That is 20 live items. The morning waits for these renders:
 | 2 and 8 | The elbow width at 31.3 and 37.3, on the shared athlete | The Blender lane |
 | 4 | The fingers at full speed and slowed, on the shared athlete | The Blender lane, after Main lands the renderer's finger field |
 | 18 | Five flick candidates, on the shared athlete | Main. They wait for the owner's answer and are not on `main`. |
-| 6 | The ready still on the shared athlete | It exists from the Blender lane's re-render; Blender names the file |
+| 6 | The snatch `ready` figure, quarter and side views, on the shared athlete | Made by the Blender lane (build `96ba152`): wrists 11.00 cm apart, no arm span |
 
 The state of the renders is read from the lane board at 14:05 on 13 November 2026.
 
@@ -428,7 +428,7 @@ Marius with this evidence before anybody touches it.
 
 ## 6. Is she showing her arm span while she waits?
 
-> **13 November 2026:** **Changed.** The figures move to the shared athlete, and `docs/TWO_BODIES_PAPER.md` measured the older body. That paper has been on `main` since `9328002` (9 September), although this item says it is not. The ready still on the shared athlete exists from the Blender lane's re-render of the 51 phases. Main has asked Blender to name the file.
+> **13 November 2026:** **Changed.** The figures move to the shared athlete, and `docs/TWO_BODIES_PAPER.md` measured the older body. That paper has been on `main` since `9328002` (9 September), although this item says it is not. The figure to show her is `two_hand_snatch_pull_in` at `ready`, in the quarter and side views, from the Blender lane's re-render on the shared athlete (build `96ba152`, athlete revision 9). The front view cannot be used, because the arriving ball hides her face. On that figure the drawn wrists are 11.00 cm apart, where the engine places them 20.08 cm apart: hands together, palms forward, no arm span. The question to her stands. The files are on the Blender lane's machine, not in git.
 
 **The question.** Watch the ready position. Is she showing the passer a target?
 

@@ -80,9 +80,9 @@ class SharedAssetLicenceTest(unittest.TestCase):
 
     Each external asset the manifest lists is licensed by THIS repository's
     determination (`asset_licences.licence_for`), never by the manifest's own
-    words, which are recorded beside it. The master file is licensed the same
-    way; until `docs/LICENSING.md` determines the athlete's own build output,
-    it is refused.
+    words, which are recorded beside it. The master file takes the owner's
+    ruling of 13 Nov 2026 (`docs/LICENSING.md`, 'The shared athlete's build
+    output'), and only a file the manifest gives the role `master`.
     """
 
     MANIFEST = {
@@ -116,6 +116,16 @@ class SharedAssetLicenceTest(unittest.TestCase):
             self.assertIn("docs/LICENSING.md", record["licenceSource"])
             self.assertIn(ATHLETE_BUILD_RULE, record["licenceSource"])
             self.assertEqual(record["sha256"], "d" * 64)
+
+    def test_only_the_file_with_the_master_role_takes_the_ruling(self):
+        # Review round 1 of lane/shared-athlete-figures: the ruling's scope is
+        # the manifest's master, and `master_record` holds it itself rather
+        # than trusting its caller.
+        manifest = {**self.MANIFEST, "files": {
+            **self.MANIFEST["files"],
+            "netball-athlete.glb": {"role": "model", "sha256": "e" * 64}}}
+        with self.assertRaises(SharedAthleteRefusal):
+            master_record(manifest, Path("build") / "netball-athlete.glb")
 
     def test_a_file_is_not_licensed_by_the_masters_name(self):
         """The ruling reaches only the master the manifest names, through

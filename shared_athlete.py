@@ -81,7 +81,14 @@ def master_record(manifest: dict, master: Path) -> dict:
     The ruling is given HERE, for the one file the validated manifest names
     as master, and never through `licence_for`, which matches path parts and
     would license any file by its name or its folder.
+
+    The role is checked HERE as well as by `athlete_master`, so the ruling's
+    scope does not rest on the caller (review round 1 of the figures branch).
     """
+    if manifest["files"].get(master.name, {}).get("role") != MASTER_ROLE:
+        raise SharedAthleteRefusal(
+            f"{master.name} is not the manifest's {MASTER_ROLE!r} file; the "
+            f"owner's licence ruling covers that file only.")
     return {"path": master.name, "sha256": manifest["files"][master.name]["sha256"].lower(),
             "licence": ATHLETE_BUILD, "licenceSource": ATHLETE_BUILD_SOURCE}
 

@@ -30,6 +30,10 @@ try {
   await page.evaluate(()=>{window.athleteStudio.state.playing=false})
   const info=await page.evaluate(()=>window.athleteStudio.info())
   check('All live joints and exported clips load',info.boneCount===(manifest.deformationControls||69)&&info.clips.length===manifest.animations.length)
+  // The live renderer, not the source: WebGL stays for phones, and r182 made PCFShadowMap (1)
+  // the soft shadow and deprecated PCFSoftShadowMap (2) with WebGLRenderer.
+  const live=await page.evaluate(()=>{const r=window.athleteStudio.renderer;return {webgl:r.isWebGLRenderer===true,shadow:r.shadowMap.type}})
+  check('The page draws with WebGLRenderer and PCFShadowMap',live.webgl&&live.shadow===1)
   // This reads deformed vertices, not only bone names or animation metadata.
   const vertices=()=>page.evaluate(async()=>{
     const app=window.athleteStudio

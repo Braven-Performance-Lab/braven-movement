@@ -31,10 +31,14 @@ mutations run against this pack.
 ## The posters
 
 `<section>-<view>-poster.sha256` holds ONE digest: the DECODED PIXELS of the
-poster frame. The eight files they were read from are the JPEGs already on
-Erin's page, in `.remember/erin-page/erin-stage/video-clips-v2/`, rendered by
+poster frame. Six of the eight were read from the JPEGs already on Erin's
+page, in `.remember/erin-page/erin-stage/video-clips-v2/`, rendered by
 `build_v13.py` from the recordings at each section's poster index with
-`-q:v 3`.
+`-q:v 3`. The two release pins, front 612 and side 607, are not on that page:
+they were read on 13 November 2026 from posters that `video_section_cuts.py
+--pair1-sections` rendered from the same recordings at the same `-q:v 3`,
+with ffmpeg 8.1.2. A board reviewer rendered both frames again with the
+tool's own ffmpeg command and got the same digests, file hashes and sizes.
 
 The FILE is not what is pinned. A JPEG re-encoded at a different quality
 setting changes every byte while showing the same picture, and a JPEG of the
@@ -47,8 +51,8 @@ directory, the frame digest finds a poster showing the wrong instant.
 |---|---|---|---|
 | catch-rep01-front | 276 | 495b6fba570acfe1 | 74054 |
 | catch-rep01-side | 271 | 7d05db7ddf6dda7e | 43345 |
-| release-rep09-front | 619 | e4d9b69453c9c6bc | 72487 |
-| release-rep09-side | 614 | 4c7efd3c6e5e9151 | 42908 |
+| release-rep09-front | 612 | 7803462b7c9495b7 | 72183 |
+| release-rep09-side | 607 | be588b93c30551d6 | 43115 |
 | hold-rep09-front | 673 | 221cdf02ea557eb5 | 69238 |
 | hold-rep09-side | 668 | af2a7cd34830d8bb | 42484 |
 | ready-between-front | 560 | 0547b5184bb68d2f | 77813 |
@@ -57,6 +61,11 @@ directory, the frame digest finds a poster showing the wrong instant.
 Rendering the same frames here at the same `-q:v 3` produces BYTE-IDENTICAL
 files, measured on both views before the setting was written into the tool.
 That is why `POSTER_QUALITY` is 3 and not a number chosen for looking round.
+
+The release posters changed on 13 November 2026. Marius ruled front frame 612 (side 607), the ball at
+her shoulder, over 619 (side 614), the blurred release instant (lane board, Main/poster-11-7-pictures).
+The two release rows above and the two release pins in this folder are for 612 and 607. Erin's page is
+rebuilt from the recordings separately; until then it still shows 619.
 
 ## The build these poster pins were taken on
 

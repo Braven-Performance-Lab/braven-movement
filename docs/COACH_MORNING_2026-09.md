@@ -1,5 +1,32 @@
 # The coach morning: what to ask, and the evidence behind each question
 
+## Status on 13 November 2026
+
+Each item now starts with a dated status line, read on `main` at `4798151` and
+from the rulings since this document was last changed on 14 September 2026.
+The text under each status line is the September text, kept as it was. The
+class of each item, with its source, is in
+`docs/COACH_MORNING_STATUS_2026-11-13.md`.
+
+- **Open (10):** items 1, 5, 8, 9, 11, 14, 15, 18, A and C.
+- **Changed (10):** items 2, 3, 4, 6, 12, 13, 16, 17, 19 and B. Item 13 adds the
+  high-pass ready grip.
+- **Merged (1):** item 10 into item B, because spec 1 decision 12.4 answers it.
+- **Struck (1):** item 7, as before.
+
+That is 20 live items. The morning waits for these renders:
+
+| Item | Render | Who makes it |
+|---|---|---|
+| 2 and 8 | The elbow width at 31.3 and 37.3, on the shared athlete | The Blender lane |
+| 4 | The fingers at full speed and slowed, on the shared athlete | The Blender lane, after Main lands the renderer's finger field |
+| 18 | Five flick candidates, on the shared athlete | Main. They wait for the owner's answer and are not on `main`. |
+| 6 | The ready still on the shared athlete | It exists from the Blender lane's re-render; Blender names the file |
+
+The state of the renders is read from the lane board at 14:05 on 13 November 2026.
+
+---
+
 **Items 1 to 9 were re-measured on `ac240b2` with a clean tree. ITEM 6 IS THE
 EXCEPTION AND ITS TABLE NAMES ITS OWN BUILD**, because one of its eight rows was
 read on a pose that drill no longer holds. Items 10 and
@@ -41,6 +68,8 @@ claim about how it had been framed. Refer to `docs/CLAVICLE_ARTEFACT.md`.
 
 ## 1. Which frame is the release?
 
+> **13 November 2026:** **Open.** Nothing on `main` changed it: `send_on` is still graded at 1.0, and no ruling picks the release frame (`docs/KNOWN_ISSUES_NO_BUILD_2026-11-13.md`). Main's mechanical release (`c98edd1`, not on `main`) moves this item's numbers when it lands.
+
 **The question.** When she passes the ball back, which moment should the engine
 be graded on: the instant the ball leaves her hand, or the end of the
 follow-through?
@@ -78,6 +107,8 @@ changes the other's evidence.
 ---
 
 ## 2. How wide should the elbows sit when she takes the ball?
+
+> **13 November 2026:** **Changed.** She now sees the shared athlete, not the older render body (spec 1, decision 12.5). The figures 36.43 and 38.42 cm were confirmed again on `351ac3a` (`d5607be`). **Waits for its renders.** Two elbow widths, at 31.3 and 37.3, on the shared athlete. The Blender lane makes them (its goal "Render the coach-morning candidates for items 2 and 4").
 
 **The question.** Watch the two previews side by side. Which elbow width looks
 like the athlete in the manual's photographs?
@@ -259,6 +290,8 @@ right, and a number agreeing with a number is not a coach agreeing with a pose.
 
 ## 3. How fast should the ball arrive, and how fast should she send it back?
 
+> **13 November 2026:** **Changed.** The return speed is ruled: the ball leaves at the speed the hands carry it into release (spec 1, decision 12.9). Only "is 6 m/s a drill feed?" is left for her. Not built yet: `spikes/author_flight.py` still has `DEFAULT_SPEED_CM = 600.0`.
+
 **The two questions.** Is 6.0 metres per second a drill feed? And should she
 return the ball at the pace it arrived?
 
@@ -281,6 +314,8 @@ is marked PROVISIONAL in the code, and no coach has confirmed it.
 
 ## 4. Do her fingers close too fast when she takes the ball?
 
+> **13 November 2026:** **Changed.** On `351ac3a` the largest one-frame finger change is 89.95 degrees on all 8 catching drills, not on 7 of 8, and on 3 of them it is not at the contact frame (`d5607be`, `spikes/measure_finger_ramp.py`). The figures below are from `ac240b2`. **Waits for its renders.** A clip at full speed and slowed, on the shared athlete. The Blender lane makes it after Main lands the renderer's finger field.
+
 **The question.** Watch the catch at quarter speed. Does the hand close like a
 hand?
 
@@ -302,6 +337,8 @@ defect.
 ---
 
 ## 5. Does the second hand travel too far to meet the ball?
+
+> **13 November 2026:** **Open.** Nothing changed: the `join` and `gather` keys are the same, and nobody has ruled. The 14 cm figure and its clip are on Erin's held page, which spec 2 decision 11.1 replaces with a generated pack.
 
 **The question.** Erin's note asks that the other hand does not go away from
 the centre of the body towards the ball. Watch the second hand join. Does it go
@@ -391,6 +428,8 @@ Marius with this evidence before anybody touches it.
 
 ## 6. Is she showing her arm span while she waits?
 
+> **13 November 2026:** **Changed.** The figures move to the shared athlete, and `docs/TWO_BODIES_PAPER.md` measured the older body. That paper has been on `main` since `9328002` (9 September), although this item says it is not. The ready still on the shared athlete exists from the Blender lane's re-render of the 51 phases. Main has asked Blender to name the file.
+
 **The question.** Watch the ready position. Is she showing the passer a target?
 
 **What the engine does.** Wrist to wrist at the first frame, on the engine's
@@ -473,6 +512,8 @@ Refer to `docs/CLAVICLE_ARTEFACT.md`. **Nothing is asked of the coach here.**
 
 ## 8. The elbow dial's number
 
+> **13 November 2026:** **Open.** The dial is still 31.3 (`spikes/contact_solve.py`), and Marius deferred the angle to this morning. It follows item 2's renders.
+
 Item 2 is the question a coach answers by looking. This is the number that
 follows from the answer: `ELBOW_POLE_ANGLE_DEGREES`, 31.3 today and 37.3
 previewed. It needs no decision of its own. It is listed so that nobody is
@@ -481,6 +522,8 @@ surprised that answering item 2 sets a constant.
 ---
 
 ## 9. The release timing fix, which waits on item 1
+
+> **13 November 2026:** **Open.** Nothing on `main` changed it. Main's mechanical release changes the release timing when it lands. It still waits on item 1.
 
 A defect is found, measured and NOT fixed. The flight of the passed ball
 measures its elapsed time from the release FRAME rather than from the release
@@ -496,6 +539,8 @@ frame.
 ---
 
 ## 10. Which passes does the board need, and which does the manual teach?
+
+> **13 November 2026:** **Merged into item B.** Spec 1 decision 12.4 answers this item: the library covers all eight passes, in the manual's names. What is left, whether she uses "shoulder pass", is asked under item B. Not built yet: the clip contract still lists `shoulder-pass`.
 
 Added 2026-09-02 by the content lane, with the first two passes authored, in `fcb7ca1`. Its content is two written vocabularies rather than engine figures, so the commit is where the item was added rather than where a number was read.
 
@@ -559,6 +604,8 @@ NEITHER candidate parent is in the vocabulary. Refer to
 
 ## 11. One band floor, missed by five hundredths of a degree
 
+> **13 November 2026:** **Open.** Nothing changed: 49.95 against a floor of 50.0. The reading may move when the release work lands.
+
 Added 2026-09-02 with the ball variants, in `3f95fd1`. (The date was missing
 from this item and is filled in from the commit that added it, so the note at
 the head of this document — that every item from 10 onward states its own build
@@ -594,6 +641,8 @@ readings sit 16 to 32 degrees inside the same band, and nothing about the
 technique, which the other ten checkpoints show does not change with the ball.
 
 ## 12. The bounce pass exists, and its bounce does not
+
+> **13 November 2026:** **Changed.** The speed figures below were computed at 600 cm/s, which spec 1 decision 12.9 replaces with the speed of the hands (not built yet). Decision 12.3 grades the six distance cues, and two of them are this drill's steps. Her question stands. Its 15 stills were rendered again on the shared athlete (pull requests 153 and 154).
 
 Added 2026-09-02 with `netball_bounce_pass`, the library's eleventh drill. **Figures read on `431bf3a`**, that drill's pack as it merged.
 
@@ -634,6 +683,8 @@ reconstruction, which is enough to move all three. Refer to the correction
 under item 15.)
 
 ## 13. The one hand high pass, and the cue it does not grade
+
+> **13 November 2026:** **Changed.** A height measure exists (`ballHeightCm`, `spikes/segment_measures.py`). Spec 1 decision 12.4 answers the name question. The `ready` phase is drawn since `a484302`, so she sees it, and it adds a question: refer to "The high-pass ready grip" at the end of this item.
 
 Added 2026-09-04 with `netball_one_hand_high_pass`, the library's twelfth drill,
 its fourth pass and **its first one-handed pass**. **Figures read on `6228b3d`**, that drill's pack as it merged.
@@ -687,7 +738,28 @@ the lob actually copies. **Which parent the lob rides is still hers to decide**
 and stays open in `docs/LOB_AUTHORING_BRIEF.md`; this drill only removes the
 reason the question could not be asked.
 
+### The high-pass ready grip (13 November 2026)
+
+From `docs/FINDING_HIGH_PASS_READY_GRIP.md` on `main` (added in `54fa652`,
+corrected in `d252a34`):
+
+- At `ready`, the right hand is under and behind the ball at chin height, with
+  the fingers up. The ball touches her chin: 51 skin vertices are inside it, at
+  most 8.63 mm deep.
+- On the hand as drawn, the ball is 27.7 degrees off the finger line, inside
+  the other grips' 41.8 to 46.4 degrees. An earlier figure of 110.9 degrees was
+  withdrawn, because it was measured on a pose the renderer does not draw.
+- The open point is the right index knuckle: it turns 72.7 degrees about z, and
+  208 of 208 readings on the other drills turn about x. No instrument says
+  whether that joint can make that turn.
+
+**The question for her.** At `ready`, where is the ball relative to the
+throwing hand? If the hold drawn here is wrong, the technique file changes
+(gate 4, spec 1 decision 12.7).
+
 ## 14. The one-handed pass is harder for the engine to place than a two-handed one
+
+> **13 November 2026:** **Open.** Nothing changed in what she is asked.
 
 Added 2026-09-04 with `netball_one_hand_high_pass`. **Figures read on `6228b3d`**, the same pack, and the table below is the one in `docs/KNOWN_ISSUES.md`. **This is not a question
 about her coaching. It is a warning about how much to trust one frame of one
@@ -734,6 +806,8 @@ numbers are less able to see a wrong pose than usual.
 ---
 
 ## 15. Every pass clip stops before the ball arrives
+
+> **13 November 2026:** **Open.** Nobody has ruled. The figures were computed at 600 cm/s and may move when the release work lands.
 
 Added 2026-09-04, **read on `56e70a3`** and re-measured since on `b214bc4` with the same result. **A question about the clips a board plays, not about her
 grading**, and it applies to the whole pass family rather than to one drill.
@@ -793,6 +867,8 @@ release earlier; both change what every pass clip contains, so the choice is
 hers and Marius's rather than the content lane's.
 
 ## 16. The landing's own cue may be graded by an instrument that cannot see it
+
+> **13 November 2026:** **Changed.** The sweep that this item says nobody has run, ran on 15 September (`bc0facb`, `scripts/landing_cue_sweep.py`): the checkpoints can fail, but with the flight removed all three still pass. The renderer placed no feet before `320bd01`, so the stills she sees must be from after it.
 
 Added 2026-09-07 from the movement lane's ledger row, which was measured on
 `b214bc4` and reached main in `ad7e65d`. **The cue is real. The instrument
@@ -857,6 +933,8 @@ which is why both are recorded here rather than left as fixed code.
 
 ## 17. The hand that was posed wrongly, and whether the fix reads right
 
+> **13 November 2026:** **Changed.** The fix stands (`fde5d5a`). She now sees it on the shared athlete. The match "to the decimal" was measured on the older body.
+
 Added 2026-09-09 by the content lane. **Figures read on `fde5d5a`**, the commit
 that fixed it. **This item is on Erin's page as its FIRST question and has never
 been on this agenda.** It is added here because the morning needs it and no
@@ -887,6 +965,8 @@ item before both for that reason.
 ---
 
 ## 18. The two angles of the release hand, which nothing sources
+
+> **13 November 2026:** **Open.** The angles are still unsourced, and she sets them. The caveat below is out of date: `docs/RELEASE_HAND_PAPER.md` is on `main` and records the release as mechanical, as Marius ruled. **Waits for its renders.** Five flick candidates, rendered on the shared athlete by Main's goal "Make the release mechanical". They wait for the owner's answer (lane board, Main/flick-candidates-look) and are not on `main`. Since `4d5e560` the renderer opens the fingers as a job asks.
 
 Added 2026-09-09 by the content lane. **THIS ITEM NAMES NO BUILD BECAUSE IT
 CARRIES NO ENGINE FIGURE**, which is the whole of its content: the two angles it
@@ -964,6 +1044,8 @@ sequence above is the record of that.
 
 ## 19. Which of the cues you teach are distances rather than shapes?
 
+> **13 November 2026:** **Changed.** Marius has ruled the instrument (spec 1, decision 12.3: grade the six cues the manual words as a distance; not built yet). Her answer now sizes the cues beyond those six, and no longer gates the decision. A height measure, `ballHeightCm`, covers the two height cues.
+
 **The question, and it is for Erin.** The manual's cues are written in the words
 a coach uses. Some name a SHAPE, such as how wide the elbows sit. Some name a
 DISTANCE, such as how far the ball is from the chest. **Which of yours are
@@ -1022,11 +1104,17 @@ These are on the agenda and this document has nothing to add to them.
 
 - **A second grader.** The provisional bands were set against one coach's
   marks. Whether a second coach agrees is not something the engine can measure.
+  > **13 November 2026: Open.** Nothing is ruled.
 - **Vocabulary conflicts.** The manual and the engine use some words
   differently. Nothing here resolves that. The pass family's version of this is
   now item 10 above, with both lists written out.
+  > **13 November 2026: Changed.** For the passes, spec 1 decision 12.4 rules the manual's
+  > names, and item 10 is merged into this item. What is left for her: does she
+  > use "shoulder pass"? If not, it is dropped. Then any conflict outside the passes.
 - **Two manual titles.** The library cites a manual whose title appears in two
   forms. It is a record-keeping question.
+  > **13 November 2026: Open.** Nothing is ruled. Two technique files still cite the older
+  > title, "202526 Netball Coaches Manual".
 
 ---
 

@@ -8,14 +8,21 @@ order, states what each one needs in the room, and estimates how long it takes.
 hard to set is that nobody can say how long the morning takes or what it
 produces.** Sections 5 and 6 answer those two questions.
 
+**Updated 13 November 2026.** Item 10 is merged into item B, because spec 1 decision
+12.4 answers it: the library covers all eight passes, in the manual's names.
+What is left, whether she uses "shoulder pass", is asked under item B. The
+counts below follow: 20 live items, not 21. The status of every item is in
+`docs/COACH_MORNING_2026-09.md` and `docs/COACH_MORNING_STATUS_2026-11-13.md`.
+
 ---
 
 ## 1. Every item, and where it came from
 
-**Twenty-one live items. The arithmetic is stated so a reader can check it:**
+**Twenty live items. The arithmetic is stated so a reader can check it:**
 `docs/COACH_MORNING_2026-09.md` carries **19 numbered items**, of which **item 7
 is STRUCK**, which leaves 18. It carries **3 further items** with no engine
-evidence. 18 plus 3 is **21**.
+evidence. 18 plus 3 is **21**. On 13 November 2026 item 10 was merged into item B, so
+21 minus 1 is **20**.
 
 **Item 19 was added on 2026-09-09**: the general question about which of a
 coach's cues name distances. It goes first in block 3, because the four items
@@ -38,7 +45,7 @@ leading it.**
 | 7 | STRUCK | agenda; withdrawn on a second-solution reading |
 | 8 | The elbow dial's number | agenda, `ac240b2` |
 | 9 | The release timing fix, which waits on item 1 | agenda, `ac240b2` |
-| 10 | Which passes does the board need? | agenda `fcb7ca1`; contract question 2 |
+| 10 | Which passes does the board need? **Merged into item B, 13 November 2026** | agenda `fcb7ca1`; contract question 2 |
 | 11 | One band floor, missed by 0.05 degrees | agenda `3f95fd1`; ledger "For the coach agenda", in `KNOWN_ISSUES.md` at `b48512a` |
 | 12 | The bounce pass has no bounce | agenda `431bf3a` |
 | 13 | The one hand high pass's ungraded cue | agenda `6228b3d` |
@@ -80,17 +87,17 @@ her time. The three are:
 - **RULE.** A decision Marius takes after she has spoken. **These must come last
   in the morning, or he rules without her answer.**
 
-**Sorting the twenty-one.** All twenty-one are agenda items now, so the two columns a
+**Sorting the twenty.** All twenty are agenda items now, so the two columns a
 first version of this table needed have collapsed into one.
 
 | kind | items | count |
 |---|---|---|
 | ASK | 3, 5, 11, 12, 13, 15, 16, 19, A, B | 10 |
 | LOOK | 1, 2, 4, 6, 17, 18 | 6 |
-| RULE | 8, 9, 10, 14, C | 5 |
-| **total** | | **21** |
+| RULE | 8, 9, 14, C | 4 |
+| **total** | | **20** |
 
-Ten plus six plus five is twenty-one, which is the agenda's own count from
+Ten plus six plus four is twenty, which is the agenda's own count from
 section 1.
 
 Item 14 is a RULE only in a weak sense. It asks her to notice a wrong pose on
@@ -163,10 +170,10 @@ than four times.
 
 ### Block 4: what Marius rules after she has spoken (RULE)
 
-Four items in three entries. Items 10 and B are asked together.
+Three items in three entries. Item B carries what is left of item 10.
 
-18. **Item 10, which passes the board needs**, with **item B, the vocabulary
-    conflicts**, which is the same question at a larger size.
+18. **Item B, the vocabulary conflicts**, with what is left of **item 10**:
+    does she use "shoulder pass"?
 19. **Item C, the two manual titles.** A record-keeping decision.
 20. **Item 14**, as a briefing rather than a question: on one-handed drills the
     numbers are less able to see a wrong pose, so her eye matters more there.
@@ -178,6 +185,10 @@ to item 12. **Item 13 has no render**, so "needs her answer to item 13" now mean
 question that has nothing to show.** **Ruling on the
 vocabulary before she has spoken about the drills would settle it by accident.**
 
+**13 November 2026:** this dependency no longer holds. Spec 1 decision 12.4 answers
+item 10, and item 13's `ready` phase is drawn since `a484302`, so item 13 has a
+figure to show.
+
 ---
 
 ## 4. What each item needs in the room
@@ -185,8 +196,8 @@ vocabulary before she has spoken about the drills would settle it by accident.**
 **This section is the honest answer to "why is a date hard".** The counts, of the
 twenty agenda items:
 
-- **eleven need nothing that does not exist**: 3, 10, 11, 12, 14, 15, 16, 19, A,
-  B and C;
+- **ten need nothing that does not exist**: 3, 11, 12, 14, 15, 16, 19, A, B
+  and C;
 - **one needs nothing until item 1 is answered**: item 9;
 - **nine need an artefact**: 1, 2, 4, 5, 6, 8, 13, 17 and 18.
 
@@ -252,7 +263,7 @@ Marius's and the discussion has already happened.
 | 4, what Marius rules | 3 | **15 min** |
 | | | |
 | discussion that runs over | | **20 min** |
-| **total** | **21 items in 20 entries** | **3 hours** |
+| **total** | **20 items in 20 entries** | **3 hours** |
 
 **BLOCK 3 GAINED AN ITEM AND ITS ESTIMATE HOLDS AT 55 MINUTES.** Item 19 is the
 general form of items 12, 13, 15 and 16, so it is asked first and those four
@@ -326,7 +337,7 @@ that is the window her checkpoints measure.
 | **15** | the arrival frames, if the release frame moves |
 | **3** | the return speed, which is derived from the release |
 
-**Seven of twenty-one.** The four items in block 1 and the four written-list items
+**Seven of twenty.** The four items in block 1 and the four written-list items
 do NOT move, which is a second reason to run block 1 first: **those answers keep
 their value whatever the retiming does.**
 
@@ -354,11 +365,11 @@ eight questions.**
 | 7. The elbow dial | item 8 |
 | 8. The pass speed | item 3 |
 
-**The page covers agenda items 1, 2, 3, 4, 5, 6 and 8. Seven of twenty-one**, and
+**The page covers agenda items 1, 2, 3, 4, 5, 6 and 8. Seven of twenty**, and
 its own first question is now item 17.
 
-**ELEVEN LIVE ITEMS HAVE NO HOME ON THE PAGE: 10, 11, 12, 13, 14, 15, 16, 19, A,
-B and C.** Every one of items 10 to 16 was added after 2 September, as the pass family
+**TEN LIVE ITEMS HAVE NO HOME ON THE PAGE: 11, 12, 13, 14, 15, 16, 19, A, B
+and C.** Every one of items 11 to 16 was added after 2 September, as the pass family
 and the landing row were authored. **The page was built before that work existed
 and has not grown with it.**
 

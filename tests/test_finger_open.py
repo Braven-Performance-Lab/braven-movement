@@ -71,5 +71,24 @@ class TheFingersOpenByTheChangeAsked(unittest.TestCase):
         self.assertAlmostEqual(amount, 60.0, delta=0.01)
 
 
+class TheSearchChecksWhatItFound(unittest.TestCase):
+    """The search assumes a hand opens steadily as its knuckles back off. A
+    hand that breaks that must be refused, not reported as made."""
+
+    def test_a_hand_that_does_not_open_steadily_is_refused(self):
+        def jumps(amount: float) -> float:
+            # Opens to 5 degrees, then leaps past the ask with nothing between.
+            return 5.0 if amount < 30.0 else 40.0
+
+        with self.assertRaises(FingerOpenError) as caught:
+            knuckle_release_for(jumps, 20.0, 60.0)
+        self.assertIn("asks the fingers to open 20.0", str(caught.exception))
+
+    def test_an_ask_that_is_not_a_number_is_refused(self):
+        for bad in (float("nan"), float("inf")):
+            with self.subTest(bad=bad), self.assertRaises(FingerOpenError):
+                knuckle_release_for(linear_hand(0.8), bad, 60.0)
+
+
 if __name__ == "__main__":
     unittest.main()

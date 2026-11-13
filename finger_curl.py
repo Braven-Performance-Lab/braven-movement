@@ -268,6 +268,11 @@ def knuckle_release_for(change_at, asked_degrees: float, ceiling_degrees: float)
     solve flexed is backed off by one amount, and ``change_at(amount)`` poses
     that and returns how far this hand's own angle opened.
 
+    THE TWO HANDS ARE NOT MEASURED AT THE SAME POINT. The engine reads its
+    angle to the last finger JOINT its skeleton has; the renderer reads to
+    the fingerTIP of its own rig. So the receipt's asked and gave agree as a
+    change on each hand, and are not one angle read twice.
+
     ``ceiling_degrees`` is the largest flexion the grip solve gave a knuckle;
     backing off further would bend a finger backward. Returns the amount and
     the change it gave. Refuses a negative ask, which would press the fingers
@@ -275,6 +280,11 @@ def knuckle_release_for(change_at, asked_degrees: float, ceiling_degrees: float)
     silently shows less than the solve is not the candidate it is labelled.
     """
     asked = float(asked_degrees)
+    if not math.isfinite(asked):
+        raise FingerOpenError(
+            f"the job asks the fingers to open {asked_degrees!r} degrees, "
+            "which is not a number"
+        )
     if asked < 0.0:
         raise FingerOpenError(
             f"the job asks the fingers to close {-asked:.1f} degrees past the "
@@ -296,5 +306,13 @@ def knuckle_release_for(change_at, asked_degrees: float, ceiling_degrees: float)
         else:
             high = middle
     amount = 0.5 * (low + high)
-    return amount, float(change_at(amount))
-
+    gave = float(change_at(amount))
+    # The search assumes the hand opens steadily as its knuckles back off. A
+    # hand that does not can leave the answer far from the ask, so what was
+    # found is checked and never assumed.
+    if abs(gave - asked) > OPEN_TOLERANCE_DEGREES:
+        raise FingerOpenError(
+            f"the job asks the fingers to open {asked:.1f} degrees and the "
+            f"nearest this hand came is {gave:.1f}"
+        )
+    return amount, gave

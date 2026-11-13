@@ -102,6 +102,47 @@ the athlete manifest's `gradedClip` link (`athleteGraded` in Tactics
 until the release lands. Then the board shows them as not graded, and the clip
 files stay true to what was measured.
 
+## What Main ruled on the export, and where it is built
+
+Main agreed on 13 November 2026 (lane board, Models/models-tactics-export-to-main),
+with two conditions:
+
+1. **The three passes** ship as measured, and their `gradedClip` stays `null`,
+   with the reason where the link is made. `athlete/athlete_manifest.py` holds
+   `HELD_FROM_GRADED_RECORD`: each pass meets its checkpoints on this build, the
+   mechanical release changes it, and the bounce pass also has a defect its
+   checkpoints cannot see (coach item 12). `convert_legacy` writes `null` for a
+   held technique even when its pose clip is shipped.
+   `tests/test_athlete_manifest.py` has the test, which failed on all three
+   links before the rule existed.
+2. **The five that did not move** change no file in Tactics. The equality is
+   recorded here, with its instrument.
+
+### The instrument, and its reading
+
+`scripts/clip_moved.py` compares each new clip with the clip on Tactics
+`origin/main`, by `clipId`. `tests/test_clip_moved.py` shows that it reads 0 for
+equal clips and sees a change of one pose number or of the ball.
+
+```
+python -B scripts/clip_moved.py F:/Repositories/braven-tactics-netball-athlete spikes/poc-output
+```
+
+Run on 13 November 2026, against Tactics `origin/main` at `e61a539`, with the
+clips exported on `b9deaeb`:
+
+```
+clip                                 graded         pose max  pose mean ball max m  build
+pass.netball.bounce-pass             new: True             -          -          -  b9deaeb  (not shipped yet)
+block.netball.deflect-high           False->False      0.000     0.0000     0.0000  0353b76->b9deaeb
+catch.netball.hooks-jump             False->False      0.000     0.0000     0.0000  0353b76->b9deaeb
+pass.netball.one-hand-high-pass      new: True             -          -          -  b9deaeb  (not shipped yet)
+catch.netball.one-hand-snatch        False->False      0.000     0.0000     0.0000  0353b76->b9deaeb
+pass.netball.overhead-pass           new: True             -          -          -  b9deaeb  (not shipped yet)
+catch.netball.two-hand-chest         False->False      0.000     0.0000     0.0000  0353b76->b9deaeb
+catch.netball.two-hand-snatch-back   False->False      0.000     0.0000     0.0000  0353b76->b9deaeb
+```
+
 ## Questions for Main
 
 1. Deliver the three pass clips from `main` now and export them again after

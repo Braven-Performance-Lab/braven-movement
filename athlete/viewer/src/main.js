@@ -11,6 +11,7 @@ import { clipLabels } from './catalog.js'
 import { startStudio } from './studio.js'
 import { openAthlete } from './athlete-source.js'
 import { receivePassSequence, presentCarryBall, previewPace } from './preview-motion.js'
+import { createRenderer } from './render-settings.js'
 import './style.css'
 
 const $ = id => document.getElementById(id)
@@ -21,12 +22,7 @@ const state = { playing: false, speed: 1, time: 0,
 let hosted = false
 const footworkDemo=createAthleteFootworkDemo()
 const host = $('viewport')
-const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
-renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
-renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.0
+const renderer = createRenderer()
 host.append(renderer.domElement)
 const scene = new THREE.Scene()
 scene.background = new THREE.Color('#e8eeea')

@@ -143,6 +143,28 @@ catch.netball.two-hand-chest         False->False      0.000     0.0000     0.00
 catch.netball.two-hand-snatch-back   False->False      0.000     0.0000     0.0000  0353b76->b9deaeb
 ```
 
+## What a board draws: the new pose clips are records, not animations
+
+Read on Tactics `main` at `e61a539` while proving step 4. A board draws a body
+by one of two routes:
+
+- **The rigged athlete** (`athleteEnabled`: netball with the athlete library).
+  `athleteThrowClip` and `athletePassTechniques` in `src/core/athleteMotion.ts`
+  pick the athlete's own clip by release kind: `bounce-pass` plays
+  `netball_bounce_pass`, `overhead-pass` and `lob` play `netball_overhead_pass`,
+  and `shoulder-pass` plays `netball_one_hand_high_pass`. These are the rig
+  clips of `b4f7074`, and they played before this change.
+- **The pose clips**, for any other figure. `capturedAction` in
+  `src/engine/clips.ts` asks `techniqueFor` for the class `pass`, never for a
+  release kind, and `techniqueChosenFor` returns the named default,
+  `pass.netball.chest-pass`. No other code picks a pose clip.
+
+**So no board draws the three new pose clips.** On Tactics they are graded
+records, which `athleteGraded` reads through `gradedClip`, and Main held that
+link. The delivery changes no picture and no "not graded" mark: both are the
+same before and after. What a coach sees of these three passes is the rig
+clip, which comes with the athlete export, not with a pose clip.
+
 ## Questions for Main
 
 1. Deliver the three pass clips from `main` now and export them again after

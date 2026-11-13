@@ -119,24 +119,24 @@ register names none and no script on `main` measures that quantity.
 
 | Line | Entry | Lane | Script |
 |---:|---|---|---|
-| 330 | Five coaching phases cannot fail | Movement | `spikes/build_library.py` (`phaseSeparation`) |
-| 1270 | A release clip ends before its ball lands | Movement, with the clip contract | `spikes/verify_tactics_clip.py`, plus a frame-to-target count: no script |
-| 1415 | FIVE coaching checkpoints now fail | Movement | `spikes/build_library.py` (the verdicts) |
-| 1435 | AND THE DIAGNOSIS BELOW IS SUPERSEDED: the bands were never wrong | Movement, after the coach morning picks the release frame | `spikes/build_library.py` |
-| 1527 | The follow-through is rough where the arm now moves | Movement | `spikes/snap_report.py` |
-| 1588 | The deflect carry still passes close to her face | Movement | No script: a ball-to-face distance per frame |
-| 1721 | What is left above 10 degrees, in full | Movement | `spikes/snap_report.py`, over the whole library |
-| 1735 | How wide the elbows sit with the ball at the chest | Movement | No script at the chest. `spikes/measure_elbow_width.py` measures at contact only |
-| 1944 | The cold-start seed set is four copies of one pose | Movement | `spikes/measure_seed_variety.py` (`pixi run seeds`) |
-| 2025 | The mean elbow separation agreed with the manual by mixing two populations | Movement | `spikes/measure_elbow_width.py` |
-| 2235 | The residual the cold-start test cannot see | Movement | `spikes/test_cold_start.py` cannot see it. No script |
-| 2316 | The second hand travels 14 cm out to meet the ball | Movement | `scripts/second_hand_ramp.py` |
-| 2389 | The four contact hitches are one sub-frame timing defect | Movement, release work | `scripts/sweep_carry_timing.py` |
-| 2420 | The sub-frame defect is at the athlete's release only | Movement, release work | `scripts/sweep_carry_timing.py` |
-| 2723 | The pace has no author either | Movement | No script: `docs/WRIST_AND_PACE.md` measured it against three strip-proved repetitions of her video |
-| 3747 | A one-handed release is far less determined than a two-handed one | Movement | No script: a sweep of `up` and `ahead`, with and without a constraint |
+| 330 | Five coaching phases cannot fail | Movement (held by Main) | `spikes/build_library.py` (`phaseSeparation`) |
+| 1270 | A release clip ends before its ball lands | Movement (held by Main), with the clip contract | `spikes/verify_tactics_clip.py`, plus a frame-to-target count: no script |
+| 1415 | FIVE coaching checkpoints now fail | Movement (held by Main) | `spikes/build_library.py` (the verdicts) |
+| 1435 | AND THE DIAGNOSIS BELOW IS SUPERSEDED: the bands were never wrong | Movement (held by Main), after the coach morning picks the release frame | `spikes/build_library.py` |
+| 1527 | The follow-through is rough where the arm now moves | Movement (held by Main) | `spikes/snap_report.py` |
+| 1588 | The deflect carry still passes close to her face | Movement (held by Main) | No script: a ball-to-face distance per frame |
+| 1721 | What is left above 10 degrees, in full | Movement (held by Main) | `spikes/snap_report.py`, over the whole library |
+| 1735 | How wide the elbows sit with the ball at the chest | Movement (held by Main) | No script at the chest. `spikes/measure_elbow_width.py` measures at contact only |
+| 1944 | The cold-start seed set is four copies of one pose | Movement (held by Main) | `spikes/measure_seed_variety.py` (`pixi run seeds`) |
+| 2025 | The mean elbow separation agreed with the manual by mixing two populations | Movement (held by Main) | `spikes/measure_elbow_width.py` |
+| 2235 | The residual the cold-start test cannot see | Movement (held by Main) | `spikes/test_cold_start.py` cannot see it. No script |
+| 2316 | The second hand travels 14 cm out to meet the ball | Movement (held by Main) | `scripts/second_hand_ramp.py` |
+| 2389 | The four contact hitches are one sub-frame timing defect | Movement (held by Main), release work | `scripts/sweep_carry_timing.py` |
+| 2420 | The sub-frame defect is at the athlete's release only | Movement (held by Main), release work | `scripts/sweep_carry_timing.py` |
+| 2723 | The pace has no author either | Movement (held by Main) | No script: `docs/WRIST_AND_PACE.md` measured it against three strip-proved repetitions of her video |
+| 3747 | A one-handed release is far less determined than a two-handed one | Movement (held by Main) | No script: a sweep of `up` and `ahead`, with and without a constraint |
 
-The lane board has no lane named Movement. Main holds the release work, and
+The lane board has no lane named Movement. Main holds the engine work while no Movement lane exists (Main, 13 November 2026), and asks the owner about one after the release lands. Main's
 `lane/mechanical-release` changes the release timing. So entries 1435, 2389
 and 2420 may change when it lands, and they are best measured after it.
 

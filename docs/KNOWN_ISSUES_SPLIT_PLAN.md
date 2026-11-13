@@ -141,8 +141,12 @@ item. It is not edited here.
   ruling, taken from the specs, and is checked by hand: six entries have one.
 - `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md` and
   `docs/ENGINEERING_RULES.md` are copied by line range, unchanged, and no part
-  is copied twice. The full text of the 7 rules stays in the register under
-  "Rules on their way to spec 1" until spec 1 states them.
+  is copied twice.
+- The 7 rules are in spec 1 v0.7 (Client Zone, version 9, 13 November 2026):
+  SOL-9, GRD-9, GRD-10, FIG-7 and FIG-8 on Marius's ruling of that day (lane
+  board, Main/spec1-five-rules), and RCP-6 and GRD-2 under their existing
+  rulings. No number changed. The register keeps one line for each of the
+  three rule titles, with the requirement code and a link to the old text.
 - Fixed: 10 citations of a closed title now name the archive. One of them,
   in `spikes/possession_solve.py`, already quoted the title wrongly on `main`.
   8 citations of a line number, or of a subsection of an open section, now name

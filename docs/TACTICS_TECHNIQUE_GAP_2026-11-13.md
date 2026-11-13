@@ -64,6 +64,44 @@ hands and retimes the release. That changes every pass clip: the chest,
 bounce, overhead and one-hand high passes. Pass clips exported from `main`
 today would need a second export after it lands.
 
+## Main's answers, and the export (13 November 2026)
+
+Main answered (lane board, Models/models-tactics-gap-to-main): export the
+three passes now and again after the release lands; the one-hand high pass
+takes the manual's name (spec 1, decision 12.4); re-export the five that are
+not graded, report how far each moved, and do not re-export a graded clip.
+
+`spikes/export_tactics_clip.py` ran through pixi on `b9deaeb` with a clean
+tree (the head was the same before and after the run). It wrote 8 clips:
+
+| Clip | Frames | Hit | Graded | Moved since 14 September |
+|---|---:|---:|---|---|
+| `pass.netball.bounce-pass` | 96 | 0.792 | yes | new |
+| `pass.netball.overhead-pass` | 96 | 0.792 | yes | new |
+| `pass.netball.one-hand-high-pass` | 96 | 0.792 | yes | new |
+| `block.netball.deflect-high` | 88 | 0.443 | no | not at all |
+| `catch.netball.hooks-jump` | 108 | 0.574 | no | not at all |
+| `catch.netball.one-hand-snatch` | 98 | 0.490 | no | not at all |
+| `catch.netball.two-hand-chest` | 98 | 0.449 | no | not at all |
+| `catch.netball.two-hand-snatch-back` | 98 | 0.490 | no | not at all |
+
+**The five did not move.** Their 15 pose numbers a frame and their ball paths
+are equal to the clips on Tactics main, to every decimal. The comparison can
+see a difference: against a different clip of the same length it reads up to
+0.593. So 181 commits since 14 September did not change these five solves, and
+a re-export changes only the build and the timestamp they record. They still
+miss a coaching checkpoint each.
+
+**The three passes come out graded.** The exporter sets `graded` when a clip
+meets every coaching checkpoint it is graded against
+(`export_tactics_clip.py:243-245`), and each pass does. Main asked for them
+to be marked not graded. Writing `false` into the clip would record a value
+the measurement does not support. The board's "not graded" mark comes from
+the athlete manifest's `gradedClip` link (`athleteGraded` in Tactics
+`src/core/athleteMotion.ts`), so the link can stay empty for the three passes
+until the release lands. Then the board shows them as not graded, and the clip
+files stay true to what was measured.
+
 ## Questions for Main
 
 1. Deliver the three pass clips from `main` now and export them again after

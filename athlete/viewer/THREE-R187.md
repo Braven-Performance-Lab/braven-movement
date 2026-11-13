@@ -47,8 +47,9 @@ The source is the migration guide of the three.js wiki, read on 13 November
 ### One change needs code
 
 - **r182: `PCFSoftShadowMap` is deprecated with `WebGLRenderer`.** Use
-  `PCFShadowMap`, which is now soft too. The viewer sets it at
-  `src/main.js:27`.
+  `PCFShadowMap`, which is now soft too. At `5b105b3` the viewer set it at
+  `src/main.js:27`. Since the upgrade (`31f5e53`) it is `shadowMapType` in
+  `src/render-settings.js`, which `tests/three-version.test.mjs` reads.
 
 ### Four changes alter the picture, with no code change
 
@@ -99,3 +100,20 @@ after, on the same clip and camera. The owner reviews on a desktop.
 4. Make the same screenshots before and after for the person who looks.
 5. Pass the review, land, and rebuild the local Studio on port 5397 from
    `main`.
+
+## The browser test, end to end (13 November 2026)
+
+`tests/browser.mjs` used to stop in its Tactics half: it looked for a file
+named `netball-athlete.glb`, but Tactics serves its athlete as
+`/figures/braven-athlete/athlete.glb`, and has since `ab973de` (15 September
+2026). That name is only the file Tactics' import tool reads. The test now
+asks the Tactics page which file it loads (`athleteAsset` in
+`src/core/athleteMotion.ts`) and requires a status-200 response for exactly
+that path.
+
+On `main` at `31f5e53` (three.js r187), against the Tactics checkout at
+`a1f6c2d` in athlete mode, with athlete candidate 09-gait-v2 (`2b48758b`):
+56 checks pass, all 18 clips move the mesh, and there are no browser errors.
+Tactics loads `/figures/braven-athlete/athlete.glb` with status 200, and all
+14 players use the authored rig. A mutant that asks for that path plus one
+letter fails on exactly this check.

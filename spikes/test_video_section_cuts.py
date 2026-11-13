@@ -556,8 +556,10 @@ class EveryClipCutSectionWritesHoldsTheFramesItClaims(unittest.TestCase):
                                  s.poster + self.files["offset"])
 
     def test_every_poster_matches_the_digest_committed_for_it(self):
-        """The eight posters already on Erin's page, pinned as the DECODED
-        pixels of each JPEG. The file bytes are not the thing to pin: a
+        """The eight posters, pinned as the DECODED pixels of each JPEG: six
+        are the ones on Erin's page, and the two release posters are frames
+        612 and 607, which Marius ruled on 13 November 2026 and the page does
+        not show yet (PROVENANCE.md). The file bytes are not the thing to pin: a
         different quality setting changes every byte while showing the same
         picture, and re-encoding the same wrong frame changes none of them."""
         missing = []

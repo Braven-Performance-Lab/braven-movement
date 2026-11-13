@@ -31,10 +31,14 @@ mutations run against this pack.
 ## The posters
 
 `<section>-<view>-poster.sha256` holds ONE digest: the DECODED PIXELS of the
-poster frame. The eight files they were read from are the JPEGs already on
-Erin's page, in `.remember/erin-page/erin-stage/video-clips-v2/`, rendered by
+poster frame. Six of the eight were read from the JPEGs already on Erin's
+page, in `.remember/erin-page/erin-stage/video-clips-v2/`, rendered by
 `build_v13.py` from the recordings at each section's poster index with
-`-q:v 3`.
+`-q:v 3`. The two release pins, front 612 and side 607, are not on that page:
+they were read on 13 November 2026 from posters that `video_section_cuts.py
+--pair1-sections` rendered from the same recordings at the same `-q:v 3`,
+with ffmpeg 8.1.2. A board reviewer rendered both frames again with the
+tool's own ffmpeg command and got the same digests, file hashes and sizes.
 
 The FILE is not what is pinned. A JPEG re-encoded at a different quality
 setting changes every byte while showing the same picture, and a JPEG of the

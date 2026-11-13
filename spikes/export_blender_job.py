@@ -46,6 +46,7 @@ from movement_engine import (  # noqa: E402
 import contact_solve  # noqa: E402
 from possession_solve import solve_movement  # noqa: E402
 from technique import has_technique, load_technique, technique_path  # noqa: E402
+from view_framing import framed  # noqa: E402
 
 OUTPUT = SPIKE_DIR / "poc-output"
 
@@ -63,6 +64,23 @@ VIEWS = {
 }
 VIEW_RESOLUTION = [1080, 1350]
 VIEW_TARGET = [0.0, -0.15, 0.95]
+
+
+def camera(movement_id: str, name: str, view: dict) -> dict:
+    """One drill's camera for one view: the shared one, or its framing change."""
+    location, target, lens, change = framed(
+        movement_id, name, view["locationM"], VIEW_TARGET, view["lensMm"]
+    )
+    out = {
+        "resolutionPx": list(VIEW_RESOLUTION),
+        "locationM": location,
+        "targetM": target,
+        "lensMm": lens,
+        "sensorWidthMm": 36.0,
+    }
+    if change is not None:
+        out["framing"] = change
+    return out
 
 # Carried over from config/reference_catch.v1.json, which measured them against
 # a photograph of a real athlete.
@@ -625,16 +643,10 @@ def build(character, movement_id: str, every: int = 0) -> dict:
         # deviation, and bounding the mixture by the flexion licence permits
         # a deviation the joint does not have.
         "knuckleLimitsDegrees": knuckle_limits(character),
-        "views": {
-            name: {
-                "resolutionPx": list(VIEW_RESOLUTION),
-                "locationM": list(view["locationM"]),
-                "targetM": list(VIEW_TARGET),
-                "lensMm": view["lensMm"],
-                "sensorWidthMm": 36.0,
-            }
-            for name, view in VIEWS.items()
-        },
+        # ONE CAMERA PER DRILL AND VIEW. The shared cameras, except where one
+        # cut a ball on an edge of the picture; `view_framing` holds those and
+        # the job records the change it made, so the render can say why.
+        "views": {name: camera(movement_id, name, view) for name, view in VIEWS.items()},
         "framesPerSecond": float(result["track"].frames_per_second),
         "frameStep": int(every),
         # WHAT THE POSE WAS SOLVED WITH, not what the file asked for. Refer to

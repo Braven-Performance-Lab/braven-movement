@@ -1006,6 +1006,9 @@ def render_job(studio: Studio, job: dict, job_path: Path, args,
                 for item in (ball, *ball_seams):
                     item.hide_render = False
             images[name]["ballDrawn"] = left_out is None
+            if "framing" in view:
+                # This drill's own camera for the view (`spikes/view_framing.py`).
+                images[name]["framing"] = view["framing"]
             if left_out is not None:
                 images[name]["ballLeftOut"] = left_out
         receipt["name"] = phase["name"]

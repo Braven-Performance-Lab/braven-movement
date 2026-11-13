@@ -215,7 +215,13 @@ body, from the same commit:
   master SHA-256 `95234296...`, the master licensed under the 13 Nov ruling.
 
 `scripts/compare_athlete_receipts.py` reads the two sets of receipts phase by
-phase. Its output is `docs/evidence/shared-athlete-what-moved-2026-11-13.json`.
+phase, and the jobs for which hand holds the ball. Its output is
+`docs/evidence/shared-athlete-what-moved-2026-11-13.json`.
+
+**A CORRECTION.** The first version of this table gave the nearest digit as
+7.04 to 6.85 mm. It counted the free hand of each one-hand hold, 219 to
+980 mm from the ball (review round 1). Only the holding hands are counted
+now: 54 readings, the largest 8.65 mm.
 
 | Measure, 51 phases | Older body | Shared athlete |
 |---|---|---|
@@ -223,7 +229,7 @@ phase. Its output is `docs/evidence/shared-athlete-what-moved-2026-11-13.json`.
 | Phases with ball anchor error over 10 mm | 2 | 1 |
 | Worst ball anchor error (hooks, outside hand, `facing_away`) | 18.16 mm | 18.03 mm |
 | Girdle verdict changed | | none |
-| Nearest digit to the ball, median, holding phases | 7.04 mm | 6.85 mm |
+| Nearest digit to the ball, median, each holding hand | 6.97 mm | 6.80 mm |
 | Phases with any body vertex inside the ball | 20 | 24 |
 | Phases more than 1 mm deeper inside the ball | | none |
 | Phases more than 1 mm shallower | | 3 |

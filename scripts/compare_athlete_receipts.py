@@ -7,18 +7,24 @@ body that was drawn, so this reads them and nothing else:
 - `girdle.ballAnchorErrorMm`: how far the ball is from where the solve put
   it, because the ball is placed from this rig's shoulders;
 - `girdle.verdict`: whether this rig followed the transmitted girdle;
-- the nearest digit to the ball surface on each hand, on a phase that holds
-  the ball (`hands.<side>.surfaceClearanceMm.<digit>.nearestOnBone`);
+- the nearest digit to the ball surface on each hand that HOLDS it
+  (`hands.<side>.surfaceClearanceMm.<digit>.nearestOnBone`). Which hand holds
+  is read from the job (`phases[].grip`, one key per holding hand), because
+  the receipt does not say; the free hand of a one-hand hold, 219 to 980 mm
+  from the ball, is never counted (review round 1);
 - `bodyClearanceMm`: whether any part of the body is inside the ball.
 
-Both sides must come from the same jobs: each receipt's `jobSha256` is
-compared, and a phase whose job differs is refused, not compared.
+Both sides must come from the same jobs, and the job files given must be
+those jobs: each receipt's `jobSha256` is compared with the other side's and
+with the SHA-256 of the job file. A phase on one side only, or one that holds
+the ball on one side only, is refused, never dropped.
 
-    python scripts/compare_athlete_receipts.py --before out/step5-render-rig --after out/step5-shared --out out/step5-moved.json
+    python scripts/compare_athlete_receipts.py --before out/step5-render-rig --after out/step5-shared --jobs spikes/poc-output --out out/step5-moved.json
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import statistics
 import sys
@@ -32,30 +38,40 @@ def receipts(directory: Path) -> dict:
             for path in sorted(directory.glob("*.render.json"))}
 
 
-def nearest_digit(phase: dict, side: str):
+def nearest_digit(phase: dict, side: str, holding_sides):
     hand = (phase.get("hands") or {}).get(side)
-    if not phase.get("holding") or not hand:
+    if not phase.get("holding") or not hand or side not in holding_sides:
         return None
     return min(hand["surfaceClearanceMm"][digit]["nearestOnBone"] for digit in DIGITS)
 
 
-def phase_row(drill: str, before: dict, after: dict) -> dict:
-    row = {"drill": drill, "phase": before["name"], "holding": before["holding"]}
-    if after["name"] != before["name"] or after["holding"] != before["holding"]:
-        raise SystemExit(f"{drill}: phase {before['name']} does not pair with {after['name']}")
+def phase_row(drill: str, before: dict, after: dict, holding_sides) -> dict:
+    row = {"drill": drill, "phase": before["name"], "holding": before["holding"],
+           "holdingHands": sorted(holding_sides)}
+    if after["holding"] != before["holding"]:
+        raise SystemExit(f"{drill}.{before['name']}: holds the ball on one side only")
     for label, phase in (("before", before), ("after", after)):
         girdle, body = phase["girdle"], phase.get("bodyClearanceMm") or {}
         row[label] = {
             "girdle": girdle["verdict"],
             "ballAnchorErrorMm": girdle["ballAnchorErrorMm"],
-            "nearestDigitMm": {side: nearest_digit(phase, side) for side in ("l", "r")},
+            "nearestDigitMm": {side: nearest_digit(phase, side, holding_sides) for side in ("l", "r")},
             "bodyDeepestMm": body.get("deepestMm"),
             "bodyVerticesInside": body.get("verticesInside"),
         }
     return row
 
 
-def compare(before_dir: Path, after_dir: Path) -> dict:
+def job_grips(jobs_dir: Path, drill: str, job_sha256: str) -> dict:
+    """The hands that hold the ball in each phase, from the job the receipts name."""
+    path = jobs_dir / f"{drill}.job.json"
+    if not path.exists() or hashlib.sha256(path.read_bytes()).hexdigest() != job_sha256:
+        raise SystemExit(f"{drill}: {path} is not the job these receipts were drawn from")
+    job = json.loads(path.read_text(encoding="utf-8"))
+    return {phase["name"]: set(phase.get("grip") or {}) for phase in job["phases"]}
+
+
+def compare(before_dir: Path, after_dir: Path, jobs_dir: Path) -> dict:
     before_all, after_all = receipts(before_dir), receipts(after_dir)
     if set(before_all) != set(after_all):
         raise SystemExit(f"the two sides render different drills: {sorted(set(before_all) ^ set(after_all))}")
@@ -65,10 +81,14 @@ def compare(before_dir: Path, after_dir: Path) -> dict:
         if b["jobSha256"] != a["jobSha256"]:
             raise SystemExit(f"{drill}: the two sides were rendered from different jobs")
         failed[drill] = {"before": b["failedPhases"], "after": a["failedPhases"]}
+        grips = job_grips(jobs_dir, drill, b["jobSha256"])
         after_by_name = {p["name"]: p for p in a["phases"]}
+        unpaired = {p["name"] for p in b["phases"]} ^ set(after_by_name)
+        if unpaired:
+            raise SystemExit(f"{drill}: phases on one side only: {sorted(unpaired)}")
         for phase in b["phases"]:
-            if phase["name"] in after_by_name:
-                rows.append(phase_row(drill, phase, after_by_name[phase["name"]]))
+            rows.append(phase_row(drill, phase, after_by_name[phase["name"]],
+                                  grips.get(phase["name"], set())))
     return {"before": {"dir": str(before_dir), "athlete": next(iter(before_all.values())).get("athlete")},
             "after": {"dir": str(after_dir), "athlete": next(iter(after_all.values())).get("athlete")},
             "failedPhases": failed, "rows": rows, "summary": summary(rows)}
@@ -106,9 +126,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--before", required=True, type=Path)
     parser.add_argument("--after", required=True, type=Path)
+    parser.add_argument("--jobs", required=True, type=Path,
+                        help="the folder of the job files both sides were drawn from")
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
-    result = compare(args.before, args.after)
+    result = compare(args.before, args.after, args.jobs)
     args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result["summary"], indent=2))
     return 0

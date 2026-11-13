@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 REPO = Path(__file__).resolve().parents[1]
@@ -26,10 +27,12 @@ from shared_athlete import (  # noqa: E402
     athlete_record,
     constraint_to_mute,
     contract_renames,
+    descendant_is_mesh,
     driver_is_inert,
     external_asset_records,
     head_bone_name,
     master_record,
+    node_tree_holders,
 )
 
 
@@ -207,6 +210,66 @@ class DriverRuleTest(unittest.TestCase):
                 driver_is_inert(path, self.MUTED)
 
 
+def tree(name, *nodes, drivers=None):
+    """A stand-in node tree: a name, nodes, and animation data or none."""
+    return SimpleNamespace(name=name, nodes=list(nodes), animation_data=drivers)
+
+
+class NodeTreeHolderTest(unittest.TestCase):
+    """Review rounds 6 and 7 of PR #152: a node group nested in a material's
+    node tree, and the group of a geometry-nodes modifier, are node trees of
+    their own, each with its own animation data. The loader read neither."""
+
+    def test_every_nested_group_is_read_once(self):
+        inner = tree("Inner", drivers="inner-data")
+        middle = tree("Middle", SimpleNamespace(node_tree=inner), drivers="middle-data")
+        top = tree("Material", SimpleNamespace(node_tree=middle),
+                   SimpleNamespace(node_tree=inner), SimpleNamespace(), drivers="top-data")
+        self.assertEqual(node_tree_holders(top), ["top-data", "middle-data", "inner-data"])
+
+    def test_two_trees_with_one_name_are_both_read(self):
+        # Review round 1 of the re-render branch (must): every material's
+        # embedded tree is named 'Shader Nodetree', so a check by name read
+        # only the first material on a mesh and skipped every later one.
+        first = tree("Shader Nodetree", drivers="first-data")
+        second = tree("Shader Nodetree", drivers="second-data")
+        seen = set()
+        holders = node_tree_holders(first, seen) + node_tree_holders(second, seen)
+        self.assertEqual(holders, ["first-data", "second-data"])
+
+    def test_identity_is_the_blender_pointer_when_there_is_one(self):
+        # Blender gives a new wrapper at each read, so two reads of one tree
+        # share only `as_pointer()`.
+        one = tree("Group", drivers="group-data")
+        one.as_pointer = lambda: 4096
+        again = tree("Group", drivers="group-data")
+        again.as_pointer = lambda: 4096
+        seen = set()
+        self.assertEqual(node_tree_holders(one, seen) + node_tree_holders(again, seen), ["group-data"])
+
+    def test_a_group_that_contains_itself_ends(self):
+        loop = tree("Loop", drivers="loop-data")
+        loop.nodes.append(SimpleNamespace(node_tree=loop))
+        self.assertEqual(node_tree_holders(loop), ["loop-data"])
+
+    def test_no_tree_gives_no_holder(self):
+        self.assertEqual(node_tree_holders(None), [])
+
+
+class DescendantKindTest(unittest.TestCase):
+    """Review round 6 of PR #152: an image empty under the rig stopped the
+    loader with an AttributeError, not the loader's refusal. Every descendant
+    the loader links must be a mesh; build 09-gait-v2 has only meshes."""
+
+    def test_a_mesh_is_accepted(self):
+        self.assertTrue(descendant_is_mesh("Kit_Jersey", "MESH"))
+
+    def test_any_other_kind_is_refused(self):
+        for kind in ("EMPTY", "CURVE", "LIGHT", "ARMATURE"):
+            with self.assertRaises(SharedAthleteRefusal):
+                descendant_is_mesh("Thing", kind)
+
+
 class SharedAthleteWiringTest(unittest.TestCase):
     """The Blender side of the switch, pinned on the syntax tree.
 
@@ -246,6 +309,9 @@ class SharedAthleteWiringTest(unittest.TestCase):
         self.assertIn("constraint_to_mute", names)
         # Review round 2: drivers are checked, not left in place unread.
         self.assertIn("driver_is_inert", names)
+        # Review rounds 6 and 7: nested node groups, and only meshes linked.
+        self.assertIn("node_tree_holders", names)
+        self.assertIn("descendant_is_mesh", names)
 
     def test_the_loader_hashes_the_file_before_it_reads_it(self):
         loader = self.function("load_shared_athlete")

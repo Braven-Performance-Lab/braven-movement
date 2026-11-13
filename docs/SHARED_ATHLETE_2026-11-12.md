@@ -54,10 +54,12 @@ CHECKED". The renderer's loader (`load_shared_athlete`) ran once on build
 `Athlete_Body` and 11 more meshes, muted the four IK constraints and kept
 the four drivers below. That run drew no figure.
 
-The loader refuses any object constraint on the rig or its meshes. It also
-refuses any driver on those objects, on their data (the armature, the
-meshes), on shape keys, on materials and on material node trees, with one
-exception.
+The loader links only meshes under the rig, and refuses any other kind of
+object there. It refuses any object constraint on the rig or its meshes. It
+also refuses any driver on those objects, on their data (the armature, the
+meshes), on shape keys, on materials, on material node trees, on every node
+group nested in those trees and on the group of each geometry-nodes
+modifier, with one exception.
 Build 09-gait-v2 has four drivers, one on the influence of each muted IK
 constraint, from the rig custom properties `IK_hand_l`, `IK_hand_r`,
 `IK_foot_l` and `IK_foot_r`. A muted constraint has no effect at any
@@ -73,6 +75,17 @@ IK constraints muted. Then the script added one defect at a time after the
 load. The loader refused all seven: an object constraint on the body, and a
 driver on the rig object, the armature data, the mesh data, a material, a
 material node tree and a mesh object.
+
+On 13 Nov 2026 the check gained three cases: a driver in a node group
+nested in a material, a driver in a geometry-nodes modifier group, and an
+image empty under the rig, put in a saved copy of the build. A fourth case
+puts a driver on the node tree of a later material: on `Kit_Skirt`, the
+second of `Kit_Primary` and `Kit_Accent`. Every material's embedded tree is
+named 'Shader Nodetree', so the first version of the check, which kept
+trees by name, read only the first material on each mesh. That case printed
+NOT REFUSED with it. The loader now keeps trees by their Blender pointer, and
+it refused all eleven cases. The output of that run is
+`docs/evidence/shared-athlete-loader-check-2026-11-13.txt`.
 
 Three things are done in that process only and never saved:
 

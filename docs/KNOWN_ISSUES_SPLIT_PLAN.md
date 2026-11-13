@@ -76,6 +76,29 @@ Main's condition (answer 2): spec 1 v0.7 is published for the record only if
 each rule names the ruling it comes from and none is new or changed. A rule
 that is new or changed goes to the owner through Main.
 
+### The ruling behind each rule
+
+Searched on 13 November 2026: each rule's own section, every `*.md` file on
+`main` at `b48512a`, the four spec sources and the lane dashboard, for "ruled",
+"ruling", "Marius", "approved" and "decided" near the rule's words.
+
+| Line | Rule | Ruling found | Result |
+|---:|---|---|---|
+| 2343 | Archive a graded build before a pack goes out | Principle P1, ruled 30 August 2026 (`spikes/README.md` line 108), already the source of RCP-6 | For the record: RCP-6 gets the refusals the built script has |
+| 513 | The length floor is 2.0 cm | GRD-2 states 2.0 cm in spec 1, which Marius signed off on 12 November 2026. The register records an orchestrator ruling of 7 September that was withdrawn the same hour, so that is not the source | For the record: GRD-2 gets the derivation, the value does not change |
+| 209 (end) | A pose that no solve produced must not reach a figure | None | New: to the owner through Main |
+| 309 | Joint limits and visual anatomy take priority over fingertip pixels | None | New: to the owner through Main |
+| 905, 927, 947 | `ballHeightCm`: court zero, no wrist height, held only | None | New: to the owner through Main |
+| 2743 | A change of basin must name its drill | None | New: to the owner through Main |
+| 4169 | A below-the-hips checkpoint claims a reading only on its build | None | New: to the owner through Main |
+
+So 2 rules go into spec 1 v0.7 for the record, and 5 wait for the owner. Three
+of the 5 are in code on `main`: the basin pin (`spikes/test_waiting_hand.py`),
+`ballHeightCm` (`spikes/possession_solve.py` and others) and the girdle guard
+(`girdle_agreement.py`). A search found no code for the fingertip rule, and the
+build rule is a limit on what evidence may claim, not code. So the question to
+the owner is whether the spec states each one as a requirement.
+
 ## Open findings
 
 Each open section, and each open part, becomes a short entry: the fact, its

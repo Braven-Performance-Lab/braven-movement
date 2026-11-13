@@ -26,9 +26,22 @@ from pathlib import Path
 
 def moved(old: dict, new: dict) -> dict:
     """The largest and mean change in pose, and the largest change in ball position."""
+    # zip() stops at the shorter list without a word, so every length that pairs two lists is
+    # checked first. A list it cut short would read as "unchanged", which is the 0.000 this
+    # instrument exists to make trustworthy.
+    name = new.get("clipId")
+    if not old["frames"] or not new["frames"]:
+        raise SystemExit(f"REFUSED: {name} has no frames to compare")
     if len(old["frames"]) != len(new["frames"]):
-        raise SystemExit(f"REFUSED: {new.get('clipId')} has {len(new['frames'])} frames, "
+        raise SystemExit(f"REFUSED: {name} has {len(new['frames'])} frames, "
                          f"the shipped clip {len(old['frames'])}; a frame-by-frame reading would misalign")
+    widths = {len(f) for f in old["frames"]} | {len(f) for f in new["frames"]}
+    if len(widths) != 1:
+        raise SystemExit(f"REFUSED: {name} has frames of {sorted(widths)} numbers; "
+                         "a shorter frame would read its missing numbers as unchanged")
+    if len(old["ball"]) != len(new["ball"]):
+        raise SystemExit(f"REFUSED: {name} has {len(new['ball'])} ball samples, "
+                         f"the shipped clip {len(old['ball'])}; the missing samples would read as unchanged")
     pose = [abs(a - b) for of, nf in zip(old["frames"], new["frames"]) for a, b in zip(of, nf)]
     ball = [math.dist(o[:3], n[:3]) for o, n in zip(old["ball"], new["ball"])]
     return {"poseMax": max(pose), "poseMean": sum(pose) / len(pose), "ballMaxM": max(ball, default=0.0),

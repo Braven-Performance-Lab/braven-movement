@@ -35,6 +35,20 @@ class ClipMoved(unittest.TestCase):
         m = clip_moved.moved(old, clip([[0.1] * 15], [[0, 1, 2, 1]], commit="a" * 40))
         self.assertEqual((m["buildBefore"], m["buildAfter"]), ("unstamped", "a" * 40))
 
+    def test_a_frame_with_fewer_numbers_is_refused(self):
+        # zip() would stop at the 14th number and read the 15th as unchanged.
+        with self.assertRaises(SystemExit):
+            clip_moved.moved(clip([[0.1] * 15], [[0, 1, 2, 1]]), clip([[0.1] * 14], [[0, 1, 2, 1]]))
+
+    def test_a_shorter_ball_is_refused(self):
+        # zip() would stop at the shorter ball and read the missing samples as unchanged.
+        with self.assertRaises(SystemExit):
+            clip_moved.moved(clip([[0.1] * 15] * 2, [[0, 1, 2, 1]] * 2), clip([[0.1] * 15] * 2, [[0, 1, 2, 1]]))
+
+    def test_an_empty_clip_is_refused(self):
+        with self.assertRaises(SystemExit):
+            clip_moved.moved(clip([], []), clip([], []))
+
     def test_a_different_frame_count_is_refused(self):
         with self.assertRaises(SystemExit):
             clip_moved.moved(clip([[0] * 15] * 2, []), clip([[0] * 15] * 3, []))

@@ -1,8 +1,10 @@
 # What the Tactics board plays, and what Movement can deliver next
 
 Main's goal (13 November 2026): count what the Tactics board plays of the 12
-Movement techniques, and deliver what is missing. This file is steps 1 and 2:
-the count and the gap list. It changes no code.
+Movement techniques, and deliver what is missing. This file records the whole
+goal: the count and the gap list, Main's answers, the export, what a board
+draws, and the athlete's rig clips. The code that came with it is the hold rule
+in `athlete/athlete_manifest.py` and the instrument `scripts/clip_moved.py`.
 
 Read on Tactics `main` at `e61a539` and on Movement `main` at `0cbc254`, on
 13 November 2026.

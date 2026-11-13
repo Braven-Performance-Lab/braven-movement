@@ -1,5 +1,10 @@
 # Known issues
 
+Sectioned by lane. The rendering and modelling lane owns the athlete a person
+looks at; the movement lane owns the engine, the anatomy, the solver and the
+grading; the video and footage lane owns the recordings and what is cut from
+them. An entry belongs to whichever lane can fix it.
+
 Each entry is one open finding: what is wrong, the build and the instrument it
 was measured with, who owns it and what closes it. The full text of every
 entry is in this file at `b48512a`, linked from the entry. A **Since then**
@@ -421,12 +426,17 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 - A basin flip now reports itself, on one drill: a rule, now spec 1 requirement SOL-9. Its text is in this file [at b48512a, line 2743](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L2743).
 - The root winding is not a defect, and the guard proposed for it would be wrong: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
 - CLOSED: a drill that starts with the ball must declare arrival at 0.02: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
-- The alignment ranked a sync clap above every real catch: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
+- The alignment ranked a sync clap above every real catch: closed parts in `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`, and the engineering rules that came out of it in `docs/ENGINEERING_RULES.md`.
 - A consumer nothing executes is a consumer nobody has checked: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
 - A ledger without its reading step nearly cost a real pairing: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
 - Two pairings, and neither could be re-derived from the tree: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
 
 # Video and footage
+
+The footage lane owns the recordings, the pairing between two cameras, and the
+clips and stills cut from them for a coaching page. It is neither the rig nor
+the engine, so its entries live here.
+
 
 ## The section cutter and its posters
 
@@ -439,5 +449,5 @@ in `docs/KNOWN_ISSUES_SPLIT_PLAN.md`.
 
 ### Moved out of this register
 
-- The anchor sheets: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
-- The hand at release: closed: refer to `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`.
+- The anchor sheets: closed parts in `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`, and the engineering rules that came out of it in `docs/ENGINEERING_RULES.md`.
+- The hand at release: closed parts in `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`, and the engineering rules that came out of it in `docs/ENGINEERING_RULES.md`.

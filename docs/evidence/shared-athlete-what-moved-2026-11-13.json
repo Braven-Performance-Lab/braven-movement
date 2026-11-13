@@ -1,0 +1,1507 @@
+{
+  "before": {
+    "dir": "out\\step5-render-rig",
+    "athlete": {
+      "kind": "generated",
+      "config": "athlete block of --config"
+    }
+  },
+  "after": {
+    "dir": "out\\step5-shared",
+    "athlete": {
+      "kind": "shared",
+      "name": "Braven netball athlete",
+      "revision": 9,
+      "glbSha256": "2b48758b228e30a78ad163697d1a9963ee62234a06606cd38a1634c8b34dc208",
+      "masterSha256": "952342962192575331a479f00a5d926b04750aea808b778f25ab0ebb4bcd6576",
+      "rigFamily": "braven-athlete-v6"
+    }
+  },
+  "failedPhases": {
+    "netball_bounce_pass": {
+      "before": [],
+      "after": []
+    },
+    "netball_chest_pass": {
+      "before": [],
+      "after": []
+    },
+    "netball_deflect_high": {
+      "before": [],
+      "after": []
+    },
+    "netball_double_foot_landing": {
+      "before": [],
+      "after": []
+    },
+    "netball_hooks_jump_pull_in": {
+      "before": [],
+      "after": []
+    },
+    "netball_hooks_outside_hand": {
+      "before": [],
+      "after": []
+    },
+    "netball_one_hand_high_pass": {
+      "before": [],
+      "after": []
+    },
+    "netball_one_hand_snatch_to_other_hand": {
+      "before": [],
+      "after": []
+    },
+    "netball_overhead_pass": {
+      "before": [],
+      "after": []
+    },
+    "netball_two_hand_catch_chest": {
+      "before": [],
+      "after": []
+    },
+    "netball_two_hand_snatch_pull_in": {
+      "before": [],
+      "after": []
+    },
+    "netball_two_hand_snatch_straight_back": {
+      "before": [],
+      "after": []
+    }
+  },
+  "rows": [
+    {
+      "drill": "netball_bounce_pass",
+      "phase": "ready",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.2984,
+        "nearestDigitMm": {
+          "l": 7.33,
+          "r": 7.37
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.0381,
+        "nearestDigitMm": {
+          "l": 6.74,
+          "r": 6.53
+        },
+        "bodyDeepestMm": -0.47,
+        "bodyVerticesInside": 4
+      }
+    },
+    {
+      "drill": "netball_bounce_pass",
+      "phase": "pull_to_side",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.1082,
+        "nearestDigitMm": {
+          "l": 8.23,
+          "r": 6.54
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 5.9493,
+        "nearestDigitMm": {
+          "l": 7.48,
+          "r": 7.3
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_bounce_pass",
+      "phase": "drive",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 5.5747,
+        "nearestDigitMm": {
+          "l": 6.83,
+          "r": 6.55
+        },
+        "bodyDeepestMm": -1.43,
+        "bodyVerticesInside": 10
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 5.4346,
+        "nearestDigitMm": {
+          "l": 7.02,
+          "r": 6.72
+        },
+        "bodyDeepestMm": -1.52,
+        "bodyVerticesInside": 15
+      }
+    },
+    {
+      "drill": "netball_bounce_pass",
+      "phase": "release",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 4.4367,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": -17.75,
+        "bodyVerticesInside": 120
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 4.3348,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": -17.61,
+        "bodyVerticesInside": 108
+      }
+    },
+    {
+      "drill": "netball_bounce_pass",
+      "phase": "follow_through",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 9.1602,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.8844,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_chest_pass",
+      "phase": "ready",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.2884,
+        "nearestDigitMm": {
+          "l": 7.44,
+          "r": 7.3
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.0287,
+        "nearestDigitMm": {
+          "l": 6.62,
+          "r": 6.52
+        },
+        "bodyDeepestMm": -0.48,
+        "bodyVerticesInside": 4
+      }
+    },
+    {
+      "drill": "netball_chest_pass",
+      "phase": "step",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.3049,
+        "nearestDigitMm": {
+          "l": 7.33,
+          "r": 7.31
+        },
+        "bodyDeepestMm": -0.17,
+        "bodyVerticesInside": 3
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.0434,
+        "nearestDigitMm": {
+          "l": 6.53,
+          "r": 6.51
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_chest_pass",
+      "phase": "drive",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.7465,
+        "nearestDigitMm": {
+          "l": 6.87,
+          "r": 6.87
+        },
+        "bodyDeepestMm": -0.37,
+        "bodyVerticesInside": 4
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.4211,
+        "nearestDigitMm": {
+          "l": 6.73,
+          "r": 6.79
+        },
+        "bodyDeepestMm": -1.24,
+        "bodyVerticesInside": 11
+      }
+    },
+    {
+      "drill": "netball_chest_pass",
+      "phase": "release",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.0323,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": -20.25,
+        "bodyVerticesInside": 188
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.668,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": -19.85,
+        "bodyVerticesInside": 176
+      }
+    },
+    {
+      "drill": "netball_chest_pass",
+      "phase": "follow_through",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.9327,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.5673,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_deflect_high",
+      "phase": "ready",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 1.5156,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 1.2026,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_deflect_high",
+      "phase": "contact",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 4.7419,
+        "nearestDigitMm": {
+          "l": 6.91,
+          "r": 6.85
+        },
+        "bodyDeepestMm": -1.59,
+        "bodyVerticesInside": 11
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 4.4732,
+        "nearestDigitMm": {
+          "l": 8.07,
+          "r": 7.6
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_deflect_high",
+      "phase": "control",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 4.1742,
+        "nearestDigitMm": {
+          "l": 7.16,
+          "r": 6.53
+        },
+        "bodyDeepestMm": -0.28,
+        "bodyVerticesInside": 4
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 3.7649,
+        "nearestDigitMm": {
+          "l": 7.52,
+          "r": 7.71
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_deflect_high",
+      "phase": "send_on",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.6505,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.202,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_double_foot_landing",
+      "phase": "approach",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.3655,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.0354,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_double_foot_landing",
+      "phase": "flight",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.5723,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.2593,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_double_foot_landing",
+      "phase": "land",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.3671,
+        "nearestDigitMm": {
+          "l": 6.67,
+          "r": 6.65
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.0077,
+        "nearestDigitMm": {
+          "l": 7.37,
+          "r": 7.38
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_double_foot_landing",
+      "phase": "absorb",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.292,
+        "nearestDigitMm": {
+          "l": 7.09,
+          "r": 7.13
+        },
+        "bodyDeepestMm": -0.3,
+        "bodyVerticesInside": 4
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.0362,
+        "nearestDigitMm": {
+          "l": 6.85,
+          "r": 6.87
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_hooks_jump_pull_in",
+      "phase": "gather",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.2763,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.9378,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_hooks_jump_pull_in",
+      "phase": "contact",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 3.8593,
+        "nearestDigitMm": {
+          "l": 6.92,
+          "r": 6.92
+        },
+        "bodyDeepestMm": -0.82,
+        "bodyVerticesInside": 12
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 3.4779,
+        "nearestDigitMm": {
+          "l": 6.65,
+          "r": 6.65
+        },
+        "bodyDeepestMm": -0.62,
+        "bodyVerticesInside": 10
+      }
+    },
+    {
+      "drill": "netball_hooks_jump_pull_in",
+      "phase": "pull_in",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.6578,
+        "nearestDigitMm": {
+          "l": 8.0,
+          "r": 7.98
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.3309,
+        "nearestDigitMm": {
+          "l": 6.65,
+          "r": 6.68
+        },
+        "bodyDeepestMm": -0.82,
+        "bodyVerticesInside": 6
+      }
+    },
+    {
+      "drill": "netball_hooks_jump_pull_in",
+      "phase": "release",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.5266,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.133,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_hooks_outside_hand",
+      "phase": "facing_away",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 18.1632,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 18.0341,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_hooks_outside_hand",
+      "phase": "contact",
+      "holding": true,
+      "holdingHands": [
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 10.2198,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 6.88
+        },
+        "bodyDeepestMm": -1.08,
+        "bodyVerticesInside": 7
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 9.9429,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 6.78
+        },
+        "bodyDeepestMm": -0.95,
+        "bodyVerticesInside": 7
+      }
+    },
+    {
+      "drill": "netball_hooks_outside_hand",
+      "phase": "gather",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.4099,
+        "nearestDigitMm": {
+          "l": 6.58,
+          "r": 7.43
+        },
+        "bodyDeepestMm": -1.37,
+        "bodyVerticesInside": 7
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.093,
+        "nearestDigitMm": {
+          "l": 7.46,
+          "r": 8.65
+        },
+        "bodyDeepestMm": -0.22,
+        "bodyVerticesInside": 1
+      }
+    },
+    {
+      "drill": "netball_hooks_outside_hand",
+      "phase": "pull_in",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.268,
+        "nearestDigitMm": {
+          "l": 6.69,
+          "r": 6.58
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.0234,
+        "nearestDigitMm": {
+          "l": 6.78,
+          "r": 6.64
+        },
+        "bodyDeepestMm": -0.59,
+        "bodyVerticesInside": 4
+      }
+    },
+    {
+      "drill": "netball_one_hand_high_pass",
+      "phase": "ready",
+      "holding": true,
+      "holdingHands": [
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 2.1671,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 5.42
+        },
+        "bodyDeepestMm": -8.63,
+        "bodyVerticesInside": 51
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 2.1086,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 6.13
+        },
+        "bodyDeepestMm": -8.15,
+        "bodyVerticesInside": 38
+      }
+    },
+    {
+      "drill": "netball_one_hand_high_pass",
+      "phase": "lift",
+      "holding": true,
+      "holdingHands": [
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 1.8573,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 7.03
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 1.5278,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 7.12
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_one_hand_high_pass",
+      "phase": "release",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 4.4697,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 4.0161,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_one_hand_snatch_to_other_hand",
+      "phase": "ready",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.8653,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.5862,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_one_hand_snatch_to_other_hand",
+      "phase": "reach",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.8099,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.53,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_one_hand_snatch_to_other_hand",
+      "phase": "contact",
+      "holding": true,
+      "holdingHands": [
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.9936,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 7.53
+        },
+        "bodyDeepestMm": -0.2,
+        "bodyVerticesInside": 2
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.6829,
+        "nearestDigitMm": {
+          "l": null,
+          "r": 7.01
+        },
+        "bodyDeepestMm": -0.71,
+        "bodyVerticesInside": 5
+      }
+    },
+    {
+      "drill": "netball_one_hand_snatch_to_other_hand",
+      "phase": "join",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.1365,
+        "nearestDigitMm": {
+          "l": 6.8,
+          "r": 7.11
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.7586,
+        "nearestDigitMm": {
+          "l": 7.6,
+          "r": 7.59
+        },
+        "bodyDeepestMm": -0.4,
+        "bodyVerticesInside": 3
+      }
+    },
+    {
+      "drill": "netball_one_hand_snatch_to_other_hand",
+      "phase": "pull_in",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.144,
+        "nearestDigitMm": {
+          "l": 6.6,
+          "r": 7.57
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.895,
+        "nearestDigitMm": {
+          "l": 6.65,
+          "r": 6.61
+        },
+        "bodyDeepestMm": -0.63,
+        "bodyVerticesInside": 4
+      }
+    },
+    {
+      "drill": "netball_overhead_pass",
+      "phase": "ready",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.3097,
+        "nearestDigitMm": {
+          "l": 7.3,
+          "r": 7.28
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.0484,
+        "nearestDigitMm": {
+          "l": 6.71,
+          "r": 6.74
+        },
+        "bodyDeepestMm": -0.52,
+        "bodyVerticesInside": 4
+      }
+    },
+    {
+      "drill": "netball_overhead_pass",
+      "phase": "lift",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 0.176,
+        "nearestDigitMm": {
+          "l": 6.74,
+          "r": 6.74
+        },
+        "bodyDeepestMm": -1.53,
+        "bodyVerticesInside": 16
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 0.3708,
+        "nearestDigitMm": {
+          "l": 6.85,
+          "r": 6.85
+        },
+        "bodyDeepestMm": -1.43,
+        "bodyVerticesInside": 16
+      }
+    },
+    {
+      "drill": "netball_overhead_pass",
+      "phase": "step",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 0.0271,
+        "nearestDigitMm": {
+          "l": 7.09,
+          "r": 7.09
+        },
+        "bodyDeepestMm": -0.45,
+        "bodyVerticesInside": 6
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 0.2294,
+        "nearestDigitMm": {
+          "l": 7.39,
+          "r": 7.4
+        },
+        "bodyDeepestMm": -0.96,
+        "bodyVerticesInside": 12
+      }
+    },
+    {
+      "drill": "netball_overhead_pass",
+      "phase": "release",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 1.9933,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": -9.55,
+        "bodyVerticesInside": 78
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 1.6857,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": -8.75,
+        "bodyVerticesInside": 74
+      }
+    },
+    {
+      "drill": "netball_overhead_pass",
+      "phase": "follow_through",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.7975,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.3566,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_two_hand_catch_chest",
+      "phase": "ready",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.6307,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.3203,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_two_hand_catch_chest",
+      "phase": "contact",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.0561,
+        "nearestDigitMm": {
+          "l": 7.04,
+          "r": 6.94
+        },
+        "bodyDeepestMm": -0.32,
+        "bodyVerticesInside": 5
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 5.6906,
+        "nearestDigitMm": {
+          "l": 6.89,
+          "r": 6.81
+        },
+        "bodyDeepestMm": -0.1,
+        "bodyVerticesInside": 2
+      }
+    },
+    {
+      "drill": "netball_two_hand_catch_chest",
+      "phase": "pull_in",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.2309,
+        "nearestDigitMm": {
+          "l": 7.39,
+          "r": 7.44
+        },
+        "bodyDeepestMm": -0.05,
+        "bodyVerticesInside": 2
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.9646,
+        "nearestDigitMm": {
+          "l": 6.66,
+          "r": 6.5
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_two_hand_catch_chest",
+      "phase": "release",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.7376,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.3585,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_pull_in",
+      "phase": "ready",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.6051,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.2926,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_pull_in",
+      "phase": "react",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.6028,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.2903,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_pull_in",
+      "phase": "contact",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.1239,
+        "nearestDigitMm": {
+          "l": 7.44,
+          "r": 7.58
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 5.7306,
+        "nearestDigitMm": {
+          "l": 6.62,
+          "r": 6.8
+        },
+        "bodyDeepestMm": -0.32,
+        "bodyVerticesInside": 4
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_pull_in",
+      "phase": "pull_in",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 8.1413,
+        "nearestDigitMm": {
+          "l": 6.54,
+          "r": 6.55
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.8921,
+        "nearestDigitMm": {
+          "l": 6.61,
+          "r": 6.61
+        },
+        "bodyDeepestMm": -0.62,
+        "bodyVerticesInside": 4
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_straight_back",
+      "phase": "ready",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.6035,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.2911,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_straight_back",
+      "phase": "contact",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.0094,
+        "nearestDigitMm": {
+          "l": 6.71,
+          "r": 6.71
+        },
+        "bodyDeepestMm": -1.07,
+        "bodyVerticesInside": 14
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 5.6285,
+        "nearestDigitMm": {
+          "l": 7.73,
+          "r": 7.71
+        },
+        "bodyDeepestMm": -0.86,
+        "bodyVerticesInside": 14
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_straight_back",
+      "phase": "control",
+      "holding": true,
+      "holdingHands": [
+        "l",
+        "r"
+      ],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.8109,
+        "nearestDigitMm": {
+          "l": 6.51,
+          "r": 7.01
+        },
+        "bodyDeepestMm": -1.64,
+        "bodyVerticesInside": 9
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 6.4097,
+        "nearestDigitMm": {
+          "l": 7.75,
+          "r": 7.74
+        },
+        "bodyDeepestMm": -0.42,
+        "bodyVerticesInside": 5
+      }
+    },
+    {
+      "drill": "netball_two_hand_snatch_straight_back",
+      "phase": "return",
+      "holding": false,
+      "holdingHands": [],
+      "before": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.7434,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      },
+      "after": {
+        "girdle": "out of reach",
+        "ballAnchorErrorMm": 7.3638,
+        "nearestDigitMm": {
+          "l": null,
+          "r": null
+        },
+        "bodyDeepestMm": 0.0,
+        "bodyVerticesInside": 0
+      }
+    }
+  ],
+  "summary": {
+    "phases": 51,
+    "ballAnchorErrorMedianMm": {
+      "before": 7.53,
+      "after": 7.13
+    },
+    "ballAnchorOver10Mm": {
+      "before": 2,
+      "after": 1
+    },
+    "girdleVerdictChanged": [],
+    "nearestDigitMedianMm": {
+      "before": 6.97,
+      "after": 6.8
+    },
+    "bodyInsideBallPhases": {
+      "before": 20,
+      "after": 24
+    },
+    "bodyDeeperByOver1Mm": [],
+    "bodyShallowerByOver1Mm": [
+      "netball_deflect_high.contact",
+      "netball_hooks_outside_hand.gather",
+      "netball_two_hand_snatch_straight_back.control"
+    ]
+  }
+}

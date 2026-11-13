@@ -680,6 +680,14 @@ def pose_phase(rig, phase: dict, limits: dict, basis: dict, foot_baseline: dict,
         # from the unflexed pose; reading matrix_basis after the fact would
         # carry the aim and the splay with it and report the wrong quantity.
         axis_report: dict[str, dict] = {}
+        # The wrist flick's part of the hand: how far the solve opened these
+        # fingers past the grip. Read only for a hand that holds the ball,
+        # because the change is made FROM the grip and a free hand has none.
+        opened = (
+            phase["hands"][side].get("fingerOpenDegrees")
+            if (grip and side in grip) else None
+        )
+        open_report: dict = {}
         pose_articulated_hand(
             rig,
             side=side,
@@ -688,7 +696,13 @@ def pose_phase(rig, phase: dict, limits: dict, basis: dict, foot_baseline: dict,
             ball_radius=radius if (grip and side in grip) else None,
             knuckle_limits=knuckle_limits,
             axis_report=axis_report,
+            finger_open_degrees=None if opened is None else float(opened),
+            open_report=open_report,
         )
+        if opened is not None:
+            # What the job asked of the fingers and what this hand gave, so a
+            # figure that shows a flick says so in its own receipt.
+            hands[side]["fingerOpen"] = open_report
         # Millimetres from the ball surface, negative inside it. A fingertip
         # out of the top of the ball is the only symptom a coach sees, so the
         # receipt carries the number that proves it did not happen.

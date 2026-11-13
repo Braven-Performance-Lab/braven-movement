@@ -92,6 +92,19 @@ class CompareTest(unittest.TestCase):
         with self.assertRaises(SystemExit):
             C.compare(self.before, self.after, self.jobs)
 
+    def test_a_holding_phase_with_no_grip_in_its_job_is_refused(self):
+        # Review note on PR 157: it gave no finger reading and said nothing.
+        # A second phase that holds with both hands keeps the median defined,
+        # so without the refusal the comparison returns, silently, as it did.
+        for grips in ({"pull": "lr", "ready": ""}, {"pull": "lr"}):
+            with self.subTest(grips=grips):
+                job = self.job("chest", grips)
+                for folder in (self.before, self.after):
+                    self.write(folder, "chest", [phase("pull", True, 8.0, 0.0, 0),
+                                                 phase("ready", True, 8.0, 0.0, 0)], job)
+                with self.assertRaises(SystemExit):
+                    C.compare(self.before, self.after, self.jobs)
+
     def test_two_sides_from_different_jobs_are_refused(self):
         job = self.job("chest", {"ready": "lr"})
         self.write(self.before, "chest", [phase("ready", True, 8.0, 0.0, 0)], job)

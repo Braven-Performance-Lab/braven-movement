@@ -87,8 +87,13 @@ def compare(before_dir: Path, after_dir: Path, jobs_dir: Path) -> dict:
         if unpaired:
             raise SystemExit(f"{drill}: phases on one side only: {sorted(unpaired)}")
         for phase in b["phases"]:
-            rows.append(phase_row(drill, phase, after_by_name[phase["name"]],
-                                  grips.get(phase["name"], set())))
+            holding_sides = grips.get(phase["name"], set())
+            # A phase that holds the ball with no holding hand in its job would
+            # give no finger reading and say nothing (review note on PR 157).
+            if phase["holding"] and not holding_sides:
+                raise SystemExit(f"{drill}.{phase['name']}: holds the ball, and its job "
+                                 f"names no hand that holds it")
+            rows.append(phase_row(drill, phase, after_by_name[phase["name"]], holding_sides))
     return {"before": {"dir": str(before_dir), "athlete": next(iter(before_all.values())).get("athlete")},
             "after": {"dir": str(after_dir), "athlete": next(iter(after_all.values())).get("athlete")},
             "failedPhases": failed, "rows": rows, "summary": summary(rows)}

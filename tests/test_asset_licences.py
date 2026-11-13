@@ -25,6 +25,7 @@ MODULE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(MODULE_DIR))
 
 from asset_licences import (  # noqa: E402
+    ATHLETE_BUILD_RULE,
     CC0,
     FACEUNITS_RULE,
     KIT_RULE,
@@ -90,6 +91,7 @@ class TheLicenceComesFromTheDocument(unittest.TestCase):
         text = " ".join(LICENSING.read_text(encoding="utf-8").split())
         self.assertIn(" ".join(FACEUNITS_RULE.split()), text)
         self.assertIn(" ".join(MPFB_RULE.split()), text)
+        self.assertIn(" ".join(ATHLETE_BUILD_RULE.split()), text)
 
     def test_the_document_still_requires_reconfirmation(self):
         # The refusal exists to enforce this sentence. If the sentence goes, the

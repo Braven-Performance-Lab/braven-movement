@@ -43,16 +43,17 @@ reads the rig contract's `Head` and the probe renames nothing; the rename
 below describes the measured runs, made against the renderer before that
 change.
 
-**The renderer does not draw the shared athlete yet.** The `--athlete`
-option refuses every run with `LicenceUndetermined`. The licence check runs
-before the load, and the athlete's own build file has no licence
-determination until the owner rules (`Main/athlete-build-licence`). So no
-`--athlete` render exists. Every shared-athlete number in this report comes
+**The renderer draws the shared athlete since 13 Nov 2026.** Until then the
+`--athlete` option refused every run with `LicenceUndetermined`, because the
+athlete's own build file had no licence determination. The owner ruled it
+own work, all rights reserved (`Main/athlete-build-licence`), and
+`docs/LICENSING.md` records the ruling. The licence check still runs before
+the load. The shared-athlete numbers above this point in the report come
 from the probe, which skips the licence check and marks its receipts "NOT
-CHECKED". The renderer's loader (`load_shared_athlete`) ran once on build
-09-gait-v2 from a script that skips the licence check. It loaded
-`Athlete_Body` and 11 more meshes, muted the four IK constraints and kept
-the four drivers below. That run drew no figure.
+CHECKED". Before the ruling, the renderer's loader (`load_shared_athlete`)
+ran once on build 09-gait-v2 from a script that skips the licence check. It
+loaded `Athlete_Body` and 11 more meshes, muted the four IK constraints and
+kept the four drivers below.
 
 The loader links only meshes under the rig, and refuses any other kind of
 object there. It refuses any object constraint on the rig or its meshes. It

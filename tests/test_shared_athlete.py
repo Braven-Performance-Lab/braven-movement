@@ -20,7 +20,13 @@ sys.path.insert(0, str(REPO / "athlete"))
 
 import athlete_manifest  # noqa: E402
 import shared_athlete  # noqa: E402
-from asset_licences import CC0, LicenceUndetermined  # noqa: E402
+from asset_licences import (  # noqa: E402
+    ATHLETE_BUILD,
+    ATHLETE_BUILD_RULE,
+    CC0,
+    LicenceUndetermined,
+    licence_for,
+)
 from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
     athlete_master,
@@ -74,9 +80,9 @@ class SharedAssetLicenceTest(unittest.TestCase):
 
     Each external asset the manifest lists is licensed by THIS repository's
     determination (`asset_licences.licence_for`), never by the manifest's own
-    words, which are recorded beside it. The master file is licensed the same
-    way; until `docs/LICENSING.md` determines the athlete's own build output,
-    it is refused.
+    words, which are recorded beside it. The master file takes the owner's
+    ruling of 13 Nov 2026 (`docs/LICENSING.md`, 'The shared athlete's build
+    output'), and only a file the manifest gives the role `master`.
     """
 
     MANIFEST = {
@@ -99,15 +105,34 @@ class SharedAssetLicenceTest(unittest.TestCase):
         with self.assertRaises(LicenceUndetermined):
             external_asset_records(unknown)
 
-    def test_the_athlete_build_output_has_no_determination_yet(self):
-        with self.assertRaises(LicenceUndetermined):
-            master_record(self.MANIFEST, Path("build") / "netball-athlete.blend")
+    def test_the_athlete_build_output_is_own_work_by_the_owners_ruling(self):
+        # Main/athlete-build-licence, 13 Nov 2026: "Yes, own work, all rights
+        # reserved". The master is the manifest's own file, so the ruling
+        # applies to it wherever the build folder sits.
+        for master in (Path("build") / "netball-athlete.blend",
+                       Path("x") / "assets" / "kit" / "netball-athlete.blend"):
+            record = master_record(self.MANIFEST, master)
+            self.assertEqual(record["licence"], ATHLETE_BUILD)
+            self.assertIn("docs/LICENSING.md", record["licenceSource"])
+            self.assertIn(ATHLETE_BUILD_RULE, record["licenceSource"])
+            self.assertEqual(record["sha256"], "d" * 64)
 
-    def test_the_folder_it_sits_in_cannot_license_the_master(self):
-        """The determination is made on the FILE, not the folder's path: a
-        build folder under an `assets/kit/` path is not own work by place."""
+    def test_only_the_file_with_the_master_role_takes_the_ruling(self):
+        # Review round 1 of lane/shared-athlete-figures: the ruling's scope is
+        # the manifest's master, and `master_record` holds it itself rather
+        # than trusting its caller.
+        manifest = {**self.MANIFEST, "files": {
+            **self.MANIFEST["files"],
+            "netball-athlete.glb": {"role": "model", "sha256": "e" * 64}}}
+        with self.assertRaises(SharedAthleteRefusal):
+            master_record(manifest, Path("build") / "netball-athlete.glb")
+
+    def test_a_file_is_not_licensed_by_the_masters_name(self):
+        """The ruling reaches only the master the manifest names, through
+        `master_record`. `licence_for` matches path parts, so it must not
+        license any file that merely shares the master's name."""
         with self.assertRaises(LicenceUndetermined):
-            master_record(self.MANIFEST, Path("x") / "assets" / "kit" / "netball-athlete.blend")
+            licence_for(Path("downloads") / "netball-athlete.blend")
 
 
 class AthleteRecordTest(unittest.TestCase):

@@ -440,7 +440,7 @@ the engine, so its entries live here.
 - **Instrument:** Not recorded in the register.
 - **Owner:** Video and footage
 - **Waits for:** Marius decides whether to move either poster, which costs one number in `PAIR1_SECTIONS` and a re-pin of two digests.
-- **Status:** Ruled, not built, and waiting on the owner. Spec 2 decision 11.7 says to use the stance frame, 560, for both posters, but 560 is outside the `release-rep09` window (598 to 653), and `check_poster` refuses it. The owner chooses again in Main/poster-11-7-again.
+- **Status:** Ruled on 13 November 2026, and built in the cutter. Marius chose front frame 612 (side 607), the ball at her shoulder, for `release-rep09`, and kept the stance frame 560 for `ready-between` only (lane board, Main/poster-11-7-pictures). `spikes/video_section_cuts.py` and the two release pins in `spikes/video-annotations/section-cuts/pair1/` hold 612 and 607. It stays open until Erin's page is rebuilt from the recordings, because that page still shows 619.
 - **Full record:** [docs/KNOWN_ISSUES.md at b48512a, line 4723](https://github.com/Braven-Performance-Lab/braven-movement/blob/b48512a61aee700bb6cd3b3be94d097acf31aef2/docs/KNOWN_ISSUES.md#L4723)
 
 ### Moved out of this register

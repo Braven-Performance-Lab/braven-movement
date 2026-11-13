@@ -1,0 +1,24 @@
+scripts/shared_athlete_loader_check.py on build 09-gait-v2, 13 Nov 2026
+HEAD before: d4e7d1cb6a3853b1b3667cab945e76936f8f295c
+Code changes not committed (tracked .py files): 0
+netball-athlete.blend sha256: 952342962192575331a479f00a5d926b04750aea808b778f25ab0ebb4bcd6576
+Blender: Blender 4.5.12 LTS (hash 84afd5f785f7 built 2026-07-21 01:33:53)
+
+LOADED Athlete_Body Netball_Athlete ['Athlete_Brows', 'Athlete_Eyes', 'Athlete_Hair', 'Athlete_Lashes', 'Athlete_Shoes', 'Kit_Binding', 'Kit_Jersey', 'Kit_Shorts', 'Kit_Skirt', 'Position_GS', 'Team_Braven']
+KEPT pose.bones["lowerarm_l"].constraints["Hand IK (enable on rig custom properties)"].influence
+KEPT pose.bones["calf_l"].constraints["Foot IK (enable on rig custom properties)"].influence
+KEPT pose.bones["lowerarm_r"].constraints["Hand IK (enable on rig custom properties)"].influence
+KEPT pose.bones["calf_r"].constraints["Foot IK (enable on rig custom properties)"].influence
+MUTED [('calf_l', 'Foot IK (enable on rig custom properties)'), ('calf_r', 'Foot IK (enable on rig custom properties)'), ('lowerarm_l', 'Hand IK (enable on rig custom properties)'), ('lowerarm_r', 'Hand IK (enable on rig custom properties)')]
+REFUSED an image empty under the rig | Check_Empty under the rig is a EMPTY; the renderer draws only meshes there.
+REFUSED object constraint on the body | netball-athlete.blend: Athlete_Body carries an object constraint (COPY_LOCATION); the renderer accepts none
+REFUSED driver on the rig object | the rig carries a driver on location; the renderer accepts only drivers on the influence of a constraint it mu
+REFUSED driver on the armature data | netball-athlete.blend: Netball_Athlete carries a driver on display_type; the renderer accepts only the rig's d
+REFUSED driver on the mesh data | netball-athlete.blend: Athlete_Body carries a driver on ["probe"]; the renderer accepts only the rig's drivers
+REFUSED driver on a material | netball-athlete.blend: Athlete_Body carries a driver on roughness; the renderer accepts only the rig's drivers
+REFUSED driver on a material node tree | netball-athlete.blend: Athlete_Body carries a driver on nodes["Material Output"].inputs[3].default_value; the 
+REFUSED driver on a mesh object | netball-athlete.blend: Athlete_Body carries a driver on location; the renderer accepts only the rig's drivers 
+REFUSED driver in a node group nested in a material | netball-athlete.blend: Athlete_Body carries a driver on nodes["Value"].outputs[0].default_value; the renderer 
+REFUSED driver in a geometry-nodes modifier group | netball-athlete.blend: Athlete_Body carries a driver on nodes["Value"].outputs[0].default_value; the renderer 
+
+HEAD after: d4e7d1cb6a3853b1b3667cab945e76936f8f295c

@@ -452,7 +452,7 @@ SYNC_METHOD_NOTE = (
     "the file on disk, because THE HASH WAS ALREADY IN EVERY ARTEFACT WHEN THE "
     "RENAME HAPPENED AND NOTHING READ IT: the suite stayed green across 50 "
     "tests with the two side files swapped. Refer to 'The alignment ranked a "
-    "sync clap above every real catch' in docs/KNOWN_ISSUES.md."
+    "sync clap above every real catch' in docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md."
 )
 # The camera is picked up after this, measured per frame by the rendering lane.
 USABLE_TO = {("front", "0.1"): 25.7}

@@ -43,16 +43,17 @@ reads the rig contract's `Head` and the probe renames nothing; the rename
 below describes the measured runs, made against the renderer before that
 change.
 
-**The renderer does not draw the shared athlete yet.** The `--athlete`
-option refuses every run with `LicenceUndetermined`. The licence check runs
-before the load, and the athlete's own build file has no licence
-determination until the owner rules (`Main/athlete-build-licence`). So no
-`--athlete` render exists. Every shared-athlete number in this report comes
+**The renderer draws the shared athlete since 13 Nov 2026.** Until then the
+`--athlete` option refused every run with `LicenceUndetermined`, because the
+athlete's own build file had no licence determination. The owner ruled it
+own work, all rights reserved (`Main/athlete-build-licence`), and
+`docs/LICENSING.md` records the ruling. The licence check still runs before
+the load. The shared-athlete numbers above this point in the report come
 from the probe, which skips the licence check and marks its receipts "NOT
-CHECKED". The renderer's loader (`load_shared_athlete`) ran once on build
-09-gait-v2 from a script that skips the licence check. It loaded
-`Athlete_Body` and 11 more meshes, muted the four IK constraints and kept
-the four drivers below. That run drew no figure.
+CHECKED". Before the ruling, the renderer's loader (`load_shared_athlete`)
+ran once on build 09-gait-v2 from a script that skips the licence check. It
+loaded `Athlete_Body` and 11 more meshes, muted the four IK constraints and
+kept the four drivers below.
 
 The loader links only meshes under the rig, and refuses any other kind of
 object there. It refuses any object constraint on the rig or its meshes. It
@@ -200,3 +201,55 @@ reach limit stays, because both MPFB bodies have the same clavicle.
 5. Every receipt must name the athlete revision and its GLB SHA-256, as it
    names the build.
 6. Every manual figure is re-rendered, and the coach sees the new kit.
+
+## The switch, rendered (13 Nov 2026)
+
+Items 1 to 5 of the list above are on main (#152, #153, #154). With the
+owner's licence ruling, the renderer drew every manual figure on the shared
+athlete. To find what moved, it also drew the same jobs on the older render
+body, from the same commit:
+
+- Both runs: commit `96ba152`, tree clean before and after, the same 12
+  jobs (each receipt's `jobSha256` paired), 51 phases each, none failed.
+- Shared athlete: `09-gait-v2`, revision 9, GLB SHA-256 `2b48758b...`,
+  master SHA-256 `95234296...`, the master licensed under the 13 Nov ruling.
+
+`scripts/compare_athlete_receipts.py` reads the two sets of receipts phase by
+phase, and the jobs for which hand holds the ball. Its output is
+`docs/evidence/shared-athlete-what-moved-2026-11-13.json`.
+
+**A CORRECTION.** The first version of this table gave the nearest digit as
+7.04 to 6.85 mm. It counted the free hand of each one-hand hold, 219 to
+980 mm from the ball (review round 1). Only the holding hands are counted
+now: 54 readings, the largest 8.65 mm.
+
+| Measure, 51 phases | Older body | Shared athlete |
+|---|---|---|
+| Ball anchor error, median | 7.53 mm | 7.13 mm |
+| Phases with ball anchor error over 10 mm | 2 | 1 |
+| Worst ball anchor error (hooks, outside hand, `facing_away`) | 18.16 mm | 18.03 mm |
+| Girdle verdict changed | | none |
+| Nearest digit to the ball, median, each holding hand | 6.97 mm | 6.80 mm |
+| Phases with any body vertex inside the ball | 20 | 24 |
+| Phases more than 1 mm deeper inside the ball | | none |
+| Phases more than 1 mm shallower | | 3 |
+
+The renderer's own route gives the same anchor figures as the probe
+measured on 12 Nov (7.53 to 7.13 mm, 2 to 1 over 10 mm).
+
+**Body inside the ball.** The net change is 4 phases: 9 phases touch the
+ball on the shared athlete and not on the older body, and 5 do the reverse.
+The 9 are contacts under 1 mm, 3 to 6 vertices, at most 0.82 mm deep (the
+hooks jump pull-in). The 5 were at most 1.59 mm deep (the deflect high
+contact). The deep contacts are the same on both
+bodies and a little shallower on the shared athlete: the chest pass release
+20.25 to 19.85 mm, the bounce pass release 17.75 to 17.61 mm, the overhead
+release 9.55 to 8.75 mm, the one-hand high ready 8.63 to 8.15 mm. They are
+recorded in `docs/FINDING_HIGH_PASS_READY_GRIP.md`; the switch did not make
+them.
+
+**Looked at.** A before-and-after sheet of each of the 12 drills, quarter
+view (`scripts/before_after_sheet.py`). In every phase the pose and the ball
+are where they were; the body, the kit and the bib letters changed, and 7.6 to
+10.3 % of the pixels moved. One framing defect is on both bodies: at the
+two-hand chest catch release, the frame cuts the ball.

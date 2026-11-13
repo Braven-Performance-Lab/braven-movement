@@ -112,6 +112,23 @@ KIT_SOURCE = (
 )
 
 
+# THE SHARED ATHLETE'S BUILD OUTPUT. Marius answered Main/athlete-build-licence
+# on 13 Nov 2026: "Yes, own work, all rights reserved". `licence_for` NEVER
+# returns this: it matches path parts, and a file that only shares the
+# master's name would be licensed by its name. `shared_athlete.master_record`
+# asks for it directly, for the one file a validated manifest names as master.
+ATHLETE_BUILD = "Braven Performance Lab (own work, all rights reserved)"
+ATHLETE_BUILD_RULE = (
+    "Marius ruled on 13 November 2026 that it is the work of Braven Performance "
+    "Lab, all rights reserved."
+)
+ATHLETE_BUILD_SOURCE = (
+    f"docs/LICENSING.md, 'The shared athlete's build output': {ATHLETE_BUILD_RULE} "
+    "It covers the build file the manifest names as its master; each external "
+    "asset keeps its own determination."
+)
+
+
 class LicenceUndetermined(Exception):
     """An asset this repository has not licensed reached a receipt."""
 

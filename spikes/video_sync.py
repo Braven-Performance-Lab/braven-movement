@@ -15,7 +15,7 @@ real and its cause is not the one recorded here — either the side microphone
 never registered the claps or the two files do not contain the same instant,
 and nothing here separates those. Refer to `spikes/video_clap_evidence.py`, the
 committed detector, and to "The alignment ranked a sync clap above every real
-catch" in `docs/KNOWN_ISSUES.md`. Its numbers are cited in
+catch" in `docs/archive/KNOWN_ISSUES_CLOSED_2026-11-12.md`. Its numbers are cited in
 `docs/VIDEO_CAPTURE_FINDINGS.md` as the evidence for the clap instruction, and
 a report citing a measurement nobody can rerun is worse than a failed script in
 the tree. Nothing downstream reads its output.

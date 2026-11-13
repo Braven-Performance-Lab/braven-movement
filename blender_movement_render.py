@@ -47,6 +47,7 @@ from asset_licences import source_asset_records  # noqa: E402
 # for the life of the process, so every receipt of one run names one build.
 from build_stamp import generated_from  # noqa: E402
 # The girdle rule lives apart from Blender so it can be tested without it.
+from arriving_ball import leave_ball_out  # noqa: E402
 from shared_athlete import (  # noqa: E402
     SharedAthleteRefusal,
     athlete_master,
@@ -980,16 +981,33 @@ def render_job(studio: Studio, job: dict, job_path: Path, args,
         images = {}
         for name, view in job["views"].items():
             path = output / f"{job['movementId']}.{phase['name']}.{name}.png"
-            images[name] = render_view(
-                camera,
-                path=path,
-                resolution=tuple(view["resolutionPx"]),
-                location=Vector(view["locationM"]),
-                target=Vector(view["targetM"]),
-                lens=view["lensMm"],
-                sensor_width=view["sensorWidthMm"],
-                world_colour=world_colour,
+            # The owner's choice B (13 Nov 2026): a front view leaves out an
+            # ARRIVING ball that covers her face. Only for this one picture;
+            # the quarter and side views draw it, and the receipt says so.
+            left_out = leave_ball_out(
+                name, view, phase, job["phases"], list(centre),
+                phase["ball"]["radiusM"],
+                receipt["arms"]["l"]["shoulder"], receipt["arms"]["r"]["shoulder"],
             )
+            for item in (ball, *ball_seams):
+                item.hide_render = left_out is not None
+            try:
+                images[name] = render_view(
+                    camera,
+                    path=path,
+                    resolution=tuple(view["resolutionPx"]),
+                    location=Vector(view["locationM"]),
+                    target=Vector(view["targetM"]),
+                    lens=view["lensMm"],
+                    sensor_width=view["sensorWidthMm"],
+                    world_colour=world_colour,
+                )
+            finally:
+                for item in (ball, *ball_seams):
+                    item.hide_render = False
+            images[name]["ballDrawn"] = left_out is None
+            if left_out is not None:
+                images[name]["ballLeftOut"] = left_out
         receipt["name"] = phase["name"]
         receipt["frame"] = phase["frame"]
         receipt["ballCentreM"] = list(centre)

@@ -1,8 +1,9 @@
 # The Braven Studio Worker: the Studio page, and the review loop under /api/.
 #
-# NOT DEPLOYED. No Cloudflare resource below exists yet. Each one, the subdomain and the deploy
-# itself need the owner's yes on the lane board first (specification 4, decisions 12.1 to 12.3).
-# The two ids are placeholders on purpose: wrangler refuses to deploy with them.
+# The owner approved a preview on 13 November 2026 (board card Studio/studio-deploy-go): the
+# Worker on its workers.dev address, on the Cloudflare account that holds Braven Tactics. The
+# D1 database exists (created 13 November 2026, western Europe, migration 0001 applied). A
+# custom domain and its DNS record need a second yes from the owner.
 #
 # No secret belongs in this file, and the Worker needs none: FIREBASE_PROJECT_ID is a public
 # identifier, the same one Braven Tactics ships.
@@ -25,7 +26,7 @@ run_worker_first = ["/api/*"]
 [[d1_databases]]
 binding = "DB"
 database_name = "braven-studio"
-database_id = "SET-AFTER-THE-OWNER-APPROVES"
+database_id = "b49c248e-4c86-4eaa-82b0-95621a9300f5"
 migrations_dir = "migrations"
 
 # Private: no public address and no custom domain. Files leave through the Worker only.

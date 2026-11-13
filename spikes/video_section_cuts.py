@@ -641,10 +641,11 @@ PAIR1_SECTIONS = (
             "which is the mirror the section is named for"),
     Section("release-rep09", 598, 653,
             "section 5, the release moment: the ball leaving her hands",
-            619,
-            "the ball leaving her hands; this is the fastest instant in the "
-            "window, so the still carries motion blur on the ball and on both "
-            "hands"),
+            612,
+            "the ball at her shoulder just before it leaves her hands; Marius "
+            "ruled this frame on 13 November 2026 over 619, the release "
+            "instant itself, which carries motion blur on the ball and on "
+            "both hands"),
     Section("hold-rep09", 654, 715,
             "section 7, the elbow dial: the pull-in reaching her chest",
             673,

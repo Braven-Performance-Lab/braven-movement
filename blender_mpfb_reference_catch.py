@@ -26,6 +26,7 @@ from finger_curl import (  # noqa: E402
     curl_directions,
     dominance_margin,
     dominant_axis,
+    knuckle_release_for,
 )
 from movement_contract import inspect_glb, max_rgba_alpha  # noqa: E402
 from reference_pose_calibration import (  # noqa: E402
@@ -505,8 +506,17 @@ def pose_articulated_hand(
     ball_radius: float | None = None,
     knuckle_limits: dict[str, dict] | None = None,
     axis_report: dict[str, dict] | None = None,
+    finger_open_degrees: float | None = None,
+    open_report: dict | None = None,
 ) -> dict[str, list[list[float]]]:
     """Close one hand's fingers onto the ball.
+
+    ``finger_open_degrees`` is the wrist flick's part of the hand: how far
+    the solve opened this hand's fingers past the grip, as a change of the
+    wrist-knuckle-tip angle of the middle finger. After the grip is solved,
+    every knuckle is backed off the ball by one amount until this hand's own
+    angle has opened that far. ``open_report`` receives what was asked and
+    what the hand gave. Refer to `finger_curl.knuckle_release_for`.
 
     Three joints bend, not two. The cumulative angles used to start at zero,
     which left the first bone of every chain unrotated and the knuckle
@@ -712,6 +722,9 @@ def pose_articulated_hand(
             apply(digit, angle)
         return angle
 
+    # The knuckle angle each finger lands on, for the flick to open from.
+    landed: dict[str, float] = {digit: 0.0 for digit in FINGER_DIGITS}
+
     for digit in FINGER_DIGITS:
         if tip_clearance(digit) <= CONTACT_CLEARANCE_M:
             continue
@@ -721,7 +734,7 @@ def pose_articulated_hand(
             # It cannot reach even fully flexed. Leave it at the furthest the
             # joint permits rather than straight, and let the receipt report
             # the residual.
-            retreat_into_limits(digit, high)
+            landed[digit] = retreat_into_limits(digit, high)
             continue
 
         # Keep the best angle actually measured, rather than an interval end.
@@ -750,7 +763,36 @@ def pose_articulated_hand(
                 break
         # Land on the best angle measured, which is never inside the ball.
         apply(digit, best_angle)
-        retreat_into_limits(digit, best_angle)
+        landed[digit] = retreat_into_limits(digit, best_angle)
+
+    if finger_open_degrees is not None:
+        # The wrist flick opens the fingers the grip has just closed. The
+        # thumb stays: the solve's finger angle is the four fingers'.
+        fingers = [digit for digit in FINGER_DIGITS if digit != "thumb"]
+
+        def middle_angle() -> float:
+            knuckle = world_head(armature, f"middle_01_{side}")
+            one = wrist - knuckle
+            two = world_tail(armature, f"middle_03_{side}") - knuckle
+            return math.degrees(one.angle(two))
+
+        wrapped_angle = middle_angle()
+
+        def change_at(amount: float) -> float:
+            for digit in fingers:
+                apply(digit, max(0.0, landed[digit] - amount))
+            return middle_angle() - wrapped_angle
+
+        amount, gave = knuckle_release_for(
+            change_at, finger_open_degrees, max(landed[digit] for digit in fingers)
+        )
+        if open_report is not None:
+            open_report.update({
+                "askedDegrees": round(float(finger_open_degrees), 3),
+                "gaveDegrees": round(gave, 3),
+                "knucklesBackedOffDegrees": round(amount, 3),
+                "wrappedAngleDegrees": round(wrapped_angle, 3),
+            })
 
     # A hand that is not holding the ball never enters the solve above, so
     # `axis_report` stays EMPTY for it and the receipt carries `flexionAxis:

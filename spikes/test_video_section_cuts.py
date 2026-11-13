@@ -556,8 +556,10 @@ class EveryClipCutSectionWritesHoldsTheFramesItClaims(unittest.TestCase):
                                  s.poster + self.files["offset"])
 
     def test_every_poster_matches_the_digest_committed_for_it(self):
-        """The eight posters already on Erin's page, pinned as the DECODED
-        pixels of each JPEG. The file bytes are not the thing to pin: a
+        """The eight posters, pinned as the DECODED pixels of each JPEG: six
+        are the ones on Erin's page, and the two release posters are frames
+        612 and 607, which Marius ruled on 13 November 2026 and the page does
+        not show yet (PROVENANCE.md). The file bytes are not the thing to pin: a
         different quality setting changes every byte while showing the same
         picture, and re-encoding the same wrong frame changes none of them."""
         missing = []
@@ -995,6 +997,29 @@ class TheCommandLineRefusesBeforeItCuts(unittest.TestCase):
                        "--out", str(out)])
 
         self.assertIn("--pair1-sections", str(refusal.exception))
+
+
+class ThePostersAreTheOnesTheOwnerRuled(unittest.TestCase):
+    """Marius ruled on 13 November 2026 (lane board, Main/poster-11-7-pictures):
+    the release section opens on front frame 612, the ball at her shoulder, and
+    the stance frame 560 stays with the ready section only. Spec 2 decision 11.7
+    had said "the stance frame for both", which check_poster refuses, because
+    560 is outside the release window. This needs no recording, so it runs on
+    every machine; the digests below it prove the picture where the recordings
+    are."""
+
+    def test_the_release_section_opens_on_frame_612(self):
+        posters = {s.name: s.poster for s in cuts.PAIR1_SECTIONS}
+        self.assertEqual(posters["release-rep09"], 612)
+
+    def test_the_ready_section_keeps_the_stance_frame_560(self):
+        posters = {s.name: s.poster for s in cuts.PAIR1_SECTIONS}
+        self.assertEqual(posters["ready-between"], 560)
+
+    def test_each_ruled_poster_is_inside_its_own_window(self):
+        for s in cuts.PAIR1_SECTIONS:
+            with self.subTest(section=s.name):
+                self.assertEqual(cuts.check_poster(s.name, s.start, s.end, s.poster), s.poster)
 
 
 if __name__ == "__main__":

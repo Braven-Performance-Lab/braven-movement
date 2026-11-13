@@ -735,12 +735,10 @@ SHARED_LEFT_OUT = ("Movement_Ball",)
 def load_shared_athlete(master: Path, master_sha256: str):
     """The shared athlete's rig and meshes, in an empty scene of their own.
 
-    NOT YET RUN BY THE RENDERER. `Studio` calls this only after the licence
-    check, and that check refuses the master build file until the owner rules
-    on its licence (`Main/athlete-build-licence`). So today every `--athlete`
-    run stops with `LicenceUndetermined` before this function. This function
-    ran once on 09-gait-v2 from a script that skips the licence check, and
-    drew nothing (`docs/SHARED_ATHLETE_2026-11-12.md`).
+    `Studio` calls this only after the licence check. The owner ruled the
+    athlete's build output own work, all rights reserved, on 13 Nov 2026
+    (`Main/athlete-build-licence`, `docs/LICENSING.md`), so the check passes
+    the master and every `--athlete` run reaches this function.
 
     Measured on 12 Nov 2026 (`docs/SHARED_ATHLETE_2026-11-12.md`):
     - OPENING the build file brought its own Key, Fill and Rim lights, camera,

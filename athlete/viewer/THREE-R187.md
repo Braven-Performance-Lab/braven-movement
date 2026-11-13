@@ -14,6 +14,19 @@ Vite is `8.3.0`. Four source files import three.js:
 - `src/athlete-source.js` imports `GLTFLoader` from the addons. It calls
   `loadAsync` and `parseAsync` only.
 
+The viewer also runs Tactics engine code on its own three.js:
+`vite.config.mjs` aliases `@tactics` to the Tactics checkout and sets
+`dedupe: ['three']`. `src/main.js` imports `skinned.ts`, `athleteMotion.ts`
+and `athleteFootwork.ts`, and `skinned.ts` imports `figure.ts`. These four
+use `GLTFLoader` and `SkeletonUtils` from `three/examples/jsm`, and `Bone`,
+`SkinnedMesh`, `KeyframeTrack`, `Interpolant`, `PropertyBinding`,
+`AnimationClip`, `BufferGeometry` and its attributes, `MeshStandardMaterial`,
+`CatmullRomCurve3`, `Matrix4`, `Quaternion` and `Vector3`. The first version
+of this survey missed them. None of these names is in the migration guide
+from r170 to r187, and they set no `Material.type`, no `matrixAutoUpdate`
+and no shadow map type. Their `MeshStandardMaterial` takes the light change
+below.
+
 The core names the viewer uses: `WebGLRenderer`, `Scene`, `PerspectiveCamera`,
 `PMREMGenerator`, `MeshStandardMaterial`, `MeshBasicMaterial`, `Mesh`, `Group`,
 `PlaneGeometry`, `RingGeometry`, `DirectionalLight`, `HemisphereLight`, `Fog`,

@@ -20,7 +20,7 @@ if str(ATHLETE_DIR) not in sys.path:
     sys.path.insert(0, str(ATHLETE_DIR))
 
 import athlete_manifest  # noqa: E402
-from asset_licences import licence_for  # noqa: E402
+from asset_licences import ATHLETE_BUILD, ATHLETE_BUILD_SOURCE, licence_for  # noqa: E402
 
 MASTER_ROLE = "master"
 # THE RIG CONTRACT'S SPELLING (`athlete_manifest.CONTRACT_BONES`, spec 3,
@@ -73,18 +73,17 @@ def external_asset_records(manifest: dict) -> list[dict]:
 
 
 def master_record(manifest: dict, master: Path) -> dict:
-    """The athlete's own build file, licensed like any other asset.
+    """The athlete's own build file, under the owner's ruling for it.
 
-    It holds the kit and the lettering the athlete pipeline authors. Until
-    `docs/LICENSING.md` determines that build output, `licence_for` refuses
-    it, and the renderer draws nothing.
+    It holds the MPFB body with the kit and the lettering the athlete
+    pipeline authors. Marius ruled on 13 Nov 2026 (Main/athlete-build-licence)
+    that it is own work, all rights reserved; `docs/LICENSING.md` records it.
+    The ruling is given HERE, for the one file the validated manifest names
+    as master, and never through `licence_for`, which matches path parts and
+    would license any file by its name or its folder.
     """
-    # The FILE NAME, never the folder's path: `licence_for` matches path parts,
-    # and a build folder placed under `assets/kit/` would otherwise be
-    # licensed as own work by where it sits.
-    licence, source = licence_for(master.name)
     return {"path": master.name, "sha256": manifest["files"][master.name]["sha256"].lower(),
-            "licence": licence, "licenceSource": source}
+            "licence": ATHLETE_BUILD, "licenceSource": ATHLETE_BUILD_SOURCE}
 
 
 def athlete_record(manifest: dict, master: Path) -> dict:

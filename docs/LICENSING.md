@@ -16,6 +16,11 @@ These are separate licensing decisions and must not be conflated:
   The label "own work, no licence selected" in the two `.mhclo` headers, in `config/kit/` and in
   receipts predates that ruling. The headers are part of the hashed meshes, so the label changes
   only when the kit is authored again. Until then the root `LICENSE` governs, not the label.
+- **The shared athlete's build output (the files an `athlete-manifest.json` lists):** the MPFB
+  body with the kit and the lettering, built by the Models lane. Marius ruled on 13 November 2026
+  that it is the work of Braven Performance Lab, all rights reserved. The ruling covers the build
+  file the manifest names as its master. Each external asset the manifest lists keeps its own
+  determination above, and the renderer refuses one that has none.
 - **Reference photographs:** the current photograph is not stored in Git. Its configured hash is
   provenance evidence, not a redistribution permission.
 - **Cascadeur samples:** Cascy and UE5 Quinn were used only for internal mechanism/rig evaluation.
